@@ -14,6 +14,12 @@ db = ["asyncpg>=0.29", "redis>=5.0"]
 browser = [
     "playwright>=1.62.0",
 ]
+docs = [
+    "minio>=7.2.20",
+    "openpyxl>=3.1.5",
+    "pypdf>=6.16.2",
+    "python-docx>=1.2.0",
+]
 
 [dependency-groups]
 dev = ["pytest>=8", "pytest-asyncio>=0.24", "respx>=0.21", "ruff>=0.6", "mypy>=1.11"]
