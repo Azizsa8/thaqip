@@ -122,3 +122,54 @@ Traceback (most recent call last):
     raise HTTPStatusError(message, request=request, response=self)
 httpx.HTTPStatusError: Client error '400 Bad Request' for url 'https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=5&TenderCategory=6'
 For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+2026-09-03T02:37:31+03:00 cron harvest session starting
+Installed 3 packages in 22ms
+2026-09-03 02:37:32,188 thaqip.awards INFO awards harvest resuming at listing page 5
+2026-09-03 02:37:32,807 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=5&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-03 02:37:32,813 thaqip_ingestion.etimad.client WARNING etimad listing page=5 attempt=1 failed (Client error '400 Bad Request' for url 'https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=5&TenderCategory=6'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400); retrying in 1.4s
+2026-09-03 02:37:34,583 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=5&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-03 02:37:34,584 thaqip_ingestion.etimad.client WARNING etimad listing page=5 attempt=2 failed (Client error '400 Bad Request' for url 'https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=5&TenderCategory=6'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400); retrying in 2.2s
+2026-09-03 02:37:37,163 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=5&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-03 02:37:37,164 thaqip_ingestion.etimad.client WARNING etimad listing page=5 attempt=3 failed (Client error '400 Bad Request' for url 'https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=5&TenderCategory=6'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400); retrying in 5.4s
+2026-09-03 02:37:42,986 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=5&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-03 02:37:42,987 thaqip_ingestion.etimad.client WARNING etimad listing page=5 attempt=4 failed (Client error '400 Bad Request' for url 'https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=5&TenderCategory=6'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400); retrying in 11.2s
+2026-09-03 02:37:54,804 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=5&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 220, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 212, in main
+    stats = await harvester.run(pages=args.pages, page_size=args.page_size)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 133, in run
+    listing = await self._fetch_awarded_page(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        client, page, page_size, dict(AWARDED_CATEGORY_PARAM)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 196, in _fetch_awarded_page
+    listing = await client.fetch_listing_page(page, page_size, extra_params=extra)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/etimad/client.py", line 93, in fetch_listing_page
+    resp.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/httpx/_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '400 Bad Request' for url 'https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=5&TenderCategory=6'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
