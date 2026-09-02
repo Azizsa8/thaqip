@@ -11,6 +11,9 @@ dependencies = [
 
 [project.optional-dependencies]
 db = ["asyncpg>=0.29", "redis>=5.0"]
+browser = [
+    "playwright>=1.62.0",
+]
 
 [dependency-groups]
 dev = ["pytest>=8", "pytest-asyncio>=0.24", "respx>=0.21", "ruff>=0.6", "mypy>=1.11"]

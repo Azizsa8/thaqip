@@ -5,14 +5,14 @@ services:
       POSTGRES_USER: thaqip
       POSTGRES_PASSWORD: thaqip_dev
       POSTGRES_DB: thaqip
-    ports: ["5432:5432"]
+    ports: ["5433:5432"]
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./db/migrations:/docker-entrypoint-initdb.d:ro
 
   redis:
     image: redis:7-alpine
-    ports: ["6379:6379"]
+    ports: ["6380:6379"]
 
   minio:
     image: minio/minio:latest
@@ -20,7 +20,7 @@ services:
     environment:
       MINIO_ROOT_USER: thaqip
       MINIO_ROOT_PASSWORD: thaqip_dev_secret
-    ports: ["9000:9000", "9001:9001"]
+    ports: ["9002:9000", "9003:9001"]
     volumes:
       - miniodata:/data
 
