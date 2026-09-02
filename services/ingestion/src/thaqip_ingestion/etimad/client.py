@@ -79,7 +79,12 @@ class EtimadClient:
         for attempt in range(1, self._max_retries + 1):
             try:
                 resp = await self._throttled_get(LISTING_PATH, params)
-                if resp.status_code in (429, 502, 503, 504):
+                if resp.status_code == 429:
+                    wait = float(resp.headers.get("Retry-After", 60)) + 30 * attempt
+                    log.warning("429 rate limit; honoring backoff %.0fs (attempt %s)", wait, attempt)
+                    await asyncio.sleep(wait)
+                    raise httpx.HTTPStatusError("rate limited", request=resp.request, response=resp)
+                if resp.status_code in (502, 503, 504):
                     raise httpx.HTTPStatusError("retryable", request=resp.request, response=resp)
                 resp.raise_for_status()
                 if looks_like_challenge(resp.content):
