@@ -73,8 +73,12 @@ class EtimadClient:
             self._last_request_at = asyncio.get_event_loop().time()
         return await self._http.get(path, params=params)
 
-    async def fetch_listing_page(self, page: int, page_size: int = 50) -> EtimadListingPage:
-        params = {"PageSize": page_size, "PageNumber": page}
+    async def fetch_listing_page(
+        self, page: int, page_size: int = 50, extra_params: dict | None = None
+    ) -> EtimadListingPage:
+        params: dict[str, object] = {"PageSize": page_size, "PageNumber": page}
+        if extra_params:
+            params.update(extra_params)
         delay = 1.0
         for attempt in range(1, self._max_retries + 1):
             try:

@@ -27,7 +27,7 @@ import asyncpg
 
 from . import db
 from .etimad.client import EtimadClient
-from .etimad.models import EtimadListingPage
+
 
 log = logging.getLogger("thaqip.backfill")
 
@@ -74,12 +74,9 @@ async def run_backfill(
     error: str | None = None
     try:
         for page in range(start_page, start_page + max_pages):
-            resp = await client._throttled_get(  # noqa: SLF001 — same-package reuse
-                "/Tender/AllSupplierTendersForVisitorAsync",
-                {"PageSize": page_size, "PageNumber": page, **CATEGORY_PARAMS[category]},
+            listing = await client.fetch_listing_page(
+                page, page_size, extra_params=CATEGORY_PARAMS[category]
             )
-            resp.raise_for_status()
-            listing = EtimadListingPage.model_validate_json(resp.content)
             stats["total_count"] = listing.totalCount
             if not listing.data:
                 log.info("empty page %d — corpus walk complete", page)

@@ -192,15 +192,9 @@ class AwardsHarvester:
 
     @staticmethod
     async def _fetch_awarded_page(client: EtimadClient, page: int, page_size: int, extra: dict):
-        # reuse EtimadClient throttling/retry with extra query params
-        resp = await client._throttled_get(  # noqa: SLF001 — same-package reuse until B4 refactor
-            "/Tender/AllSupplierTendersForVisitorAsync",
-            {"PageSize": page_size, "PageNumber": page, **extra},
-        )
-        resp.raise_for_status()
-        from .etimad.models import EtimadListingPage
-
-        return EtimadListingPage.model_validate_json(resp.content).data
+        # full retry/backoff/challenge handling lives in the client
+        listing = await client.fetch_listing_page(page, page_size, extra_params=extra)
+        return listing.data
 
 
 async def main() -> None:
