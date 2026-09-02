@@ -24,6 +24,23 @@ services:
     volumes:
       - miniodata:/data
 
+  poller:
+    build: ./services/ingestion
+    command: ["python", "-m", "thaqip_ingestion.main", "--loop", "--every", "300", "--pages", "3"]
+    environment:
+      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
+    depends_on: [postgres]
+    restart: unless-stopped
+
+  relay:
+    build: ./services/ingestion
+    command: ["python", "-m", "thaqip_ingestion.relay", "--interval", "2"]
+    environment:
+      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
+      REDIS_URL: redis://redis:6379/0
+    depends_on: [postgres, redis]
+    restart: unless-stopped
+
 volumes:
   pgdata:
   miniodata:
