@@ -41,6 +41,14 @@ services:
     depends_on: [postgres, redis]
     restart: unless-stopped
 
+  console:
+    build: ./services/console
+    environment:
+      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
+    ports: ["8091:8080"]
+    depends_on: [postgres]
+    restart: unless-stopped
+
 volumes:
   pgdata:
   miniodata:
