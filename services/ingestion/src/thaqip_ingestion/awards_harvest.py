@@ -118,13 +118,24 @@ class AwardsHarvester:
         raise RuntimeError("awarding component kept hitting bot challenge")
 
     async def run(self, *, pages: int, page_size: int = 20) -> dict:
-        stats = {"tenders": 0, "announced": 0, "offers": 0, "awards": 0, "events": 0}
-        client = EtimadClient()
-        # awarded-category listing shares the visitor listing endpoint
-        client_iter_params = dict(AWARDED_CATEGORY_PARAM)
+        connector = "etimad.awards_harvest"
+        stats = {"pages": 0, "tenders": 0, "skipped": 0, "announced": 0,
+                 "offers": 0, "awards": 0, "events": 0}
+        client = EtimadClient(rate_limit_per_sec=0.5)
+        run_id = await self._pool.fetchval(
+            "INSERT INTO ingest_runs (connector) VALUES ($1) RETURNING id", connector
+        )
+        start_page = await self._load_checkpoint(connector) + 1
+        log.info("awards harvest resuming at listing page %d", start_page)
+        error: str | None = None
         try:
-            for page in range(1, pages + 1):
-                listing = await self._fetch_awarded_page(client, page, page_size, client_iter_params)
+            for page in range(start_page, start_page + pages):
+                listing = await self._fetch_awarded_page(
+                    client, page, page_size, dict(AWARDED_CATEGORY_PARAM)
+                )
+                if not listing:
+                    log.info("empty page %d — awarded corpus walk complete", page)
+                    break
                 for row in listing:
                     stats["tenders"] += 1
                     await db.upsert_tender(self._pool, row)
@@ -134,6 +145,11 @@ class AwardsHarvester:
                     )
                     if not row.tender_id_string:
                         continue
+                    if await self._pool.fetchval(
+                        "SELECT EXISTS (SELECT 1 FROM awards WHERE tender_id = $1)", pk
+                    ):
+                        stats["skipped"] += 1
+                        continue
                     result = await self.fetch_awarding(row.tender_id_string)
                     if result.announced:
                         stats["announced"] += 1
@@ -142,9 +158,37 @@ class AwardsHarvester:
                         if await store_awarding(self._pool, pk, result):
                             stats["events"] += 1
                     await asyncio.sleep(self._delay)
+                stats["pages"] += 1
+                await self._pool.execute(
+                    """UPDATE ingest_runs SET pages=$2, items_seen=$3, checkpoint=$4::jsonb
+                       WHERE id=$1""",
+                    run_id, stats["pages"], stats["tenders"],
+                    json.dumps({"last_page": page, "page_size": page_size}),
+                )
+                log.info("page %d done: %s", page, stats)
+        except Exception as exc:
+            error = repr(exc)
+            raise
         finally:
+            await self._pool.execute(
+                "UPDATE ingest_runs SET finished_at=now(), ok=$2, error=$3 WHERE id=$1",
+                run_id, error is None, error,
+            )
             await client.aclose()
         return stats
+
+    async def _load_checkpoint(self, connector: str) -> int:
+        row = await self._pool.fetchrow(
+            """SELECT checkpoint FROM ingest_runs
+               WHERE connector=$1 AND checkpoint IS NOT NULL ORDER BY id DESC LIMIT 1""",
+            connector,
+        )
+        if row and row["checkpoint"]:
+            cp = row["checkpoint"]
+            if isinstance(cp, str):
+                cp = json.loads(cp)
+            return int(cp.get("last_page", 0))
+        return 0
 
     @staticmethod
     async def _fetch_awarded_page(client: EtimadClient, page: int, page_size: int, extra: dict):
