@@ -23,9 +23,14 @@ uv run pytest                                          # fixture-based tests
 
 ## Status (Phase 0)
 
-- [x] B1 listing client — working against the live visitor API (rate-limited, retrying, challenge-aware)
-- [x] C1 schema v1 draft
-- [x] C2 normalize/diff/idempotency logic (in-memory; Postgres upsert next)
-- [ ] B2 detail fetcher · B5 anti-bot layer · C4 backfill · D1 outbox relay · D3 freshness dashboard
+- [x] B1 listing client — live against the visitor API (rate-limited, retrying, challenge-aware)
+- [x] C1 schema v1 (11 tables incl. outbox, applied via docker-compose)
+- [x] C2 Postgres upsert + typed outbox events — verified live, idempotent on replay
+- [x] B2 detail fetcher — TSPD session bootstrap (Playwright) + view-component parsers (relations/dates/attachments/awarding), verified live
+- [x] B4 awards harvester — awarded-tenders discovery via `TenderCategory=6` (~238k tenders), bidder/awardee parsing into vendors/offers/awards, `tender.awarded` events; 429-aware pacing
+- [x] D1 outbox → Redis Streams relay (`thaqip.events`, at-least-once, consumer groups verified)
+- [ ] B5 anti-bot hardening · C3 entity resolution · C4 full backfill · C6 doc pipeline · D3 freshness dashboard
+
+Key source facts (probed 2026-09-02): listing API is public JSON (~288k tenders); detail/awarding routes need TSPD cookies (one browser bootstrap per session); components take `tenderIdStr` (raw encrypted id); awarding returns 302→/Home/Error for non-awarded tenders and 429s under fast polling — default pacing is 3s between component fetches.
 
 Ground rules: rate limits stay conservative (default 1 req/s), challenge responses are never parsed as data, and the legal/official-access track (tickets F1–F4) runs in parallel from day one.
