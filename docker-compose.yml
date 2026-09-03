@@ -27,6 +27,14 @@ services:
     volumes:
       - miniodata:/data
 
+  typesense:
+    image: typesense/typesense:27.1
+    command: ["--data-dir", "/data", "--api-key", "thaqip_dev_search"]
+    ports: ["8108:8108"]
+    volumes:
+      - tsdata:/data
+    restart: unless-stopped
+
   poller:
     build: ./services/ingestion
     command: ["python", "-m", "thaqip_ingestion.main", "--loop", "--every", "300", "--pages", "6"]
@@ -54,10 +62,23 @@ services:
     depends_on: [postgres, redis]
     restart: unless-stopped
 
+  indexer:
+    build: ./services/ingestion
+    command: ["python", "-m", "thaqip_ingestion.indexer"]
+    environment:
+      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
+      REDIS_URL: redis://redis:6379/0
+      TYPESENSE_URL: http://typesense:8108
+      TYPESENSE_KEY: thaqip_dev_search
+    depends_on: [postgres, redis, typesense]
+    restart: unless-stopped
+
   console:
     build: ./services/console
     environment:
       DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
+      TYPESENSE_URL: http://typesense:8108
+      TYPESENSE_KEY: thaqip_dev_search
     ports: ["8091:8080"]
     depends_on: [postgres]
     restart: unless-stopped
@@ -66,3 +87,4 @@ volumes:
   pgdata:
   miniodata:
   redisdata:
+  tsdata:

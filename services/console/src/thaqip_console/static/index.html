@@ -430,13 +430,21 @@ async function loadDisc(){
 }
 async function queryDisc(){
   const p = new URLSearchParams({limit:LIMIT, offset});
-  if($('#q').value) p.set('q', $('#q').value);
+  const q = $('#q').value.trim();
+  if(q) p.set('q', q);
   if($('#fAgency').value) p.set('agency_id', $('#fAgency').value);
   if($('#fActivity').value) p.set('activity_id', $('#fActivity').value);
   if($('#fAwarded').checked) p.set('awarded','true');
   if($('#fOpen').checked) p.set('open_only','true');
   if($('#fSource').value) p.set('source', $('#fSource').value);
-  const d = await (await fetch(API+'/api/tenders?'+p)).json();
+  // deep search (names + inside documents) when a query is present and no
+  // structured-only filter conflicts; falls back to the table endpoint on 503
+  let d = null;
+  if(q && !$('#fAgency').value && !$('#fActivity').value){
+    const r = await fetch(API+'/api/search?'+p);
+    if(r.ok) d = await r.json();
+  }
+  if(!d) d = await (await fetch(API+'/api/tenders?'+p)).json();
   $('#discCount').textContent = `${nf.format(d.total)} منافسة — عرض ${offset+1}–${offset+d.items.length}`;
   $('#discRows').innerHTML = d.items.map(t => {
     const lat = latencyTxt(t.published_at, t.detected_at);
@@ -452,7 +460,8 @@ async function queryDisc(){
     return `<tr class="border-b border-line last:border-0 hover:bg-tint/50 cursor-pointer transition" onclick="openDetail(${t.id})">
       <td class="px-5 py-3.5"><div class="num text-[12px] text-mut">${t.reference_number??''}</div><div class="mt-1">${srcBadge}</div></td>
       <td class="px-4 py-3.5 max-w-[380px]"><div class="font-medium leading-snug">${t.name??''}</div>
-        <div class="text-[11.5px] text-mut mt-0.5">${t.activity??''}</div>${intensity}</td>
+        <div class="text-[11.5px] text-mut mt-0.5">${t.activity??''}</div>${intensity}
+        ${t.snippet?`<div class="text-[11px] mt-1 bg-[#2E7C8C]/10 text-[#2E7C8C] rounded px-2 py-1 leading-relaxed">📄 داخل الوثائق: …${t.snippet}…</div>`:''}</td>
       <td class="px-4 py-3.5 text-mut max-w-[200px]">${t.agency??''}</td>
       <td class="px-4 py-3.5">${st}</td>
       <td class="px-4 py-3.5 num text-[12.5px] ${urgent?'text-danger font-semibold':''}">${countdown(t.remaining_s)}</td>

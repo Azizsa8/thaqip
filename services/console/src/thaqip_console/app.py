@@ -369,6 +369,69 @@ async def vendor_detail(vid: int):
     return out
 
 
+TYPESENSE_URL = os.environ.get("TYPESENSE_URL", "http://localhost:8108")
+TYPESENSE_KEY = os.environ.get("TYPESENSE_KEY", "thaqip_dev_search")
+
+
+@app.get("/api/search")
+async def search(q: str, limit: int = Query(50, le=100), offset: int = 0,
+                 source: str | None = None, awarded: bool | None = None,
+                 open_only: bool = False):
+    """E2: full-text search over names, agencies, activities AND document text."""
+    import httpx
+
+    filters = []
+    if source in ("etimad", "forsah"):
+        filters.append(f"source:={source}")
+    if awarded:
+        filters.append("has_award:=true")
+    if open_only:
+        filters.append("open_now:=true")
+    params = {
+        "q": q, "query_by": "name,reference,agency,activity,doc_text",
+        "query_by_weights": "10,10,4,4,2",
+        "per_page": limit, "page": offset // limit + 1,
+        "highlight_fields": "doc_text", "highlight_affix_num_tokens": 6,
+    }
+    if filters:
+        params["filter_by"] = " && ".join(filters)
+    async with httpx.AsyncClient(timeout=15) as h:
+        r = await h.get(f"{TYPESENSE_URL}/collections/tenders/documents/search",
+                        params=params, headers={"X-TYPESENSE-API-KEY": TYPESENSE_KEY})
+    if r.status_code != 200:
+        raise HTTPException(503, "search index unavailable")
+    res = r.json()
+    hits = res.get("hits", [])
+    ids = [int(h_["document"]["id"]) for h_ in hits]
+    snippets = {}
+    for h_ in hits:
+        for hl in h_.get("highlights", []):
+            if hl.get("field") == "doc_text":
+                snippets[int(h_["document"]["id"])] = hl.get("snippet", "")
+    if not ids:
+        return {"total": 0, "items": []}
+    pool: asyncpg.Pool = app.state.pool
+    rows = await pool.fetch(
+        """SELECT t.id, t.source, t.reference_number, t.name,
+                  t.submitted_bids_count, t.draft_bids_count,
+                  coalesce(a.canonical_name, t.agency_name_raw) AS agency,
+                  t.activity_name_raw AS activity, t.status_id,
+                  t.last_offer_date, t.published_at, t.detected_at,
+                  EXISTS (SELECT 1 FROM awards w WHERE w.tender_id = t.id) AS has_award,
+                  greatest(0, extract(epoch FROM t.last_offer_date - now()))::bigint AS remaining_s
+           FROM tenders t LEFT JOIN agencies a ON a.id = t.agency_id
+           WHERE t.id = ANY($1)""", ids)
+    by_id = {r_["id"]: dict(r_) for r_ in rows}
+    items = []
+    for i in ids:
+        if i in by_id:
+            item = by_id[i]
+            if i in snippets:
+                item["snippet"] = snippets[i]
+            items.append(item)
+    return {"total": res.get("found", len(items)), "items": items}
+
+
 @app.get("/api/agencies")
 async def agencies_board(q: str | None = None, limit: int = Query(50, le=200)):
     """M8-2: agency behavior leaderboard."""
