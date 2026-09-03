@@ -38,11 +38,12 @@ EVENT_LABEL = {
     "tender.updated": "تحديث على منافسة",
     "tender.awarded": "إعلان ترسية",
     "tender.deadline": "⏰ اقتراب موعد الإغلاق",
+    "competition.rising": "📈 المنافسة تشتد على منافسة تتابعونها",
 }
 
 # Pursuit-deadline reminders concern the whole team: broadcast to every active
 # profile regardless of its keyword/activity filters.
-BROADCAST_EVENTS = {"tender.deadline"}
+BROADCAST_EVENTS = {"tender.deadline", "competition.rising"}
 
 
 def render(event_type: str, t: dict) -> tuple[str, str]:

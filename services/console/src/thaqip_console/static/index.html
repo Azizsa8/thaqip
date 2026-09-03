@@ -753,7 +753,7 @@ async function loadAlerts(){
       <div class="text-[12.5px] leading-relaxed whitespace-pre-line">${n.body.split('\n')[0]}</div>
     </div>`).join('') || '<div class="px-6 py-10 text-center text-mut">لا تنبيهات بعد</div>';
 }
-const EVENT_AR = {'tender.created':'منافسة جديدة','tender.extended':'تمديد','tender.updated':'تحديث','tender.awarded':'ترسية','digest.daily':'ملخص يومي'};
+const EVENT_AR = {'tender.created':'منافسة جديدة','tender.extended':'تمديد','tender.updated':'تحديث','tender.awarded':'ترسية','digest.daily':'ملخص يومي','competition.rising':'📈 منافسة تشتد','tender.deadline':'⏰ موعد يقترب'};
 $('#pCreate').onclick = async () => {
   const events = [];
   if($('#pEvNew').checked) events.push('tender.created');

@@ -38,3 +38,8 @@ Verified live: 36 rows created, replay produced 0 events. Hourly cron: `bin/fors
 3. Console: source badge + intensity column for Forsah rows; source filter.
 4. Awarded Forsah opportunities carry `awardDate` — check whether winner identity is exposed
    on any public detail route.
+
+## Update (2026-09-03 evening)
+- **Q&A/inquiries**: `/inquiries` requires an authenticated scope (500 without session) — the استفسارات feature needs a Forsah account decision; parked.
+- **Public detail route `/opportunities/{id}` is a second goldmine**: declared `requiredGlobalDocuments`/`requiredCustomDocuments` (real compliance requirements — now auto-hydrated into War Room pursuits), BOQ-like `items[]`, official `referenceNumber`, `viewCount`, attachments metadata.
+- **competition.rising shipped**: submitted-bid increases on pursued opportunities emit a broadcast alert (verified live: 9→15 bids caught).

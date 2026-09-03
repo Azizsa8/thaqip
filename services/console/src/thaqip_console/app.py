@@ -168,12 +168,44 @@ class PursuitIn(BaseModel):
     tender_id: int
 
 
+async def _forsah_declared_requirements(source_uid: str) -> list[tuple[str, str, str, int]]:
+    """Forsah publicly declares required documents per opportunity — real
+    compliance data, no extraction needed. Best-effort with a short timeout."""
+    import httpx
+
+    try:
+        async with httpx.AsyncClient(timeout=8) as h:
+            r = await h.get(
+                f"https://forsah-api.910ths.sa/api/v1/opportunities/{source_uid}",
+                headers={"Accept": "application/json"})
+        if r.status_code != 200:
+            return []
+        d = r.json()
+        items = []
+        for i, doc in enumerate((d.get("requiredGlobalDocuments") or [])
+                                + (d.get("requiredCustomDocuments") or [])):
+            name = (doc.get("name") or {}).get("ar") if isinstance(doc.get("name"), dict) \
+                else (doc.get("name") or doc.get("nameAr") or "")
+            if name:
+                items.append((f"وثيقة مطلوبة: {name}", "document",
+                              "متطلبات فرصة المعلنة للفرصة", 40 + i))
+        if d.get("referenceNumber"):
+            items.append((f"مرجع الفرصة الرسمي: {d['referenceNumber']}", "general",
+                          "بيانات فرصة", 99))
+        return items
+    except Exception:  # noqa: BLE001 — enrichment must never block pursuit creation
+        return []
+
+
 @app.post("/api/pursuits")
 async def create_pursuit(body: PursuitIn):
     pool: asyncpg.Pool = app.state.pool
     t = await pool.fetchrow("SELECT * FROM tenders WHERE id=$1", body.tender_id)
     if t is None:
         raise HTTPException(404, "tender not found")
+    extra: list[tuple[str, str, str, int]] = []
+    if t["source"] == "forsah" and t["source_uid"]:
+        extra = await _forsah_declared_requirements(t["source_uid"])
     async with pool.acquire() as conn:
         async with conn.transaction():
             existing = await conn.fetchval(
@@ -182,7 +214,8 @@ async def create_pursuit(body: PursuitIn):
                 return {"id": existing, "created": False}
             pid = await conn.fetchval(
                 "INSERT INTO pursuits (tender_id) VALUES ($1) RETURNING id", body.tender_id)
-            for req, cat, ref, order in _field_requirements(dict(t)) + GTPL_BASELINE:
+            base = _field_requirements(dict(t)) + (GTPL_BASELINE if t["source"] == "etimad" else [])
+            for req, cat, ref, order in base + extra:
                 await conn.execute(
                     """INSERT INTO compliance_items
                          (pursuit_id, requirement, category, source_ref, origin, sort_order)

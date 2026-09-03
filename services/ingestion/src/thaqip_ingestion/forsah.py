@@ -117,6 +117,9 @@ async def upsert(pool, raw: dict[str, Any]) -> str | None:
             return "tender.created"
         if row["content_hash"] == h:
             return None
+        prev_submitted = await conn.fetchval(
+            "SELECT submitted_bids_count FROM tenders WHERE id=$1", row["id"]
+        )
         await conn.execute(
             """UPDATE tenders SET name=$2, status_name=$3, status_id=$4,
                        last_offer_date=$5::timestamptz, bids_count=$6,
@@ -128,10 +131,19 @@ async def upsert(pool, raw: dict[str, Any]) -> str | None:
             c["external_bids_count"], c["draft_bids_count"], payload, h,
         )
         event = "tender.awarded" if c["status_id"] == 15 else "tender.updated"
+        data: dict[str, Any] = {"source": "forsah"}
+        # competition.rising: submitted bids increased on a tender the team is
+        # actively pursuing — the cheap differentiator from the B6 spike.
+        new_submitted = c["submitted_bids_count"] or 0
+        if (prev_submitted is not None and new_submitted > prev_submitted
+                and await conn.fetchval(
+                    "SELECT 1 FROM pursuits WHERE tender_id=$1", row["id"])):
+            event = "competition.rising"
+            data.update({"from": prev_submitted, "to": new_submitted})
         await conn.execute(
             """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
-                   VALUES ($1, 'tender', $2, '{"source":"forsah"}')""",
-            event, row["id"],
+                   VALUES ($1, 'tender', $2, $3::jsonb)""",
+            event, row["id"], json.dumps(data, ensure_ascii=False),
         )
         return event
 
