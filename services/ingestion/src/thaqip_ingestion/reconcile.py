@@ -65,7 +65,7 @@ async def head_sample(client: EtimadClient, pool, *, pages: int, page_size: int 
                 "SELECT 1 FROM tenders WHERE source='etimad' AND source_tender_id=$1",
                 row.tender_id,
             )
-            event = await db.upsert_tender(pool, row)
+            event = await db.upsert_tender(pool, row, detected_by="reconcile")
             if event == "tender.created" and not known:
                 healed += 1
             elif event:

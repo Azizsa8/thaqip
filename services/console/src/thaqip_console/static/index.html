@@ -63,6 +63,9 @@ tailwind.config = {
       <button data-view="disc" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
         <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
         <span>استكشاف المنافسات</span></button>
+      <button data-view="war" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z"/></svg>
+        <span>غرفة العمليات</span></button>
       <button data-view="alerts" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
         <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
         <span>التنبيهات</span></button>
@@ -179,6 +182,24 @@ tailwind.config = {
       </div>
     </section>
 
+    <!-- ================= WAR ROOM ================= -->
+    <section id="view-war" class="hidden px-5 lg:px-8 py-7">
+      <div class="grid xl:grid-cols-5 gap-5">
+        <div class="xl:col-span-2 bg-card border border-line rounded-2xl shadow-card overflow-hidden self-start">
+          <div class="flex items-center justify-between px-6 pt-5 pb-3">
+            <h2 class="font-semibold text-[15px]">ملفات المتابعة</h2>
+            <span class="text-[11.5px] text-mut">أضف منافسات من زر «غرفة العمليات» في بطاقة أي منافسة</span>
+          </div>
+          <div id="pursuitList"></div>
+        </div>
+        <div class="xl:col-span-3" id="pursuitPanel">
+          <div class="bg-card border border-line rounded-2xl shadow-card p-10 text-center text-mut">
+            اختر ملف متابعة لعرض مصفوفة الالتزام
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ================= ALERTS ================= -->
     <section id="view-alerts" class="hidden px-5 lg:px-8 py-7">
       <div class="grid xl:grid-cols-5 gap-5">
@@ -267,17 +288,18 @@ function countdown(sec){
 
 /* ---------- navigation ---------- */
 function show(view){
-  ['dash','disc','alerts','intel'].forEach(v => $('#view-'+v).classList.toggle('hidden', v!==view));
+  ['dash','disc','war','alerts','intel'].forEach(v => $('#view-'+v).classList.toggle('hidden', v!==view));
   document.querySelectorAll('#nav .navbtn').forEach(b => {
     const on = b.dataset.view === view;
     b.classList.toggle('bg-tint', on); b.classList.toggle('text-deep', on); b.classList.toggle('font-semibold', on);
   });
-  $('#viewTitle').textContent = {dash:'لوحة القيادة', disc:'استكشاف المنافسات', alerts:'التنبيهات', intel:'ذكاء المنافسين'}[view];
+  $('#viewTitle').textContent = {dash:'لوحة القيادة', disc:'استكشاف المنافسات', war:'غرفة العمليات', alerts:'التنبيهات', intel:'ذكاء المنافسين'}[view];
 }
 document.querySelectorAll('.navbtn').forEach(b => b.onclick = () => {
   show(b.dataset.view);
   if(b.dataset.view==='disc') loadDisc();
   if(b.dataset.view==='alerts') loadAlerts();
+  if(b.dataset.view==='war') loadWar();
 });
 
 /* ---------- tooltip ---------- */
@@ -427,6 +449,102 @@ $('#q').addEventListener('keydown', e => { if(e.key==='Enter'){ show('disc'); of
 $('#pgPrev').onclick = ()=>{ offset=Math.max(0,offset-LIMIT); queryDisc(); };
 $('#pgNext').onclick = ()=>{ offset+=LIMIT; queryDisc(); };
 
+/* ---------- war room ---------- */
+const STAGE_AR = {studying:'دراسة', pricing:'تسعير', writing:'كتابة', submitted:'مقدَّم', won:'فوز', lost:'خسارة'};
+const ST_AR = {missing:'مفقود', in_progress:'جارٍ', met:'مستوفى', n_a:'لا ينطبق'};
+const ST_NEXT = {missing:'in_progress', in_progress:'met', met:'n_a', n_a:'missing'};
+const ST_CLS = {missing:'bg-dangert text-danger', in_progress:'bg-bronzet text-bronze', met:'bg-tint text-deep', n_a:'text-mut border border-line'};
+const CAT_AR = {document:'وثيقة', guarantee:'ضمان', qualification:'تأهيل', deadline:'موعد', technical:'فني', general:'عام'};
+let curPursuit = null;
+
+async function loadWar(){
+  const ps = await (await fetch(API+'/api/pursuits')).json();
+  $('#pursuitList').innerHTML = ps.map(p => {
+    const pct = p.items ? Math.round(100*p.items_done/p.items) : 0;
+    const urgent = p.remaining_s > 0 && p.remaining_s < 3*86400;
+    return `<div class="px-6 py-4 border-t border-line hover:bg-tint/40 cursor-pointer ${curPursuit===p.id?'bg-tint/60':''}" onclick="openPursuit(${p.id})">
+      <div class="flex items-center gap-3">
+        <svg width="38" height="38" viewBox="0 0 38 38" class="shrink-0">
+          <circle cx="19" cy="19" r="15.5" fill="none" stroke="#E4E2DA" stroke-width="4"/>
+          <circle cx="19" cy="19" r="15.5" fill="none" stroke="${pct>=80?'#108A5F':pct>=40?'#A16207':'#A63D2F'}" stroke-width="4"
+            stroke-dasharray="${(pct/100*97.4).toFixed(1)} 97.4" stroke-linecap="round" transform="rotate(-90 19 19)"/>
+          <text x="19" y="23" text-anchor="middle" font-size="10" font-weight="600" fill="#191F1C" class="num">${pct}%</text>
+        </svg>
+        <div class="flex-1 min-w-0">
+          <div class="font-medium text-[13px] leading-snug truncate">${p.name}</div>
+          <div class="text-[11px] text-mut mt-0.5">${p.agency??''} · <span class="num">${p.items_done}/${p.items}</span> متطلبًا
+            ${p.remaining_s>0?` · <span class="num ${urgent?'text-danger font-semibold':''}">${countdown(p.remaining_s)}</span>`:''}</div>
+        </div>
+        <span class="text-[10.5px] font-medium bg-tint text-deep rounded-full px-2 py-0.5">${STAGE_AR[p.stage]}</span>
+      </div></div>`;
+  }).join('') || '<div class="px-6 py-10 text-center text-mut border-t border-line">لا ملفات متابعة بعد</div>';
+}
+
+async function openPursuit(id){
+  curPursuit = id;
+  const p = await (await fetch(API+'/api/pursuits/'+id)).json();
+  const done = p.compliance.filter(c=>['met','n_a'].includes(c.status)).length;
+  const pct = p.compliance.length ? Math.round(100*done/p.compliance.length) : 0;
+  $('#pursuitPanel').innerHTML = `
+    <div class="bg-card border border-line rounded-2xl shadow-card overflow-hidden">
+      <div class="px-6 pt-5 pb-4 border-b border-line">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="text-[11.5px] text-mut mb-1"><span class="num">${p.reference_number??''}</span> · ${p.agency??''}</div>
+            <h2 class="font-bold text-[15.5px] leading-snug">${p.name}</h2>
+          </div>
+          <select onchange="setStage(${p.id}, this.value)" class="bg-paper border border-line rounded-lg px-2.5 py-1.5 text-[12px]">
+            ${Object.entries(STAGE_AR).map(([k,v])=>`<option value="${k}" ${p.stage===k?'selected':''}>${v}</option>`).join('')}
+          </select>
+        </div>
+        <div class="flex items-center gap-3 mt-3">
+          <div class="flex-1 h-2 bg-line rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all" style="width:${pct}%;background:${pct>=80?'#108A5F':pct>=40?'#A16207':'#A63D2F'}"></div></div>
+          <span class="num text-[12px] font-semibold">${pct}%</span>
+          <span class="text-[11px] text-mut">جاهزية الامتثال (${done}/${p.compliance.length})</span>
+        </div>
+      </div>
+      <div class="px-3 py-2">
+        <table class="w-full text-[12.5px]">
+          <thead><tr class="text-mut text-[10.5px]">
+            <th class="text-right font-medium px-3 py-2">المتطلب</th>
+            <th class="text-right font-medium px-2 py-2">الفئة</th>
+            <th class="text-right font-medium px-2 py-2">المصدر</th>
+            <th class="text-center font-medium px-2 py-2">الحالة</th></tr></thead>
+          <tbody>${p.compliance.map(c=>`
+            <tr class="border-t border-line/70">
+              <td class="px-3 py-2.5 leading-snug">${c.requirement}
+                ${c.origin==='llm'?`<span class="text-[9.5px] text-bronze">AI ${Math.round(c.confidence*100)}%</span>`:''}</td>
+              <td class="px-2 py-2.5"><span class="text-[10.5px] text-mut">${CAT_AR[c.category]??c.category}</span></td>
+              <td class="px-2 py-2.5 text-[10.5px] text-mut max-w-[140px] leading-snug">${c.source_ref}</td>
+              <td class="px-2 py-2.5 text-center">
+                <button onclick="cycleItem(${c.id},'${c.status}')"
+                  class="text-[10.5px] font-medium rounded-full px-2.5 py-1 ${ST_CLS[c.status]}">${ST_AR[c.status]}</button></td>
+            </tr>`).join('')}</tbody>
+        </table>
+        <div class="px-3 py-3 text-[11px] text-mut border-t border-line mt-1">
+          المتطلبات المعروضة مستخرجة آلياً من بيانات المنافسة وقواعد نظام المنافسات (origin: rule) — استخراج بنود الكراسة بالذكاء الاصطناعي يتفعّل عند توفر نص الوثائق ومفتاح النموذج. انقر الحالة لتدويرها.
+        </div>
+      </div>
+    </div>`;
+  loadWar();
+}
+async function cycleItem(id, cur){
+  await fetch(API+'/api/compliance/'+id, {method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({status: ST_NEXT[cur]})});
+  openPursuit(curPursuit);
+}
+async function setStage(id, stage){
+  await fetch(API+`/api/pursuits/${id}/stage`, {method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({stage})});
+  loadWar();
+}
+async function addToWar(tenderId){
+  const r = await (await fetch(API+'/api/pursuits', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({tender_id: tenderId})})).json();
+  closeDrawer(); show('war'); await loadWar(); openPursuit(r.id);
+}
+
 /* ---------- alerts ---------- */
 const CH_LABEL = {log:'سجل', telegram:'تيليجرام', email:'بريد'};
 async function loadAlerts(){
@@ -538,7 +656,10 @@ async function openDetail(id){
           <span>${t.agency??''}</span></div>
         <h2 class="text-[18px] font-bold leading-snug max-w-[520px]">${t.name??''}</h2>
       </div>
-      <button onclick="closeDrawer()" class="shrink-0 w-9 h-9 rounded-lg border border-line bg-card hover:bg-tint grid place-items-center">✕</button>
+      <div class="shrink-0 flex items-center gap-2">
+        <button onclick="addToWar(${t.id})" class="bg-deep hover:bg-deepd text-white rounded-lg px-3.5 py-2 text-[12.5px] font-medium transition">+ غرفة العمليات</button>
+        <button onclick="closeDrawer()" class="w-9 h-9 rounded-lg border border-line bg-card hover:bg-tint grid place-items-center">✕</button>
+      </div>
     </div>
     <div class="grid sm:grid-cols-2 gap-4 mb-2">
       <div class="bg-card border border-line rounded-xl p-4">

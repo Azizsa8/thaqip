@@ -48,7 +48,7 @@ async def run_pass_db(client: EtimadClient, pool, *, pages: int) -> Counter:
     try:
         async for row in client.iter_newest(max_pages=pages):
             stats["seen"] += 1
-            event = await db.upsert_tender(pool, row)
+            event = await db.upsert_tender(pool, row, detected_by="poller")
             if event:
                 stats[event] += 1
     except Exception as exc:  # record the failed run, then surface it

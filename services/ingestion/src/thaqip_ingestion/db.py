@@ -41,9 +41,9 @@ def _cast(col: str) -> str:
 
 
 _INSERT_SQL = f"""
-INSERT INTO tenders ({", ".join(UPSERT_COLUMNS)}, payload, content_hash)
+INSERT INTO tenders ({", ".join(UPSERT_COLUMNS)}, payload, content_hash, detected_by)
 VALUES ({", ".join(f"${i + 1}{_cast(c)}" for i, c in enumerate(UPSERT_COLUMNS))},
-        ${len(UPSERT_COLUMNS) + 1}::jsonb, ${len(UPSERT_COLUMNS) + 2})
+        ${len(UPSERT_COLUMNS) + 1}::jsonb, ${len(UPSERT_COLUMNS) + 2}, ${len(UPSERT_COLUMNS) + 3})
 ON CONFLICT (source, source_tender_id) DO NOTHING
 RETURNING id
 """
@@ -85,7 +85,7 @@ def _row_args(canonical: dict[str, Any]) -> list[Any]:
     return out
 
 
-async def upsert_tender(pool: asyncpg.Pool, row: EtimadTenderRow) -> str | None:
+async def upsert_tender(pool: asyncpg.Pool, row: EtimadTenderRow, *, detected_by: str = "unknown") -> str | None:
     """Insert or update one tender. Returns the emitted event type, or None."""
     canonical = to_canonical(row)
     new_hash = content_hash(canonical)
@@ -95,7 +95,7 @@ async def upsert_tender(pool: asyncpg.Pool, row: EtimadTenderRow) -> str | None:
         async with conn.transaction():
             existing = await conn.fetchrow(_SELECT_SQL, "etimad", row.tender_id)
             if existing is None:
-                inserted = await conn.fetchrow(_INSERT_SQL, *_row_args(canonical), payload, new_hash)
+                inserted = await conn.fetchrow(_INSERT_SQL, *_row_args(canonical), payload, new_hash, detected_by)
                 if inserted is None:  # lost a concurrent-insert race; treat as replay
                     return None
                 await conn.execute(_EVENT_SQL, "tender.created", inserted["id"], json.dumps({}))

@@ -83,7 +83,7 @@ async def run_backfill(
                 break
             for row in listing.data:
                 stats["seen"] += 1
-                event = await db.upsert_tender(pool, row)
+                event = await db.upsert_tender(pool, row, detected_by="backfill")
                 if event == "tender.created":
                     stats["new"] += 1
                 elif event:

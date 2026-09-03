@@ -27,7 +27,7 @@ WITH recent AS (
   SELECT id, name, published_at, detected_at,
          detected_at - published_at AS latency
   FROM tenders
-  WHERE source = 'etimad'
+  WHERE source = 'etimad' AND detected_by = 'poller'
     AND published_at IS NOT NULL
     AND published_at > now() - ($1 || ' hours')::interval
     AND detected_at >= published_at
@@ -44,7 +44,7 @@ WORST_SQL = """
 SELECT source_tender_id, left(name, 60) AS name, published_at,
        detected_at - published_at AS latency
 FROM tenders
-WHERE source = 'etimad' AND published_at IS NOT NULL
+WHERE source = 'etimad' AND detected_by = 'poller' AND published_at IS NOT NULL
   AND published_at > now() - ($1 || ' hours')::interval
   AND detected_at >= published_at
 ORDER BY latency DESC LIMIT $2

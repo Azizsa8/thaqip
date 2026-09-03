@@ -55,7 +55,7 @@ async def stats():
         """SELECT count(*) AS n,
                   percentile_cont(0.5) WITHIN GROUP (ORDER BY detected_at - published_at) AS p50
            FROM tenders
-           WHERE published_at IS NOT NULL AND published_at > now() - interval '24 hours'
+           WHERE detected_by = 'poller' AND published_at IS NOT NULL AND published_at > now() - interval '24 hours'
              AND detected_at >= published_at"""
     )
     return {
@@ -73,7 +73,7 @@ async def dashboard():
         """SELECT
              (SELECT count(*) FROM tenders WHERE last_offer_date > now())                    AS open_now,
              (SELECT count(*) FROM tenders WHERE last_offer_date::date = now()::date)       AS closing_today,
-             (SELECT count(*) FROM tenders WHERE published_at > now() - interval '24 hours')AS new_24h,
+             (SELECT count(*) FROM tenders WHERE detected_by = 'poller' AND published_at > now() - interval '24 hours')AS new_24h,
              (SELECT count(*) FROM tenders)                                                 AS total,
              (SELECT coalesce(sum(award_value),0) FROM awards)                              AS awards_value,
              (SELECT count(*) FROM awards)                                                  AS awards_count,
@@ -85,7 +85,7 @@ async def dashboard():
     )
     fresh = await pool.fetchrow(
         """SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY detected_at - published_at) AS p50
-           FROM tenders WHERE published_at > now() - interval '24 hours'
+           FROM tenders WHERE detected_by = 'poller' AND published_at > now() - interval '24 hours'
              AND detected_at >= published_at"""
     )
     monthly = await pool.fetch(
@@ -131,6 +131,130 @@ async def filters():
         "agencies": [dict(r) for r in agencies],
         "activities": [dict(r) for r in activities],
     }
+
+
+GTPL_BASELINE = [
+    ("سجل تجاري ساري المفعول", "document", "نظام المنافسات — متطلبات التأهيل", 10),
+    ("شهادة تسديد الزكاة والدخل سارية", "document", "نظام المنافسات — شروط تقديم العطاء", 11),
+    ("شهادة اشتراك الغرفة التجارية سارية", "document", "نظام المنافسات — شروط تقديم العطاء", 12),
+    ("شهادة التأمينات الاجتماعية (GOSI)", "document", "متطلبات التأهيل النظامية", 13),
+    ("شهادة السعودة / نطاقات", "document", "متطلبات التأهيل النظامية", 14),
+    ("خطاب تقديم موقّع بالإقرار بالاطلاع على كراسة الشروط", "document", "نظام المنافسات — شروط تقديم العطاء", 15),
+    ("بيان الأعمال السابقة المماثلة", "qualification", "نظام المنافسات — تقييم القدرات", 20),
+]
+
+
+def _field_requirements(t: dict) -> list[tuple[str, str, str, int]]:
+    items = []
+    if t.get("last_enquiries_date"):
+        items.append((f"إرسال الاستفسارات قبل {str(t['last_enquiries_date'])[:10]}",
+                      "deadline", "بيانات المنافسة — آخر موعد للاستفسارات", 1))
+    if t.get("last_offer_date"):
+        items.append((f"تقديم العرض قبل {str(t['last_offer_date'])[:16]}",
+                      "deadline", "بيانات المنافسة — آخر موعد لتقديم العروض", 2))
+    if t.get("booklet_price") and float(t["booklet_price"]) > 0:
+        items.append((f"شراء كراسة الشروط ({float(t['booklet_price']):,.0f} ر.س) عبر اعتماد",
+                      "document", "بيانات المنافسة — قيمة الكراسة", 5))
+    if t.get("source") == "etimad" and t.get("tender_type_id") == 1:
+        items.append(("ضمان ابتدائي بنسبة 1%–2% من قيمة العطاء (ما لم تُعفِ الكراسة)",
+                      "guarantee", "نظام المنافسات — الضمان الابتدائي (منافسة عامة)", 30))
+    if any(k in (t.get("activity_name_raw") or "") for k in ("إنشاء", "مقاول", "تشييد", "بناء")):
+        items.append(("شهادة تصنيف المقاولين في المجال والدرجة المطلوبة",
+                      "qualification", "اشتراط التصنيف لأنشطة الإنشاءات", 21))
+    return items
+
+
+class PursuitIn(BaseModel):
+    tender_id: int
+
+
+@app.post("/api/pursuits")
+async def create_pursuit(body: PursuitIn):
+    pool: asyncpg.Pool = app.state.pool
+    t = await pool.fetchrow("SELECT * FROM tenders WHERE id=$1", body.tender_id)
+    if t is None:
+        raise HTTPException(404, "tender not found")
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            existing = await conn.fetchval(
+                "SELECT id FROM pursuits WHERE tender_id=$1", body.tender_id)
+            if existing:
+                return {"id": existing, "created": False}
+            pid = await conn.fetchval(
+                "INSERT INTO pursuits (tender_id) VALUES ($1) RETURNING id", body.tender_id)
+            for req, cat, ref, order in _field_requirements(dict(t)) + GTPL_BASELINE:
+                await conn.execute(
+                    """INSERT INTO compliance_items
+                         (pursuit_id, requirement, category, source_ref, origin, sort_order)
+                       VALUES ($1,$2,$3,$4,'rule',$5)""", pid, req, cat, ref, order)
+    return {"id": pid, "created": True}
+
+
+@app.get("/api/pursuits")
+async def pursuits():
+    rows = await app.state.pool.fetch(
+        """SELECT p.id, p.stage, p.created_at, t.id AS tender_id, t.name, t.reference_number,
+                  t.source, coalesce(a.canonical_name, t.agency_name_raw) AS agency,
+                  t.last_offer_date,
+                  greatest(0, extract(epoch FROM t.last_offer_date - now()))::bigint AS remaining_s,
+                  (SELECT count(*) FROM compliance_items c WHERE c.pursuit_id = p.id) AS items,
+                  (SELECT count(*) FROM compliance_items c
+                    WHERE c.pursuit_id = p.id AND c.status IN ('met','n_a'))          AS items_done
+           FROM pursuits p
+           JOIN tenders t ON t.id = p.tender_id
+           LEFT JOIN agencies a ON a.id = t.agency_id
+           ORDER BY p.created_at DESC"""
+    )
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/pursuits/{pid}")
+async def pursuit_detail(pid: int):
+    pool: asyncpg.Pool = app.state.pool
+    p = await pool.fetchrow(
+        """SELECT p.*, t.name, t.reference_number, t.source,
+                  coalesce(a.canonical_name, t.agency_name_raw) AS agency,
+                  t.last_offer_date, t.last_offer_date_hijri,
+                  greatest(0, extract(epoch FROM t.last_offer_date - now()))::bigint AS remaining_s
+           FROM pursuits p JOIN tenders t ON t.id = p.tender_id
+           LEFT JOIN agencies a ON a.id = t.agency_id WHERE p.id=$1""", pid)
+    if p is None:
+        raise HTTPException(404)
+    items = await pool.fetch(
+        "SELECT * FROM compliance_items WHERE pursuit_id=$1 ORDER BY sort_order, id", pid)
+    out = dict(p)
+    out["compliance"] = [dict(r) for r in items]
+    return out
+
+
+class ItemPatch(BaseModel):
+    status: str  # missing | in_progress | met | n_a
+
+
+@app.patch("/api/compliance/{item_id}")
+async def patch_item(item_id: int, body: ItemPatch):
+    if body.status not in ("missing", "in_progress", "met", "n_a"):
+        raise HTTPException(422)
+    n = await app.state.pool.execute(
+        "UPDATE compliance_items SET status=$2 WHERE id=$1", item_id, body.status)
+    if n.endswith("0"):
+        raise HTTPException(404)
+    return {"ok": True}
+
+
+class StagePatch(BaseModel):
+    stage: str
+
+
+@app.patch("/api/pursuits/{pid}/stage")
+async def patch_stage(pid: int, body: StagePatch):
+    if body.stage not in ("studying", "pricing", "writing", "submitted", "won", "lost"):
+        raise HTTPException(422)
+    n = await app.state.pool.execute(
+        "UPDATE pursuits SET stage=$2, updated_at=now() WHERE id=$1", pid, body.stage)
+    if n.endswith("0"):
+        raise HTTPException(404)
+    return {"ok": True}
 
 
 class ProfileIn(BaseModel):

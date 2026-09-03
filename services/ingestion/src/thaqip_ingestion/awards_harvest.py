@@ -138,7 +138,7 @@ class AwardsHarvester:
                     break
                 for row in listing:
                     stats["tenders"] += 1
-                    await db.upsert_tender(self._pool, row)
+                    await db.upsert_tender(self._pool, row, detected_by="harvest")
                     pk = await self._pool.fetchval(
                         "SELECT id FROM tenders WHERE source='etimad' AND source_tender_id=$1",
                         row.tender_id,
