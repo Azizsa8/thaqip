@@ -94,6 +94,16 @@
       return db.tender_details[m[1]] ? json(db.tender_details[m[1]])
         : json({ detail: 'خارج نطاق نسخة العرض' }, 404);
 
+    if (p === '/api/agencies') {
+      let as = (db.agencies_board || []).slice();
+      const q = u.searchParams.get('q');
+      if (q) as = as.filter(a => a.canonical_name.includes(q));
+      return json(as);
+    }
+    if ((m = p.match(/^\/api\/agencies\/(\d+)$/)))
+      return (db.agency_details || {})[m[1]] ? json(db.agency_details[m[1]])
+        : json({ detail: 'خارج نطاق نسخة العرض' }, 404);
+
     if (p === '/api/vendors') {
       let vs = db.vendors.slice();
       const q = u.searchParams.get('q');

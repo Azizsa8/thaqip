@@ -369,6 +369,67 @@ async def vendor_detail(vid: int):
     return out
 
 
+@app.get("/api/agencies")
+async def agencies_board(q: str | None = None, limit: int = Query(50, le=200)):
+    """M8-2: agency behavior leaderboard."""
+    pool: asyncpg.Pool = app.state.pool
+    where, args = "", []
+    if q:
+        args.append(f"%{q}%")
+        where = "WHERE a.canonical_name ILIKE $1"
+    rows = await pool.fetch(f"""
+        SELECT a.id, a.canonical_name,
+               count(t.id)                                          AS tenders,
+               count(t.id) FILTER (WHERE t.last_offer_date > now()) AS open_now,
+               count(w.id)                                          AS awards,
+               coalesce(sum(w.award_value),0)                       AS awarded_value
+        FROM agencies a
+        JOIN tenders t ON t.agency_id = a.id
+        LEFT JOIN awards w ON w.tender_id = t.id
+        {where}
+        GROUP BY a.id ORDER BY tenders DESC LIMIT {int(limit)}""", *args)
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/agencies/{aid}")
+async def agency_detail(aid: int):
+    pool: asyncpg.Pool = app.state.pool
+    a = await pool.fetchrow("SELECT * FROM agencies WHERE id=$1", aid)
+    if a is None:
+        raise HTTPException(404)
+    stats = await pool.fetchrow("""
+        SELECT count(t.id) AS tenders,
+               count(t.id) FILTER (WHERE t.last_offer_date > now()) AS open_now,
+               count(DISTINCT w.id) AS awards,
+               coalesce(sum(w.award_value),0) AS awarded_value,
+               round(avg(bid.n) FILTER (WHERE bid.n > 0),1) AS avg_bidders
+        FROM tenders t
+        LEFT JOIN awards w ON w.tender_id = t.id
+        LEFT JOIN LATERAL (SELECT count(*) n FROM offers o WHERE o.tender_id=t.id AND
+                           EXISTS (SELECT 1 FROM awards w2 WHERE w2.tender_id=t.id)) bid ON true
+        WHERE t.agency_id=$1""", aid)
+    top_vendors = await pool.fetch("""
+        SELECT v.id, v.canonical_name, count(*) AS wins, sum(w.award_value) AS value
+        FROM awards w JOIN tenders t ON t.id=w.tender_id JOIN vendors v ON v.id=w.vendor_id
+        WHERE t.agency_id=$1 GROUP BY v.id ORDER BY wins DESC, value DESC LIMIT 6""", aid)
+    activities = await pool.fetch("""
+        SELECT activity_name_raw AS activity, count(*) AS n
+        FROM tenders WHERE agency_id=$1 AND activity_name_raw IS NOT NULL
+        GROUP BY 1 ORDER BY n DESC LIMIT 6""", aid)
+    recent = await pool.fetch("""
+        SELECT t.id, left(t.name,70) AS name, t.last_offer_date,
+               greatest(0, extract(epoch FROM t.last_offer_date - now()))::bigint AS remaining_s,
+               EXISTS (SELECT 1 FROM awards w WHERE w.tender_id=t.id) AS has_award,
+               (SELECT w.award_value FROM awards w WHERE w.tender_id=t.id LIMIT 1) AS award_value
+        FROM tenders t WHERE t.agency_id=$1 ORDER BY t.published_at DESC NULLS LAST LIMIT 15""", aid)
+    out = dict(a)
+    out["stats"] = dict(stats)
+    out["top_vendors"] = [dict(r) for r in top_vendors]
+    out["activities"] = [dict(r) for r in activities]
+    out["recent"] = [dict(r) for r in recent]
+    return out
+
+
 class ProfileIn(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     channel: str = "log"                       # log | telegram | email
@@ -549,6 +610,30 @@ async def tender_detail(tender_id: int):
     out["awards"] = [dict(r) for r in awards]
     out["boq_items"] = [dict(r) for r in boq]
     out["documents"] = [dict(r) for r in docs]
+    # Win-probability v1 (M5-3): honest baseline from historical competition
+    # density in the same activity. For Forsah, live bid counters refine it.
+    comp = await pool.fetchrow(
+        """SELECT count(*) AS awarded_n,
+                  percentile_cont(0.5) WITHIN GROUP (ORDER BY b.n) AS median_bidders,
+                  percentile_cont(0.9) WITHIN GROUP (ORDER BY b.n) AS p90_bidders
+           FROM tenders t2
+           JOIN LATERAL (SELECT count(*) n FROM offers o WHERE o.tender_id=t2.id) b ON b.n > 0
+           WHERE t2.activity_id IS NOT DISTINCT FROM $1
+             AND EXISTS (SELECT 1 FROM awards w2 WHERE w2.tender_id = t2.id)""",
+        t["activity_id"],
+    )
+    competition = None
+    live_bidders = (t.get("submitted_bids_count") or 0) + (t.get("external_bids_count") or 0)
+    if t["source"] == "forsah" and live_bidders > 0:
+        competition = {"basis": "live", "expected_bidders": live_bidders,
+                       "baseline_win_pct": round(100 / (live_bidders + 1), 1), "n": None}
+    elif comp and comp["awarded_n"] and comp["median_bidders"]:
+        mb = float(comp["median_bidders"])
+        competition = {"basis": "activity_history", "expected_bidders": round(mb, 1),
+                       "p90_bidders": round(float(comp["p90_bidders"]), 1),
+                       "baseline_win_pct": round(100 / max(mb, 1), 1),
+                       "n": comp["awarded_n"]}
     out["similar_awards"] = [dict(r) for r in similar]
     out["benchmark"] = dict(bench) if bench and bench["n"] else None
+    out["competition"] = competition
     return out

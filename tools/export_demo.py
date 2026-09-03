@@ -45,6 +45,11 @@ def main() -> None:
         except Exception:
             pass
 
+    agencies_board = get("/api/agencies?limit=80")
+    agency_details = {}
+    for a in agencies_board[:30]:
+        agency_details[str(a["id"])] = get(f"/api/agencies/{a['id']}")
+
     vendors = get("/api/vendors?limit=100")
     vendor_details = {}
     for v in vendors[:40]:
@@ -58,6 +63,8 @@ def main() -> None:
         "tender_details": tender_details,
         "vendors": vendors,
         "vendor_details": vendor_details,
+        "agencies_board": agencies_board,
+        "agency_details": agency_details,
         "pursuits": pursuits,
         "pursuit_details": {str(p["id"]): get(f"/api/pursuits/{p['id']}") for p in pursuits},
         "profiles": get("/api/profiles"),
