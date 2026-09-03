@@ -257,6 +257,118 @@ async def patch_stage(pid: int, body: StagePatch):
     return {"ok": True}
 
 
+class OutcomeIn(BaseModel):
+    result: str                      # won | lost
+    submitted_value: float | None = None
+    notes: str | None = None
+
+
+@app.post("/api/pursuits/{pid}/outcome")
+async def log_outcome(pid: int, body: OutcomeIn):
+    """M5-1: capture bid outcome; auto-reconcile award value + competitor count."""
+    if body.result not in ("won", "lost"):
+        raise HTTPException(422)
+    pool: asyncpg.Pool = app.state.pool
+    tender_id = await pool.fetchval("SELECT tender_id FROM pursuits WHERE id=$1", pid)
+    if tender_id is None:
+        raise HTTPException(404)
+    award_value = await pool.fetchval(
+        "SELECT award_value FROM awards WHERE tender_id=$1 ORDER BY id LIMIT 1", tender_id)
+    competitor_count = await pool.fetchval(
+        "SELECT count(*) FROM offers WHERE tender_id=$1", tender_id) or None
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute(
+                """INSERT INTO outcomes (pursuit_id, result, submitted_value, award_value,
+                                         competitor_count, notes)
+                   VALUES ($1,$2,$3,$4,$5,$6)
+                   ON CONFLICT (pursuit_id) DO UPDATE SET result=EXCLUDED.result,
+                     submitted_value=EXCLUDED.submitted_value, notes=EXCLUDED.notes,
+                     award_value=EXCLUDED.award_value, competitor_count=EXCLUDED.competitor_count,
+                     logged_at=now()""",
+                pid, body.result, body.submitted_value, award_value, competitor_count, body.notes)
+            await conn.execute(
+                "UPDATE pursuits SET stage=$2, updated_at=now() WHERE id=$1", pid, body.result)
+            await conn.execute(
+                """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
+                   VALUES ('outcome.logged', 'pursuit', $1, '{}')""", pid)
+    return {"ok": True, "award_value": float(award_value) if award_value else None,
+            "competitor_count": competitor_count}
+
+
+@app.get("/api/outcomes/summary")
+async def outcomes_summary():
+    row = await app.state.pool.fetchrow(
+        """SELECT count(*) AS total,
+                  count(*) FILTER (WHERE result='won') AS won,
+                  avg(submitted_value) FILTER (WHERE result='won') AS avg_win_value
+           FROM outcomes""")
+    return dict(row)
+
+
+@app.get("/api/vendors")
+async def vendors(q: str | None = None, limit: int = Query(50, le=200)):
+    """M8-1: competitor leaderboard from the harvested offers/awards corpus."""
+    pool: asyncpg.Pool = app.state.pool
+    where, args = "", []
+    if q:
+        args.append(f"%{q}%")
+        where = "WHERE v.canonical_name ILIKE $1"
+    rows = await pool.fetch(f"""
+        SELECT v.id, v.canonical_name,
+               count(o.id)                                   AS participations,
+               count(o.id) FILTER (WHERE o.is_winner)        AS wins,
+               round(100.0*count(o.id) FILTER (WHERE o.is_winner)/nullif(count(o.id),0),1) AS win_rate,
+               round(avg(o.offer_value),0)                   AS avg_offer,
+               coalesce(sum(w.award_value),0)                AS awarded_value,
+               count(o.id) FILTER (WHERE o.technical_pass)   AS tech_pass
+        FROM vendors v
+        JOIN offers o ON o.vendor_id = v.id
+        LEFT JOIN awards w ON w.vendor_id = v.id AND w.tender_id = o.tender_id AND o.is_winner
+        {where}
+        GROUP BY v.id
+        ORDER BY wins DESC, participations DESC
+        LIMIT {int(limit)}""", *args)
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/vendors/{vid}")
+async def vendor_detail(vid: int):
+    pool: asyncpg.Pool = app.state.pool
+    v = await pool.fetchrow("SELECT * FROM vendors WHERE id=$1", vid)
+    if v is None:
+        raise HTTPException(404)
+    stats = await pool.fetchrow("""
+        SELECT count(*) AS participations,
+               count(*) FILTER (WHERE o.is_winner) AS wins,
+               round(avg(o.offer_value),0) AS avg_offer,
+               min(o.offer_value) AS min_offer, max(o.offer_value) AS max_offer,
+               round(100.0*count(*) FILTER (WHERE o.technical_pass)/nullif(count(*),0),1) AS tech_rate
+        FROM offers o WHERE o.vendor_id=$1""", vid)
+    history = await pool.fetch("""
+        SELECT t.id AS tender_id, left(t.name,70) AS tender_name,
+               coalesce(a.canonical_name, t.agency_name_raw) AS agency,
+               t.activity_name_raw AS activity,
+               o.offer_value, o.is_winner, o.technical_pass,
+               (SELECT min(o2.offer_value) FROM offers o2
+                 WHERE o2.tender_id=t.id AND o2.technical_pass) AS lowest_offer
+        FROM offers o
+        JOIN tenders t ON t.id = o.tender_id
+        LEFT JOIN agencies a ON a.id = t.agency_id
+        WHERE o.vendor_id=$1 ORDER BY o.id DESC LIMIT 100""", vid)
+    agencies = await pool.fetch("""
+        SELECT coalesce(a.canonical_name, t.agency_name_raw) AS agency, count(*) AS n,
+               count(*) FILTER (WHERE o.is_winner) AS wins
+        FROM offers o JOIN tenders t ON t.id=o.tender_id
+        LEFT JOIN agencies a ON a.id=t.agency_id
+        WHERE o.vendor_id=$1 GROUP BY 1 ORDER BY n DESC LIMIT 8""", vid)
+    out = dict(v)
+    out["stats"] = dict(stats)
+    out["history"] = [dict(r) for r in history]
+    out["agencies"] = [dict(r) for r in agencies]
+    return out
+
+
 class ProfileIn(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     channel: str = "log"                       # log | telegram | email

@@ -38,7 +38,7 @@ tailwind.config = {
   #tip{pointer-events:none;transition:opacity .12s}
 </style>
 </head>
-<body class="bg-paper text-ink font-sans text-[14px] leading-relaxed min-h-screen">
+<body data-demo="1" class="bg-paper text-ink font-sans text-[14px] leading-relaxed min-h-screen">
 
 <div class="flex min-h-screen">
 
@@ -280,6 +280,7 @@ tailwind.config = {
 
 <div id="tip" class="fixed z-50 opacity-0 bg-ink text-paper text-[12px] rounded-lg px-3 py-1.5 shadow-lift num"></div>
 
+<script src="demo-shim.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const API = '';
