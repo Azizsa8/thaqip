@@ -41,45 +41,44 @@ async def get_or_create_vendor(conn: asyncpg.Connection, name: str) -> int:
 
 async def store_awarding(pool: asyncpg.Pool, tender_pk: int, result: AwardingResult) -> bool:
     """Replace offers/awards for a tender. Returns True if a new award event was emitted."""
-    async with pool.acquire() as conn:
-        async with conn.transaction():
-            had_awards = await conn.fetchval(
-                "SELECT count(*) FROM awards WHERE tender_id = $1", tender_pk
-            )
-            await conn.execute("DELETE FROM offers WHERE tender_id = $1", tender_pk)
-            await conn.execute("DELETE FROM awards WHERE tender_id = $1", tender_pk)
+    async with pool.acquire() as conn, conn.transaction():
+        had_awards = await conn.fetchval(
+            "SELECT count(*) FROM awards WHERE tender_id = $1", tender_pk
+        )
+        await conn.execute("DELETE FROM offers WHERE tender_id = $1", tender_pk)
+        await conn.execute("DELETE FROM awards WHERE tender_id = $1", tender_pk)
 
-            awardee_names = {a.name for a in result.awardees}
-            for b in result.bidders:
-                vid = await get_or_create_vendor(conn, b.name)
-                await conn.execute(
-                    """INSERT INTO offers (tender_id, vendor_id, vendor_name_raw, offer_value,
+        awardee_names = {a.name for a in result.awardees}
+        for b in result.bidders:
+            vid = await get_or_create_vendor(conn, b.name)
+            await conn.execute(
+                """INSERT INTO offers (tender_id, vendor_id, vendor_name_raw, offer_value,
                                            is_winner, technical_pass)
                        VALUES ($1, $2, $3, $4, $5, $6)""",
-                    tender_pk, vid, b.name, b.offer_value,
-                    b.name in awardee_names,
-                    (b.technical_result or "").strip() == "مطابق" or None,
-                )
-            for a in result.awardees:
-                vid = await get_or_create_vendor(conn, a.name)
-                await conn.execute(
-                    """INSERT INTO awards (tender_id, vendor_id, award_value)
+                tender_pk, vid, b.name, b.offer_value,
+                b.name in awardee_names,
+                (b.technical_result or "").strip() == "مطابق" or None,
+            )
+        for a in result.awardees:
+            vid = await get_or_create_vendor(conn, a.name)
+            await conn.execute(
+                """INSERT INTO awards (tender_id, vendor_id, award_value)
                        VALUES ($1, $2, $3)""",
-                    tender_pk, vid, a.award_value if a.award_value is not None else a.offer_value,
-                )
+                tender_pk, vid, a.award_value if a.award_value is not None else a.offer_value,
+            )
 
-            emit = bool(result.awardees) and had_awards == 0
-            if emit:
-                await conn.execute(
-                    """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
+        emit = bool(result.awardees) and had_awards == 0
+        if emit:
+            await conn.execute(
+                """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
                        VALUES ('tender.awarded', 'tender', $1, $2::jsonb)""",
-                    tender_pk,
-                    json.dumps({
-                        "awardees": [a.name for a in result.awardees],
-                        "bidder_count": len(result.bidders),
-                    }, ensure_ascii=False),
-                )
-            return emit
+                tender_pk,
+                json.dumps({
+                    "awardees": [a.name for a in result.awardees],
+                    "bidder_count": len(result.bidders),
+                }, ensure_ascii=False),
+            )
+        return emit
 
 
 class AwardsHarvester:

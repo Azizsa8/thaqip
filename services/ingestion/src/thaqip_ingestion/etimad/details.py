@@ -37,9 +37,9 @@ COMPONENTS = {
     "awarding": "/Tender/GetAwardingResultsForVisitorViewComponenet",
 }
 
-_SCRIPT_RE = re.compile(r"<script\b.*?</script>", re.S | re.I)
-_ITEM_RE = re.compile(r'<li class="list-group-item">(.*?)</li>', re.S)
-_TITLE_RE = re.compile(r'class="[^"]*etd-item-title[^"]*"[^>]*>\s*(.*?)\s*</div>', re.S)
+_SCRIPT_RE = re.compile(r"<script\b.*?</script>", re.DOTALL | re.IGNORECASE)
+_ITEM_RE = re.compile(r'<li class="list-group-item">(.*?)</li>', re.DOTALL)
+_TITLE_RE = re.compile(r'class="[^"]*etd-item-title[^"]*"[^>]*>\s*(.*?)\s*</div>', re.DOTALL)
 _TAG_RE = re.compile(r"<[^>]+>")
 _HREF_RE = re.compile(r'href="([^"]+)"')
 _WS_RE = re.compile(r"\s+")

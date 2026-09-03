@@ -16,10 +16,10 @@ import re
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 
-_SCRIPT_RE = re.compile(r"<script\b.*?</script>", re.S | re.I)
-_TABLE_RE = re.compile(r"<table\b.*?</table>", re.S | re.I)
-_ROW_RE = re.compile(r"<tr\b.*?</tr>", re.S | re.I)
-_CELL_RE = re.compile(r"<t[hd]\b[^>]*>(.*?)</t[hd]>", re.S | re.I)
+_SCRIPT_RE = re.compile(r"<script\b.*?</script>", re.DOTALL | re.IGNORECASE)
+_TABLE_RE = re.compile(r"<table\b.*?</table>", re.DOTALL | re.IGNORECASE)
+_ROW_RE = re.compile(r"<tr\b.*?</tr>", re.DOTALL | re.IGNORECASE)
+_CELL_RE = re.compile(r"<t[hd]\b[^>]*>(.*?)</t[hd]>", re.DOTALL | re.IGNORECASE)
 _TAG_RE = re.compile(r"<[^>]+>")
 _WS_RE = re.compile(r"\s+")
 

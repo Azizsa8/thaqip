@@ -22,13 +22,13 @@ import hashlib
 import json
 import logging
 import os
+from datetime import datetime
 from typing import Any
 
 import httpx
 
 from . import db
 from .db import KSA_TZ
-from datetime import datetime
 
 
 def _ts(v: str | None) -> datetime | None:
@@ -100,41 +100,40 @@ async def upsert(pool, raw: dict[str, Any]) -> str | None:
             c["status_name"], c["status_id"], _ts(c["published_at"]), _ts(c["last_offer_date"]),
             c["branch_name"], c["bids_count"], c["submitted_bids_count"],
             c["external_bids_count"], c["draft_bids_count"], payload, h]
-    async with pool.acquire() as conn:
-        async with conn.transaction():
-            row = await conn.fetchrow(
-                "SELECT id, content_hash FROM tenders WHERE source='forsah' AND source_uid=$1",
-                c["source_uid"],
-            )
-            if row is None:
-                new = await conn.fetchrow(UPSERT, *args)
-                if new is None:
-                    return None
-                await conn.execute(
-                    """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
-                       VALUES ('tender.created', 'tender', $1, '{"source":"forsah"}')""",
-                    new["id"],
-                )
-                return "tender.created"
-            if row["content_hash"] == h:
+    async with pool.acquire() as conn, conn.transaction():
+        row = await conn.fetchrow(
+            "SELECT id, content_hash FROM tenders WHERE source='forsah' AND source_uid=$1",
+            c["source_uid"],
+        )
+        if row is None:
+            new = await conn.fetchrow(UPSERT, *args)
+            if new is None:
                 return None
             await conn.execute(
-                """UPDATE tenders SET name=$2, status_name=$3, status_id=$4,
+                """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
+                       VALUES ('tender.created', 'tender', $1, '{"source":"forsah"}')""",
+                new["id"],
+            )
+            return "tender.created"
+        if row["content_hash"] == h:
+            return None
+        await conn.execute(
+            """UPDATE tenders SET name=$2, status_name=$3, status_id=$4,
                        last_offer_date=$5::timestamptz, bids_count=$6,
                        submitted_bids_count=$7, external_bids_count=$8, draft_bids_count=$9,
                        payload=$10::jsonb, content_hash=$11, updated_at=now()
                    WHERE id=$1""",
-                row["id"], c["name"], c["status_name"], c["status_id"],
-                _ts(c["last_offer_date"]), c["bids_count"], c["submitted_bids_count"],
-                c["external_bids_count"], c["draft_bids_count"], payload, h,
-            )
-            event = "tender.awarded" if c["status_id"] == 15 else "tender.updated"
-            await conn.execute(
-                """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
+            row["id"], c["name"], c["status_name"], c["status_id"],
+            _ts(c["last_offer_date"]), c["bids_count"], c["submitted_bids_count"],
+            c["external_bids_count"], c["draft_bids_count"], payload, h,
+        )
+        event = "tender.awarded" if c["status_id"] == 15 else "tender.updated"
+        await conn.execute(
+            """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
                    VALUES ($1, 'tender', $2, '{"source":"forsah"}')""",
-                event, row["id"],
-            )
-            return event
+            event, row["id"],
+        )
+        return event
 
 
 async def run(pages: int, size: int = 25) -> dict:

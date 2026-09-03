@@ -91,8 +91,7 @@ async def upsert_tender(pool: asyncpg.Pool, row: EtimadTenderRow, *, detected_by
     new_hash = content_hash(canonical)
     payload = row.model_dump_json(by_alias=True)
 
-    async with pool.acquire() as conn:
-        async with conn.transaction():
+    async with pool.acquire() as conn, conn.transaction():
             existing = await conn.fetchrow(_SELECT_SQL, "etimad", row.tender_id)
             if existing is None:
                 inserted = await conn.fetchrow(_INSERT_SQL, *_row_args(canonical), payload, new_hash, detected_by)

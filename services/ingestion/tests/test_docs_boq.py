@@ -33,9 +33,9 @@ def test_boq_parser_finds_header_and_items():
     assert first.item_no == "1"
     assert "الحفر" in first.description
     assert first.unit == "م3"
-    assert first.qty == Decimal("1500")
+    assert first.qty == Decimal(1500)
     # Arabic-Indic digits converted
-    assert result.items[1].qty == Decimal("2500")
+    assert result.items[1].qty == Decimal(2500)
 
 
 def test_boq_parser_rejects_random_sheet():

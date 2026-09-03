@@ -28,7 +28,6 @@ import asyncpg
 from . import db
 from .etimad.client import EtimadClient
 
-
 log = logging.getLogger("thaqip.backfill")
 
 CATEGORY_PARAMS: dict[str, dict] = {

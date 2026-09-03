@@ -57,7 +57,7 @@ def extract_text(file_name: str, data: bytes) -> str:
             return _extract_xlsx(data)
         if name.endswith(".txt"):
             return data.decode("utf-8", errors="replace")
-    except Exception as exc:  # extraction must never kill ingestion
+    except Exception as exc:  # noqa: BLE001 — extraction must never kill ingestion
         log.warning("extraction failed for %s: %r", file_name, exc)
     return ""
 
@@ -148,26 +148,25 @@ async def ingest_file(
     text = extract_text(file_name, data)
     chunks = chunk_text(text)
 
-    async with pool.acquire() as conn:
-        async with conn.transaction():
-            doc_id = await conn.fetchval(
-                """INSERT INTO documents (tender_id, kind, file_name, mime_type, size_bytes,
+    async with pool.acquire() as conn, conn.transaction():
+        doc_id = await conn.fetchval(
+            """INSERT INTO documents (tender_id, kind, file_name, mime_type, size_bytes,
                                           sha256, storage_key, text_extracted)
                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id""",
-                tender_pk, kind, file_name, mime, len(data), sha, storage_key, bool(chunks),
-            )
-            for i, chunk in enumerate(chunks):
-                await conn.execute(
-                    "INSERT INTO doc_chunks (document_id, chunk_no, content) VALUES ($1, $2, $3)",
-                    doc_id, i, chunk,
-                )
+            tender_pk, kind, file_name, mime, len(data), sha, storage_key, bool(chunks),
+        )
+        for i, chunk in enumerate(chunks):
             await conn.execute(
-                """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
-                   VALUES ('document.stored', 'document', $1, $2::jsonb)""",
-                doc_id,
-                json.dumps({"tender_id": tender_pk, "kind": kind, "file_name": file_name,
-                            "chunks": len(chunks)}, ensure_ascii=False),
+                "INSERT INTO doc_chunks (document_id, chunk_no, content) VALUES ($1, $2, $3)",
+                doc_id, i, chunk,
             )
+        await conn.execute(
+            """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
+                   VALUES ('document.stored', 'document', $1, $2::jsonb)""",
+            doc_id,
+            json.dumps({"tender_id": tender_pk, "kind": kind, "file_name": file_name,
+                        "chunks": len(chunks)}, ensure_ascii=False),
+        )
     log.info("stored %s (%s, %d bytes, %d chunks) for tender %d",
              file_name, kind, len(data), len(chunks), tender_pk)
     return doc_id

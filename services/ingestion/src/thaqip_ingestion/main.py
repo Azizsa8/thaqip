@@ -15,7 +15,7 @@ import asyncio
 import logging
 import os
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from .etimad.client import ChallengeDetected, EtimadClient
 from .normalize import classify_change, content_hash, diff_fields, to_canonical
@@ -87,7 +87,7 @@ async def main() -> None:
     mem_store: dict[int, dict] = {}
     try:
         while True:
-            started = datetime.now(timezone.utc)
+            started = datetime.now(UTC)
             try:
                 if pool is not None:
                     stats = await run_pass_db(client, pool, pages=args.pages)
@@ -95,7 +95,7 @@ async def main() -> None:
                     stats = await run_pass_memory(client, mem_store, pages=args.pages)
                 log.info(
                     "pass done in %.1fs %s",
-                    (datetime.now(timezone.utc) - started).total_seconds(),
+                    (datetime.now(UTC) - started).total_seconds(),
                     dict(stats),
                 )
             except ChallengeDetected:

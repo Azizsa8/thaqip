@@ -517,10 +517,38 @@ async def tender_detail(tender_id: int):
            FROM documents WHERE tender_id = $1 ORDER BY id""",
         tender_id,
     )
+    # M4-2 lite: pricing benchmark from awarded tenders in the same activity
+    # (same agency ranked first). Vector similarity replaces this ranking later.
+    similar = await pool.fetch(
+        """SELECT t2.id, left(t2.name, 70) AS name,
+                  coalesce(a2.canonical_name, t2.agency_name_raw) AS agency,
+                  w.award_value, v.canonical_name AS winner,
+                  (SELECT count(*) FROM offers o WHERE o.tender_id = t2.id) AS bidders,
+                  (t2.agency_name_raw = $3 OR t2.agency_id IS NOT DISTINCT FROM $4) AS same_agency
+           FROM awards w
+           JOIN tenders t2 ON t2.id = w.tender_id
+           LEFT JOIN vendors v ON v.id = w.vendor_id
+           LEFT JOIN agencies a2 ON a2.id = t2.agency_id
+           WHERE t2.id <> $1 AND t2.activity_id IS NOT DISTINCT FROM $2
+             AND w.award_value IS NOT NULL
+           ORDER BY same_agency DESC, w.id DESC LIMIT 6""",
+        tender_id, t["activity_id"], t["agency_name_raw"], t["agency_id"],
+    )
+    bench = await pool.fetchrow(
+        """SELECT count(*) AS n,
+                  percentile_cont(0.5) WITHIN GROUP (ORDER BY w.award_value) AS median_award,
+                  min(w.award_value) AS min_award, max(w.award_value) AS max_award
+           FROM awards w JOIN tenders t2 ON t2.id = w.tender_id
+           WHERE t2.id <> $1 AND t2.activity_id IS NOT DISTINCT FROM $2
+             AND w.award_value IS NOT NULL""",
+        tender_id, t["activity_id"],
+    )
     out = dict(t)
     out.pop("payload", None)
     out["offers"] = [dict(r) for r in offers]
     out["awards"] = [dict(r) for r in awards]
     out["boq_items"] = [dict(r) for r in boq]
     out["documents"] = [dict(r) for r in docs]
+    out["similar_awards"] = [dict(r) for r in similar]
+    out["benchmark"] = dict(bench) if bench and bench["n"] else None
     return out

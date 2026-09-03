@@ -34,7 +34,7 @@ class LLMGateway:
         )
 
     @classmethod
-    def from_env(cls) -> "LLMGateway | None":
+    def from_env(cls) -> LLMGateway | None:
         key = os.environ.get("THAQIP_ANTHROPIC_API_KEY")
         if not key:
             return None

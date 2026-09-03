@@ -81,28 +81,27 @@ async def create_pursuit(pool: asyncpg.Pool, tender_id: int) -> dict:
         raise ValueError("tender not found")
     tender = dict(tender)
 
-    async with pool.acquire() as conn:
-        async with conn.transaction():
-            existing = await conn.fetchval(
-                "SELECT id FROM pursuits WHERE tender_id=$1", tender_id
-            )
-            if existing:
-                return {"id": existing, "created": False}
-            pid = await conn.fetchval(
-                "INSERT INTO pursuits (tender_id) VALUES ($1) RETURNING id", tender_id
-            )
-            for item in field_requirements(tender) + GTPL_BASELINE:
-                await conn.execute(
-                    """INSERT INTO compliance_items
+    async with pool.acquire() as conn, conn.transaction():
+        existing = await conn.fetchval(
+            "SELECT id FROM pursuits WHERE tender_id=$1", tender_id
+        )
+        if existing:
+            return {"id": existing, "created": False}
+        pid = await conn.fetchval(
+            "INSERT INTO pursuits (tender_id) VALUES ($1) RETURNING id", tender_id
+        )
+        for item in field_requirements(tender) + GTPL_BASELINE:
+            await conn.execute(
+                """INSERT INTO compliance_items
                          (pursuit_id, requirement, category, source_ref, origin, sort_order)
                        VALUES ($1,$2,$3,$4,'rule',$5)""",
-                    pid, item["requirement"], item["category"],
-                    item["source_ref"], item["sort_order"],
-                )
-            await conn.execute(
-                """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
-                   VALUES ('pursuit.created', 'pursuit', $1, '{}')""", pid,
+                pid, item["requirement"], item["category"],
+                item["source_ref"], item["sort_order"],
             )
+        await conn.execute(
+            """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
+                   VALUES ('pursuit.created', 'pursuit', $1, '{}')""", pid,
+        )
     log.info("pursuit %s created for tender %s with baseline matrix", pid, tender_id)
     return {"id": pid, "created": True}
 

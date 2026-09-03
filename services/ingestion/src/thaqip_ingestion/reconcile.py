@@ -24,7 +24,7 @@ import asyncio
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from . import db
 from .etimad.client import EtimadClient
@@ -94,7 +94,7 @@ async def run(pages: int) -> dict:
         "INSERT INTO ingest_runs (connector) VALUES ('etimad.reconcile') RETURNING id"
     )
     error = None
-    report: dict = {"at": datetime.now(timezone.utc).isoformat()}
+    report: dict = {"at": datetime.now(UTC).isoformat()}
     try:
         report["census"] = await census(client, pool)
         report["head_sample"] = await head_sample(client, pool, pages=pages)

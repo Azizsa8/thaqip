@@ -45,7 +45,7 @@ def _norm(cell) -> str:
 def _match_column(label: str) -> str | None:
     for field, patterns in _COLUMN_PATTERNS.items():
         for p in patterns:
-            if re.search(p, label, re.I):
+            if re.search(p, label, re.IGNORECASE):
                 return field
     return None
 
@@ -119,7 +119,9 @@ def parse_boq_xlsx(data: bytes) -> BoqParseResult:
         empty_streak = 0
         for row in rows:  # continues after the header row
             total_rows += 1
-            get = lambda f: (row[inv[f]] if f in inv and inv[f] < len(row) else None)  # noqa: E731
+            def get(f, _row=row, _inv=inv):
+                return _row[_inv[f]] if f in _inv and _inv[f] < len(_row) else None
+
             desc = _norm(get("description"))
             if not desc:
                 empty_streak += 1
@@ -150,18 +152,17 @@ async def store_boq(pool, *, tender_pk: int, document_id: int | None,
         log.warning("BOQ confidence %.2f below threshold; sending to review queue",
                     result.confidence)
         return 0
-    async with pool.acquire() as conn:
-        async with conn.transaction():
+    async with pool.acquire() as conn, conn.transaction():
+        await conn.execute(
+            "DELETE FROM boq_items WHERE tender_id = $1 AND document_id IS NOT DISTINCT FROM $2",
+            tender_pk, document_id,
+        )
+        for it in result.items:
             await conn.execute(
-                "DELETE FROM boq_items WHERE tender_id = $1 AND document_id IS NOT DISTINCT FROM $2",
-                tender_pk, document_id,
-            )
-            for it in result.items:
-                await conn.execute(
-                    """INSERT INTO boq_items (tender_id, document_id, item_no, description,
+                """INSERT INTO boq_items (tender_id, document_id, item_no, description,
                                               unit, qty, confidence)
                        VALUES ($1, $2, $3, $4, $5, $6, $7)""",
-                    tender_pk, document_id, it.item_no, it.description,
-                    it.unit, it.qty, result.confidence,
-                )
+                tender_pk, document_id, it.item_no, it.description,
+                it.unit, it.qty, result.confidence,
+            )
     return len(result.items)

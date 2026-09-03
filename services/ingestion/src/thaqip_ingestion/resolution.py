@@ -61,7 +61,7 @@ async def resolve_agencies(pool) -> dict:
         by_key.setdefault(normalize_ar(r["agency_name_raw"]), []).append(r["agency_name_raw"])
 
     async with pool.acquire() as conn:
-        for key, variants in by_key.items():
+        for variants in by_key.values():
             display = max(variants, key=len)  # richest observed spelling as display form
             async with conn.transaction():
                 agency_id = await conn.fetchval(
@@ -92,7 +92,7 @@ async def dedupe_vendors(pool) -> dict:
         groups.setdefault(match_key(v["canonical_name"]), []).append(v)
 
     async with pool.acquire() as conn:
-        for _key, members in groups.items():
+        for members in groups.values():
             if len(members) < 2:
                 continue
             keeper, *dupes = members  # lowest id wins; earliest observation is stable

@@ -36,3 +36,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/thaqip_ingestion"]
+
+[tool.ruff.lint]
+ignore = ["C408", "E731"]

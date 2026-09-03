@@ -770,11 +770,37 @@ async function openDetail(id){
         ${lat?kv('رصدناها بعد النشر بـ', lat):''}
       </div>
     </div>
-    ${awards}${offers}${boq}
+    ${awards}${offers}${boq}${benchmarkBlock(t)}
     ${t.documents.length?`<div class="mt-6 text-[12px] text-mut">${t.documents.length} ملف في خزنة الوثائق</div>`:''}`;
   $('#drawer').classList.remove('-translate-x-full');
   $('#drawer').setAttribute('aria-hidden','false');
   $('#overlay').classList.remove('hidden');
+}
+function benchmarkBlock(t){
+  if(!t.similar_awards || !t.similar_awards.length) return '';
+  const b = t.benchmark;
+  return `
+    <h3 class="font-semibold text-[14px] mt-7 mb-3 flex items-center gap-2">
+      <span class="w-1.5 h-4 rounded-full bg-[#2E7C8C] inline-block"></span>مؤشر التسعير — ترسيات مشابهة في النشاط
+      ${b?`<span class="text-[11px] font-normal text-mut">(${b.n} ترسية · وسيط <span class="num">${money(b.median_award)}</span> ر.س)</span>`:''}
+    </h3>
+    <div class="bg-card border border-line rounded-xl overflow-hidden">
+    <table class="w-full text-[12.5px]">
+      <thead><tr class="text-mut text-[11px] border-b border-line bg-paper/60">
+        <th class="text-right font-medium px-4 py-2">المنافسة</th>
+        <th class="text-right font-medium px-3 py-2">الفائز</th>
+        <th class="text-center font-medium px-2 py-2">متنافسون</th>
+        <th class="text-left font-medium px-4 py-2">قيمة الترسية</th></tr></thead>
+      <tbody>${t.similar_awards.map(s=>`
+        <tr class="border-b border-line/70 last:border-0 hover:bg-tint/40 cursor-pointer" onclick="openDetail(${s.id})">
+          <td class="px-4 py-2.5 leading-snug">${s.name}
+            ${s.same_agency?'<span class="text-[9.5px] font-semibold bg-tint text-deep rounded-full px-1.5 py-0.5 ms-1">نفس الجهة</span>':''}
+            <div class="text-[10.5px] text-mut">${s.agency??''}</div></td>
+          <td class="px-3 py-2.5 text-[12px]">${s.winner??'—'}</td>
+          <td class="px-2 py-2.5 text-center num text-mut">${s.bidders||'—'}</td>
+          <td class="px-4 py-2.5 text-left num font-medium text-[#2E7C8C]">${money(s.award_value)}</td>
+        </tr>`).join('')}</tbody>
+    </table></div>`;
 }
 function closeDrawer(){
   $('#drawer').classList.add('-translate-x-full');

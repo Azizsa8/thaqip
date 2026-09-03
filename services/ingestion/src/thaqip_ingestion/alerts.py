@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import json
 import logging
 import os
 
@@ -38,7 +37,12 @@ EVENT_LABEL = {
     "tender.extended": "تمديد موعد التقديم",
     "tender.updated": "تحديث على منافسة",
     "tender.awarded": "إعلان ترسية",
+    "tender.deadline": "⏰ اقتراب موعد الإغلاق",
 }
+
+# Pursuit-deadline reminders concern the whole team: broadcast to every active
+# profile regardless of its keyword/activity filters.
+BROADCAST_EVENTS = {"tender.deadline"}
 
 
 def render(event_type: str, t: dict) -> tuple[str, str]:
@@ -109,7 +113,7 @@ async def handle(pool: asyncpg.Pool, sender: Sender, fields: dict) -> int:
     profiles = await pool.fetch("SELECT * FROM alert_profiles WHERE active")
     delivered = 0
     for p in map(dict, profiles):
-        if not matches(p, t, event_type):
+        if event_type not in BROADCAST_EVENTS and not matches(p, t, event_type):
             continue
         title, body = render(event_type, t)
         row = await pool.fetchrow(

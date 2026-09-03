@@ -1,0 +1,17 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  ingestion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - name: Sync
+        working-directory: services/ingestion
+        run: uv sync --extra db --extra docs --group dev
+      - name: Lint
+        working-directory: services/ingestion
+        run: uv run ruff check src tests
+      - name: Test
+        working-directory: services/ingestion
+        run: uv run pytest -q
