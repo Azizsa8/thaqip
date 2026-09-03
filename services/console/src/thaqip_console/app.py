@@ -64,6 +64,55 @@ async def stats():
     }
 
 
+@app.get("/api/dashboard")
+async def dashboard():
+    """Real aggregates only — nothing invented. Feeds the dashboard view."""
+    pool: asyncpg.Pool = app.state.pool
+    kpis = await pool.fetchrow(
+        """SELECT
+             (SELECT count(*) FROM tenders WHERE last_offer_date > now())                    AS open_now,
+             (SELECT count(*) FROM tenders WHERE last_offer_date::date = now()::date)       AS closing_today,
+             (SELECT count(*) FROM tenders WHERE published_at > now() - interval '24 hours')AS new_24h,
+             (SELECT count(*) FROM tenders)                                                 AS total,
+             (SELECT coalesce(sum(award_value),0) FROM awards)                              AS awards_value,
+             (SELECT count(*) FROM awards)                                                  AS awards_count,
+             (SELECT count(*) FROM offers)                                                  AS offers_count,
+             (SELECT count(DISTINCT vendor_id) FROM offers)                                 AS bidders,
+             (SELECT max(award_value) FROM awards)                                          AS peak_award,
+             (SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY c) FROM
+                (SELECT count(*) c FROM offers GROUP BY tender_id) s)                       AS median_bidders"""
+    )
+    fresh = await pool.fetchrow(
+        """SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY detected_at - published_at) AS p50
+           FROM tenders WHERE published_at > now() - interval '24 hours'
+             AND detected_at >= published_at"""
+    )
+    monthly = await pool.fetch(
+        """SELECT to_char(date_trunc('month', t.last_offer_date), 'YYYY-MM') AS month,
+                  count(*) FILTER (WHERE o.is_winner)          AS won,
+                  count(*) FILTER (WHERE NOT o.is_winner)      AS lost
+           FROM offers o JOIN tenders t ON t.id = o.tender_id
+           WHERE t.last_offer_date IS NOT NULL
+           GROUP BY 1 ORDER BY 1 DESC LIMIT 12"""
+    )
+    latest_awards = await pool.fetch(
+        """SELECT t.id, left(t.name, 70) AS name,
+                  coalesce(a2.canonical_name, t.agency_name_raw) AS agency,
+                  v.canonical_name AS winner, w.award_value
+           FROM awards w
+           JOIN tenders t ON t.id = w.tender_id
+           LEFT JOIN vendors v ON v.id = w.vendor_id
+           LEFT JOIN agencies a2 ON a2.id = t.agency_id
+           ORDER BY w.id DESC LIMIT 8"""
+    )
+    return {
+        **dict(kpis),
+        "fresh_p50_seconds": fresh["p50"].total_seconds() if fresh and fresh["p50"] else None,
+        "monthly": [dict(r) for r in reversed(monthly)],
+        "latest_awards": [dict(r) for r in latest_awards],
+    }
+
+
 @app.get("/api/filters")
 async def filters():
     pool: asyncpg.Pool = app.state.pool
@@ -152,8 +201,20 @@ async def tender_detail(tender_id: int):
            FROM awards w LEFT JOIN vendors v ON v.id = w.vendor_id WHERE w.tender_id = $1""",
         tender_id,
     )
+    boq = await pool.fetch(
+        """SELECT item_no, description, unit, qty, confidence
+           FROM boq_items WHERE tender_id = $1 ORDER BY id LIMIT 500""",
+        tender_id,
+    )
+    docs = await pool.fetch(
+        """SELECT id, kind, file_name, mime_type, size_bytes, text_extracted
+           FROM documents WHERE tender_id = $1 ORDER BY id""",
+        tender_id,
+    )
     out = dict(t)
     out.pop("payload", None)
     out["offers"] = [dict(r) for r in offers]
     out["awards"] = [dict(r) for r in awards]
+    out["boq_items"] = [dict(r) for r in boq]
+    out["documents"] = [dict(r) for r in docs]
     return out

@@ -3,211 +3,456 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ثاقب — وحدة التحكم</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<title>ثاقب — منصة ذكاء المنافسات</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: {
+      paper:  '#F7F6F2', ink: '#191F1C', mut: '#6B7770', line: '#E4E2DA',
+      card:   '#FFFFFF', deep: '#0E6B4F', deepd: '#0A5540', tint: '#E9F1EC',
+      bronze: '#A16207', bronzet:'#F5EEDC', won: '#108A5F', lost: '#B45309',
+      danger: '#A63D2F', dangert:'#F8E9E5',
+    },
+    fontFamily: {
+      sans: ['"IBM Plex Sans Arabic"','system-ui','sans-serif'],
+      mono: ['"IBM Plex Mono"','monospace'],
+    },
+    boxShadow: {
+      card: '0 1px 2px rgba(20,30,25,.04), 0 4px 16px rgba(20,30,25,.05)',
+      lift: '0 2px 6px rgba(20,30,25,.08), 0 12px 32px rgba(20,30,25,.10)',
+    },
+  }}
+}
+</script>
 <style>
-:root{
-  --paper:#f6f7f5; --ink:#1c2622; --muted:#5c6a63; --line:#dde2dd;
-  --card:#ffffff; --accent:#0e6b4f; --accent-soft:#e3efe9;
-  --win:#0e6b4f; --warn:#a63d2f; --amber:#8a6414; --amber-soft:#f3ecd9;
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --paper:#141a17; --ink:#e6ebe7; --muted:#9aa8a0; --line:#2b342f;
-    --card:#1b231f; --accent:#4fb08d; --accent-soft:#1e2f28;
-    --win:#4fb08d; --warn:#e08a77; --amber:#d0a84e; --amber-soft:#2e2818;
-  }
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;font-size:14px;line-height:1.7}
-header{display:flex;align-items:baseline;gap:14px;padding:14px 22px;border-bottom:2px solid var(--ink);flex-wrap:wrap}
-header h1{font-size:20px;margin:0}
-header h1 span{color:var(--accent)}
-header .env{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:1px 10px}
-#stats{display:flex;gap:10px;padding:14px 22px;flex-wrap:wrap}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 16px;min-width:110px}
-.stat b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
-.stat span{font-size:11.5px;color:var(--muted)}
-#controls{display:flex;gap:8px;padding:0 22px 12px;flex-wrap:wrap;align-items:center}
-input,select,button{font-family:inherit;font-size:13.5px;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:7px 11px}
-input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
-#q{min-width:260px}
-button{cursor:pointer}
-button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
-label.chk{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:13px}
-main{padding:0 22px 40px}
-.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:9px;background:var(--card)}
-table{border-collapse:collapse;width:100%;min-width:840px}
-th{font-size:11.5px;color:var(--muted);text-align:right;padding:9px 12px;border-bottom:2px solid var(--line);white-space:nowrap}
-td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-tr:last-child td{border-bottom:none}
-tr.row{cursor:pointer}
-tr.row:hover td{background:var(--accent-soft)}
-.mono{font-family:"IBM Plex Mono",monospace;font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
-.name{max-width:420px}
-.pill{display:inline-block;font-size:11px;border-radius:99px;padding:1px 9px;font-weight:500}
-.pill.open{background:var(--accent-soft);color:var(--accent)}
-.pill.won{background:var(--amber-soft);color:var(--amber)}
-.pill.closed{color:var(--muted);border:1px solid var(--line)}
-#count{color:var(--muted);font-size:12.5px;padding:8px 2px}
-#pager{display:flex;gap:8px;padding:12px 0}
-/* detail drawer */
-#drawer{position:fixed;top:0;left:0;height:100vh;width:min(560px,94vw);background:var(--card);border-right:1px solid var(--line);box-shadow:0 0 40px rgba(0,0,0,.25);transform:translateX(-105%);transition:transform .2s;overflow-y:auto;padding:20px 22px;z-index:10}
-#drawer.open{transform:none}
-#drawer h2{font-size:16px;margin:4px 0 12px;line-height:1.5}
-#drawer .close{position:absolute;top:12px;left:14px}
-dl{display:grid;grid-template-columns:130px 1fr;gap:4px 12px;font-size:13px;margin:0 0 16px}
-dt{color:var(--muted)}
-dd{margin:0}
-h3{font-size:13.5px;margin:18px 0 8px;color:var(--accent)}
-.offers td,.offers th{padding:6px 10px;font-size:13px}
-@media (prefers-reduced-motion: reduce){#drawer{transition:none}}
+  html{background:#F7F6F2}
+  .num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+  .fade-up{opacity:0;transform:translateY(10px);animation:fu .5s cubic-bezier(.2,.7,.2,1) forwards}
+  @keyframes fu{to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion: reduce){.fade-up{animation:none;opacity:1;transform:none}}
+  .ledger-rule{background:linear-gradient(270deg,#0E6B4F 0%,#0E6B4F 55%,#A16207 55%,#A16207 100%);height:3px}
+  ::-webkit-scrollbar{height:8px;width:8px}
+  ::-webkit-scrollbar-thumb{background:#D6D3C8;border-radius:8px}
+  #tip{pointer-events:none;transition:opacity .12s}
 </style>
 </head>
-<body>
-<header>
-  <h1>ثاقب <span>·</span> وحدة التحكم</h1>
-  <span class="env">بيئة تطوير — بيانات اعتماد الحية</span>
-  <span class="env" id="fresh"></span>
-</header>
+<body class="bg-paper text-ink font-sans text-[14px] leading-relaxed min-h-screen">
 
-<div id="stats"></div>
+<div class="flex min-h-screen">
 
-<div id="controls">
-  <input id="q" type="search" placeholder="ابحث بالاسم أو الرقم المرجعي…">
-  <select id="agency"><option value="">كل الجهات</option></select>
-  <select id="activity"><option value="">كل الأنشطة</option></select>
-  <label class="chk"><input type="checkbox" id="awarded"> مُرسّاة فقط</label>
-  <label class="chk"><input type="checkbox" id="open"> مفتوحة فقط</label>
-  <button class="primary" id="go">بحث</button>
+  <!-- ======================= SIDEBAR (right in RTL) ======================= -->
+  <aside class="w-64 shrink-0 hidden lg:flex flex-col border-l border-line bg-card/70 backdrop-blur sticky top-0 h-screen">
+    <div class="px-6 pt-7 pb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-deep grid place-items-center shadow-card">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <div>
+          <div class="text-[19px] font-bold tracking-tight">ثاقب</div>
+          <div class="text-[10px] text-mut tracking-[.18em] uppercase">Etimad Bid Intelligence</div>
+        </div>
+      </div>
+    </div>
+    <div class="ledger-rule mx-6 rounded-full"></div>
+    <nav class="px-3 py-5 space-y-1" id="nav">
+      <button data-view="dash" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span>لوحة القيادة</span></button>
+      <button data-view="disc" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <span>استكشاف المنافسات</span></button>
+      <button data-view="intel" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20h18M6 16v-5m6 5V8m6 8v-9"/></svg>
+        <span>ذكاء المنافسين</span></button>
+    </nav>
+    <div class="px-6 pt-2 pb-3 text-[10px] tracking-[.18em] text-mut uppercase">المنافسات النشطة</div>
+    <div class="px-3 space-y-1" id="sideCounts">
+      <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-tint">
+        <span class="text-deep font-medium">مفتوحة</span><span id="scOpen" class="num text-[12px] bg-deep text-white rounded-md px-2 py-0.5">—</span></div>
+      <div class="flex items-center justify-between px-3 py-2 rounded-lg">
+        <span class="text-mut">تغلق اليوم</span><span id="scToday" class="num text-[12px] text-mut">—</span></div>
+      <div class="flex items-center justify-between px-3 py-2 rounded-lg">
+        <span class="text-mut">مُرسّاة</span><span id="scWon" class="num text-[12px] text-mut">—</span></div>
+    </div>
+    <div class="mt-auto px-5 py-5 border-t border-line flex items-center gap-3">
+      <div class="w-9 h-9 rounded-full bg-deep/10 text-deep grid place-items-center font-bold">ع</div>
+      <div class="leading-tight"><div class="font-medium text-[13px]">وحدة تحكم داخلية</div>
+      <div class="text-[11px] text-mut">بيانات اعتماد الحيّة</div></div>
+    </div>
+  </aside>
+
+  <!-- ======================= MAIN ======================= -->
+  <div class="flex-1 min-w-0">
+    <header class="sticky top-0 z-20 bg-paper/85 backdrop-blur border-b border-line">
+      <div class="flex items-center gap-4 px-5 lg:px-8 h-16">
+        <h1 id="viewTitle" class="text-[17px] font-semibold">لوحة القيادة</h1>
+        <span id="freshChip" class="hidden sm:inline-flex items-center gap-2 text-[12px] text-deep bg-tint rounded-full px-3 py-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-deep animate-pulse"></span><span id="freshTxt">…</span></span>
+        <div class="ms-auto flex items-center gap-2">
+          <input id="q" type="search" placeholder="ابحث في المنافسات…"
+            class="w-44 sm:w-64 bg-card border border-line rounded-lg px-3.5 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-deep/40">
+          <button id="goSearch" class="bg-deep hover:bg-deepd text-white rounded-lg px-4 py-2 text-[13px] font-medium transition shadow-card">بحث</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= DASHBOARD ================= -->
+    <section id="view-dash" class="px-5 lg:px-8 py-7 space-y-6">
+      <div class="grid grid-cols-2 xl:grid-cols-4 gap-4" id="kpis"></div>
+
+      <div class="grid xl:grid-cols-3 gap-5">
+        <div class="xl:col-span-2 bg-card border border-line rounded-2xl shadow-card p-6 fade-up" style="animation-delay:.05s">
+          <div class="flex items-baseline justify-between mb-1">
+            <h2 class="font-semibold text-[15px]">العروض حسب شهر الإغلاق</h2>
+            <div class="flex items-center gap-4 text-[12px] text-mut">
+              <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-won inline-block"></span>فائز</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-lost inline-block"></span>غير فائز</span>
+            </div>
+          </div>
+          <p class="text-[12px] text-mut mb-4">من العروض المالية المحصودة في الأرشيف — يتوسع مع كل جولة حصاد</p>
+          <div id="chartMonthly" class="h-56"></div>
+        </div>
+
+        <div class="bg-card border border-line rounded-2xl shadow-card p-6 fade-up" style="animation-delay:.1s">
+          <h2 class="font-semibold text-[15px] mb-1">نبض المصدر</h2>
+          <p class="text-[12px] text-mut mb-5">قياسات حيّة من خط الاستيعاب</p>
+          <div class="space-y-4" id="pulse"></div>
+        </div>
+      </div>
+
+      <div class="bg-card border border-line rounded-2xl shadow-card fade-up overflow-hidden" style="animation-delay:.15s">
+        <div class="flex items-center justify-between px-6 pt-5 pb-3">
+          <h2 class="font-semibold text-[15px]">أحدث الترسيات المحصودة</h2>
+          <button data-view="disc" class="navbtn text-deep text-[13px] hover:underline">عرض الكل ←</button>
+        </div>
+        <div class="overflow-x-auto"><table class="w-full min-w-[720px] text-[13px]">
+          <thead><tr class="text-mut text-[11.5px] border-y border-line bg-paper/60">
+            <th class="text-right font-medium px-6 py-2.5">المنافسة</th>
+            <th class="text-right font-medium px-4 py-2.5">الجهة</th>
+            <th class="text-right font-medium px-4 py-2.5">الفائز</th>
+            <th class="text-left font-medium px-6 py-2.5">قيمة الترسية</th>
+          </tr></thead>
+          <tbody id="latestAwards"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ================= DISCOVERY ================= -->
+    <section id="view-disc" class="hidden px-5 lg:px-8 py-7">
+      <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6" id="discStats"></div>
+      <div class="flex gap-6">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-4 flex-wrap" id="chips">
+            <select id="fAgency" class="bg-card border border-line rounded-lg px-3 py-2 text-[13px] max-w-[240px]"><option value="">كل الجهات</option></select>
+            <select id="fActivity" class="bg-card border border-line rounded-lg px-3 py-2 text-[13px] max-w-[220px]"><option value="">كل الأنشطة</option></select>
+            <label class="inline-flex items-center gap-2 bg-card border border-line rounded-lg px-3 py-2 text-[13px] cursor-pointer">
+              <input id="fAwarded" type="checkbox" class="accent-deep">مُرسّاة</label>
+            <label class="inline-flex items-center gap-2 bg-card border border-line rounded-lg px-3 py-2 text-[13px] cursor-pointer">
+              <input id="fOpen" type="checkbox" class="accent-deep">مفتوحة فقط</label>
+            <span id="discCount" class="text-[12px] text-mut ms-auto"></span>
+          </div>
+          <div class="bg-card border border-line rounded-2xl shadow-card overflow-hidden">
+            <div class="overflow-x-auto"><table class="w-full min-w-[860px] text-[13px]">
+              <thead><tr class="text-mut text-[11.5px] border-b border-line bg-paper/60">
+                <th class="text-right font-medium px-5 py-3">مرجع</th>
+                <th class="text-right font-medium px-4 py-3">المنافسة</th>
+                <th class="text-right font-medium px-4 py-3">الجهة</th>
+                <th class="text-right font-medium px-4 py-3">الحالة</th>
+                <th class="text-right font-medium px-4 py-3">العد التنازلي</th>
+                <th class="text-right font-medium px-5 py-3">زمن الرصد</th>
+              </tr></thead>
+              <tbody id="discRows"></tbody>
+            </table></div>
+            <div class="flex items-center gap-2 px-5 py-3 border-t border-line">
+              <button id="pgPrev" class="border border-line rounded-lg px-3.5 py-1.5 text-[13px] bg-card hover:bg-tint disabled:opacity-40">السابق</button>
+              <button id="pgNext" class="border border-line rounded-lg px-3.5 py-1.5 text-[13px] bg-card hover:bg-tint disabled:opacity-40">التالي</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= COMPETITOR INTEL ================= -->
+    <section id="view-intel" class="hidden px-5 lg:px-8 py-7">
+      <div class="max-w-xl bg-card border border-line rounded-2xl shadow-card p-8 text-center mx-auto mt-10">
+        <div class="w-12 h-12 rounded-2xl bg-tint text-deep grid place-items-center mx-auto mb-4">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20h18M6 16v-5m6 5V8m6 8v-9"/></svg></div>
+        <h2 class="font-semibold text-[16px] mb-2">ذكاء المنافسين</h2>
+        <p class="text-mut text-[13px]">صفحات الشركات ومعدلات الفوز تُبنى على أرشيف العروض — <span class="num" id="intelOffers">…</span> عرضًا محصودًا حتى الآن، وتتوسع تلقائيًا مع جولات الحصاد المجدولة كل ٦ ساعات.</p>
+      </div>
+    </section>
+  </div>
 </div>
 
-<main>
-  <div id="count"></div>
-  <div class="tblwrap"><table>
-    <thead><tr>
-      <th>الرقم المرجعي</th><th>المنافسة</th><th>الجهة</th><th>النشاط</th>
-      <th>الحالة</th><th>آخر تقديم</th><th>زمن الرصد</th>
-    </tr></thead>
-    <tbody id="rows"></tbody>
-  </table></div>
-  <div id="pager">
-    <button id="prev">السابق</button>
-    <button id="next">التالي</button>
-  </div>
-</main>
-
-<aside id="drawer" aria-hidden="true">
-  <button class="close" onclick="closeDrawer()">✕ إغلاق</button>
-  <div id="detail"></div>
+<!-- ================= WAR-ROOM DRAWER ================= -->
+<div id="overlay" class="hidden fixed inset-0 bg-ink/30 backdrop-blur-[2px] z-30"></div>
+<aside id="drawer" class="fixed top-0 left-0 h-screen w-[min(680px,96vw)] bg-paper z-40 shadow-lift overflow-y-auto transition-transform duration-200 -translate-x-full" aria-hidden="true">
+  <div id="detail" class="p-6 lg:p-8"></div>
 </aside>
+
+<div id="tip" class="fixed z-50 opacity-0 bg-ink text-paper text-[12px] rounded-lg px-3 py-1.5 shadow-lift num"></div>
 
 <script>
 const $ = s => document.querySelector(s);
-let offset = 0; const limit = 50;
+const API = '';
+let offset = 0; const LIMIT = 25;
 
-const fmtDT = v => v ? new Date(v).toLocaleString('ar-SA-u-ca-gregory',{dateStyle:'short',timeStyle:'short'}) : '—';
-const fmtMoney = v => v == null ? '—' : Number(v).toLocaleString('en-US');
-function latency(pub, det){
-  if(!pub || !det) return '—';
-  const s = (new Date(det) - new Date(pub))/1000;
-  if(s < 0) return '—';
-  if(s < 3600) return Math.round(s/60) + ' د';
-  return (s/3600).toFixed(1) + ' س';
+const nf = new Intl.NumberFormat('en-US');
+const money = v => v == null ? '—' : nf.format(Math.round(Number(v)));
+const fmtD = v => v ? new Date(v).toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'short',year:'numeric'}) : '—';
+function latencyTxt(pub, det){
+  if(!pub || !det) return null;
+  const s = (new Date(det)-new Date(pub))/1000; if(s<0) return null;
+  return s < 3600 ? Math.round(s/60)+' د' : (s/3600).toFixed(1)+' س';
+}
+function countdown(sec){
+  if(sec == null) return '—';
+  if(sec <= 0) return 'انتهى';
+  const d = Math.floor(sec/86400), h = Math.floor(sec%86400/3600);
+  return `${d} يوم · ${h} س`;
 }
 
-async function loadStats(){
-  const s = await (await fetch('/api/stats')).json();
-  const cards = [
-    ['المنافسات', s.tenders], ['مفتوحة الآن', s.open_tenders], ['الجهات', s.agencies],
-    ['الموردون', s.vendors], ['العروض', s.offers], ['الترسيات', s.awards], ['الأحداث', s.events],
+/* ---------- navigation ---------- */
+function show(view){
+  ['dash','disc','intel'].forEach(v => $('#view-'+v).classList.toggle('hidden', v!==view));
+  document.querySelectorAll('#nav .navbtn').forEach(b => {
+    const on = b.dataset.view === view;
+    b.classList.toggle('bg-tint', on); b.classList.toggle('text-deep', on); b.classList.toggle('font-semibold', on);
+  });
+  $('#viewTitle').textContent = {dash:'لوحة القيادة', disc:'استكشاف المنافسات', intel:'ذكاء المنافسين'}[view];
+}
+document.querySelectorAll('.navbtn').forEach(b => b.onclick = () => { show(b.dataset.view); if(b.dataset.view==='disc') loadDisc(); });
+
+/* ---------- tooltip ---------- */
+const tip = $('#tip');
+function tipShow(e, html){ tip.innerHTML = html; tip.style.opacity=1;
+  tip.style.left = (e.clientX+14)+'px'; tip.style.top = (e.clientY-10)+'px'; }
+function tipHide(){ tip.style.opacity=0; }
+
+/* ---------- dashboard ---------- */
+function kpiCard(label, value, sub, delay, accent){
+  return `<div class="bg-card border border-line rounded-2xl shadow-card p-5 fade-up" style="animation-delay:${delay}s">
+    <div class="text-[12px] text-mut mb-2">${label}</div>
+    <div class="num text-[26px] font-semibold ${accent||''}">${value}</div>
+    ${sub?`<div class="text-[11.5px] text-mut mt-1">${sub}</div>`:''}</div>`;
+}
+
+async function loadDash(){
+  const d = await (await fetch(API+'/api/dashboard')).json();
+  $('#kpis').innerHTML =
+    kpiCard('منافسات مفتوحة الآن', nf.format(d.open_now), `${nf.format(d.closing_today)} تغلق اليوم`, .0) +
+    kpiCard('قيمة الترسيات المحصودة', money(d.awards_value)+' <span class="text-[13px] text-mut">ر.س</span>', `${nf.format(d.awards_count)} ترسية في الأرشيف`, .05, 'text-deep') +
+    kpiCard('أعلى ترسية محصودة', money(d.peak_award)+' <span class="text-[13px] text-mut">ر.س</span>', 'من جولات الحصاد حتى الآن', .1) +
+    kpiCard('عروض مالية محصودة', nf.format(d.offers_count), `وسيط المتقدمين ${d.median_bidders ?? '—'} لكل منافسة`, .15);
+  // sidebar counts
+  $('#scOpen').textContent = nf.format(d.open_now);
+  $('#scToday').textContent = nf.format(d.closing_today);
+  $('#scWon').textContent = nf.format(d.awards_count);
+  $('#intelOffers').textContent = nf.format(d.offers_count);
+  // freshness chip
+  if(d.fresh_p50_seconds != null){
+    const m = Math.round(d.fresh_p50_seconds/60);
+    $('#freshTxt').textContent = 'وسيط زمن الرصد (24س): ' + (m<60 ? m+' دقيقة' : (m/60).toFixed(1)+' ساعة');
+  } else { $('#freshTxt').textContent = 'الراصد يعمل — لا منشورات جديدة بعد'; }
+  drawMonthly(d.monthly);
+  pulse(d);
+  $('#latestAwards').innerHTML = d.latest_awards.map(a => `
+    <tr class="border-b border-line last:border-0 hover:bg-tint/50 cursor-pointer" onclick="openDetail(${a.id})">
+      <td class="px-6 py-3">${a.name}</td>
+      <td class="px-4 py-3 text-mut">${a.agency??''}</td>
+      <td class="px-4 py-3">${a.winner??'—'}</td>
+      <td class="px-6 py-3 text-left num font-medium text-deep">${money(a.award_value)}</td>
+    </tr>`).join('') || `<tr><td colspan="4" class="px-6 py-8 text-center text-mut">لا ترسيات محصودة بعد</td></tr>`;
+}
+
+function pulse(d){
+  const rows = [
+    ['الجهات المرصودة', nf.format(d.total ? undefined : 0)],
   ];
-  $('#stats').innerHTML = cards.map(([k,v]) =>
-    `<div class="stat"><b>${Number(v).toLocaleString('en-US')}</b><span>${k}</span></div>`).join('');
-  if(s.fresh_p50_seconds != null){
-    const m = Math.round(s.fresh_p50_seconds/60);
-    $('#fresh').textContent = `وسيط زمن الرصد (24س): ${m < 60 ? m + ' دقيقة' : (m/60).toFixed(1) + ' ساعة'}`;
-  }
+  $('#pulse').innerHTML = `
+    ${pulseRow('إجمالي المنافسات في الأرشيف', nf.format(d.total))}
+    ${pulseRow('منافسات جديدة آخر 24 ساعة', nf.format(d.new_24h))}
+    ${pulseRow('موردون في أرشيف العروض', nf.format(d.bidders))}
+    ${pulseRow('حصاد الترسيات', 'كل 6 ساعات تلقائيًا')}
+    <div class="pt-3 border-t border-line text-[12px] text-mut leading-relaxed">
+      كل الأرقام في هذه اللوحة محسوبة من بيانات اعتماد الفعلية — لا تقديرات ولا أرقام تجميلية.
+    </div>`;
+}
+const pulseRow = (k,v) => `<div class="flex items-baseline justify-between">
+  <span class="text-[13px] text-mut">${k}</span><span class="num font-semibold">${v}</span></div>`;
+
+/* grouped bar chart — Won #108A5F / Lost #B45309 (palette validated) */
+function drawMonthly(rows){
+  const el = $('#chartMonthly');
+  if(!rows.length){ el.innerHTML = '<div class="h-full grid place-items-center text-mut text-[13px]">تتعبأ مع تقدم الحصاد</div>'; return; }
+  const W = el.clientWidth || 640, H = el.clientHeight || 224, P = {t:8,b:22,s:6};
+  const max = Math.max(...rows.map(r => Math.max(r.won, r.lost)), 1);
+  const gw = W / rows.length;
+  const bw = Math.min(16, gw/3);
+  let s = `<svg width="${W}" height="${H}" role="img" aria-label="العروض الفائزة وغير الفائزة شهريًا">`;
+  [0,.5,1].forEach(f => { const y = P.t + (H-P.t-P.b)*(1-f);
+    s += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#E4E2DA" stroke-width="1"/>`;
+    s += `<text x="${W-4}" y="${y-4}" font-size="10" fill="#6B7770" text-anchor="end" class="num">${Math.round(max*f)}</text>`; });
+  rows.forEach((r,i) => {
+    const cx = W - (i+0.5)*gw; // RTL: newest on the left? keep chronological right→left
+    const hWon = (H-P.t-P.b) * r.won/max, hLost = (H-P.t-P.b) * r.lost/max;
+    const yW = H-P.b-hWon, yL = H-P.b-hLost;
+    s += `<g class="cursor-default" data-m="${r.month}" data-w="${r.won}" data-l="${r.lost}">
+      <rect x="${cx-bw-1}" y="${yW}" width="${bw}" height="${Math.max(hWon,2)}" rx="3" fill="#108A5F"/>
+      <rect x="${cx+1}" y="${yL}" width="${bw}" height="${Math.max(hLost,2)}" rx="3" fill="#B45309"/>
+      <rect x="${cx-gw/2}" y="0" width="${gw}" height="${H}" fill="transparent"/>
+      <text x="${cx}" y="${H-6}" font-size="10" fill="#6B7770" text-anchor="middle" class="num">${r.month.slice(2)}</text></g>`;
+  });
+  s += '</svg>';
+  el.innerHTML = s;
+  el.querySelectorAll('g').forEach(g => {
+    g.addEventListener('mousemove', e => tipShow(e,
+      `${g.dataset.m} — <span style="color:#7CD9B4">فائز ${g.dataset.w}</span> · <span style="color:#F0B27A">غير فائز ${g.dataset.l}</span>`));
+    g.addEventListener('mouseleave', tipHide);
+  });
 }
 
+/* ---------- discovery ---------- */
 async function loadFilters(){
-  const f = await (await fetch('/api/filters')).json();
-  $('#agency').insertAdjacentHTML('beforeend',
-    f.agencies.map(a=>`<option value="${a.id}">${a.canonical_name} (${a.n})</option>`).join(''));
-  $('#activity').insertAdjacentHTML('beforeend',
-    f.activities.map(a=>`<option value="${a.id}">${a.name} (${a.n})</option>`).join(''));
+  const f = await (await fetch(API+'/api/filters')).json();
+  $('#fAgency').insertAdjacentHTML('beforeend', f.agencies.map(a=>`<option value="${a.id}">${a.canonical_name} (${a.n})</option>`).join(''));
+  $('#fActivity').insertAdjacentHTML('beforeend', f.activities.map(a=>`<option value="${a.id}">${a.name} (${a.n})</option>`).join(''));
 }
-
-async function loadTenders(){
-  const p = new URLSearchParams({limit, offset});
+async function loadDisc(){
+  const d = await (await fetch(API+'/api/dashboard')).json();
+  const stat = (l,v,s,extra) => `<div class="bg-card border border-line rounded-2xl shadow-card p-4">
+    <div class="text-[12px] text-mut">${l}</div><div class="num text-[22px] font-semibold ${extra||''}">${v}</div>
+    ${s?`<div class="text-[11px] text-mut">${s}</div>`:''}</div>`;
+  $('#discStats').innerHTML =
+    stat('المنافسات المفتوحة', nf.format(d.open_now),'تحديث حي من الراصد') +
+    stat('تغلق اليوم', nf.format(d.closing_today),'تتطلب إجراءً عاجلًا', d.closing_today>0?'text-bronze':'') +
+    stat('جديدة آخر 24 ساعة', nf.format(d.new_24h),'') +
+    stat('إجمالي الأرشيف', nf.format(d.total),'يتوسع مع الحصاد');
+  await queryDisc();
+}
+async function queryDisc(){
+  const p = new URLSearchParams({limit:LIMIT, offset});
   if($('#q').value) p.set('q', $('#q').value);
-  if($('#agency').value) p.set('agency_id', $('#agency').value);
-  if($('#activity').value) p.set('activity_id', $('#activity').value);
-  if($('#awarded').checked) p.set('awarded','true');
-  if($('#open').checked) p.set('open_only','true');
-  const d = await (await fetch('/api/tenders?'+p)).json();
-  $('#count').textContent = `${d.total.toLocaleString('en-US')} منافسة — عرض ${offset+1}–${offset+d.items.length}`;
-  $('#rows').innerHTML = d.items.map(t=>{
-    const st = t.has_award ? '<span class="pill won">مُرسّاة</span>'
-             : t.remaining_s > 0 ? '<span class="pill open">مفتوحة</span>'
-             : '<span class="pill closed">منتهية</span>';
-    return `<tr class="row" onclick="openDetail(${t.id})">
-      <td class="mono">${t.reference_number??''}</td>
-      <td class="name">${t.name??''}</td>
-      <td>${t.agency??''}</td>
-      <td>${t.activity??''}</td>
-      <td>${st}</td>
-      <td class="mono">${fmtDT(t.last_offer_date)}</td>
-      <td class="mono">${latency(t.published_at, t.detected_at)}</td>
+  if($('#fAgency').value) p.set('agency_id', $('#fAgency').value);
+  if($('#fActivity').value) p.set('activity_id', $('#fActivity').value);
+  if($('#fAwarded').checked) p.set('awarded','true');
+  if($('#fOpen').checked) p.set('open_only','true');
+  const d = await (await fetch(API+'/api/tenders?'+p)).json();
+  $('#discCount').textContent = `${nf.format(d.total)} منافسة — عرض ${offset+1}–${offset+d.items.length}`;
+  $('#discRows').innerHTML = d.items.map(t => {
+    const lat = latencyTxt(t.published_at, t.detected_at);
+    const st = t.has_award ? '<span class="inline-block text-[11px] font-medium bg-bronzet text-bronze rounded-full px-2.5 py-0.5">مُرسّاة</span>'
+      : t.remaining_s > 0 ? '<span class="inline-block text-[11px] font-medium bg-tint text-deep rounded-full px-2.5 py-0.5">مفتوحة</span>'
+      : '<span class="inline-block text-[11px] text-mut border border-line rounded-full px-2.5 py-0.5">منتهية</span>';
+    const urgent = t.remaining_s > 0 && t.remaining_s < 3*86400;
+    return `<tr class="border-b border-line last:border-0 hover:bg-tint/50 cursor-pointer transition" onclick="openDetail(${t.id})">
+      <td class="px-5 py-3.5 num text-[12px] text-mut">${t.reference_number??''}</td>
+      <td class="px-4 py-3.5 max-w-[380px]"><div class="font-medium leading-snug">${t.name??''}</div>
+        <div class="text-[11.5px] text-mut mt-0.5">${t.activity??''}</div></td>
+      <td class="px-4 py-3.5 text-mut max-w-[200px]">${t.agency??''}</td>
+      <td class="px-4 py-3.5">${st}</td>
+      <td class="px-4 py-3.5 num text-[12.5px] ${urgent?'text-danger font-semibold':''}">${countdown(t.remaining_s)}</td>
+      <td class="px-5 py-3.5 num text-[12.5px] ${lat?'text-deep':''}">${lat??'—'}</td>
     </tr>`;
   }).join('');
-  $('#prev').disabled = offset === 0;
-  $('#next').disabled = offset + limit >= d.total;
+  $('#pgPrev').disabled = offset===0;
+  $('#pgNext').disabled = offset+LIMIT >= d.total;
 }
+['fAgency','fActivity','fAwarded','fOpen'].forEach(id => $('#'+id).addEventListener('change', ()=>{offset=0;queryDisc();}));
+$('#goSearch').onclick = () => { show('disc'); offset=0; loadDisc(); };
+$('#q').addEventListener('keydown', e => { if(e.key==='Enter'){ show('disc'); offset=0; loadDisc(); }});
+$('#pgPrev').onclick = ()=>{ offset=Math.max(0,offset-LIMIT); queryDisc(); };
+$('#pgNext').onclick = ()=>{ offset+=LIMIT; queryDisc(); };
 
+/* ---------- war-room drawer ---------- */
 async function openDetail(id){
-  const t = await (await fetch('/api/tenders/'+id)).json();
+  const t = await (await fetch(API+'/api/tenders/'+id)).json();
+  const kv = (k,v,hijri) => `<div class="flex justify-between gap-4 py-2 border-b border-line/70 last:border-0">
+    <span class="text-mut text-[12.5px]">${k}</span>
+    <span class="num text-[12.5px] text-left">${v}${hijri?` <span class="text-mut">${hijri}</span>`:''}</span></div>`;
+
   const offers = t.offers.length ? `
-    <h3>العروض المقدمة (${t.offers.length})</h3>
-    <div class="tblwrap"><table class="offers">
-      <thead><tr><th>المورد</th><th>قيمة العرض</th><th>فني</th><th>فائز</th></tr></thead>
-      <tbody>${t.offers.map(o=>`<tr>
-        <td>${o.vendor??o.vendor_name_raw??''}</td>
-        <td class="mono">${fmtMoney(o.offer_value)}</td>
-        <td>${o.technical_pass===true?'مطابق':'—'}</td>
-        <td>${o.is_winner?'⭐':''}</td></tr>`).join('')}
-      </tbody></table></div>` : '<h3>العروض</h3><p style="color:var(--muted)">لم تُحصد بعد أو لم تُعلن الترسية.</p>';
+    <h3 class="font-semibold text-[14px] mt-7 mb-3 flex items-center gap-2">
+      <span class="w-1.5 h-4 rounded-full bg-deep inline-block"></span>العروض المقدمة
+      <span class="text-mut font-normal text-[12px]">(${t.offers.length})</span></h3>
+    <div class="bg-card border border-line rounded-xl overflow-hidden">
+    <table class="w-full text-[13px]">
+      <thead><tr class="text-mut text-[11px] border-b border-line bg-paper/60">
+        <th class="text-right font-medium px-4 py-2">المورد</th><th class="text-left font-medium px-4 py-2">قيمة العرض</th>
+        <th class="text-center font-medium px-3 py-2">فني</th><th class="text-center font-medium px-4 py-2">النتيجة</th></tr></thead>
+      <tbody>${t.offers.map(o=>`<tr class="border-b border-line/70 last:border-0 ${o.is_winner?'bg-tint/60':''}">
+        <td class="px-4 py-2.5">${o.vendor??''}</td>
+        <td class="px-4 py-2.5 text-left num ${o.is_winner?'font-semibold text-deep':''}">${money(o.offer_value)}</td>
+        <td class="px-3 py-2.5 text-center text-[12px]">${o.technical_pass===true?'<span class="text-deep">مطابق</span>':'—'}</td>
+        <td class="px-4 py-2.5 text-center">${o.is_winner?'<span class="text-[11px] font-semibold bg-deep text-white rounded-full px-2.5 py-0.5">فائز</span>':'<span class="text-mut text-[12px]">—</span>'}</td>
+      </tr>`).join('')}</tbody></table></div>` : '';
+
   const awards = t.awards.length ? `
-    <h3>الترسية</h3>${t.awards.map(a=>`<p><b>${a.vendor??''}</b> — <span class="mono">${fmtMoney(a.award_value)} ر.س</span></p>`).join('')}` : '';
+    <div class="mt-4 bg-tint border border-deep/20 rounded-xl px-5 py-4 flex items-baseline justify-between">
+      <div><div class="text-[12px] text-deep font-medium mb-0.5">قيمة الترسية</div>
+      <div class="font-semibold">${t.awards[0].vendor??''}</div></div>
+      <div class="num text-[22px] font-bold text-deep">${money(t.awards[0].award_value)} <span class="text-[12px] font-normal">ر.س</span></div>
+    </div>` : '';
+
+  const boq = t.boq_items.length ? `
+    <h3 class="font-semibold text-[14px] mt-7 mb-3 flex items-center gap-2">
+      <span class="w-1.5 h-4 rounded-full bg-bronze inline-block"></span>جدول الكميات
+      <span class="text-[11px] font-normal text-bronze bg-bronzet rounded-full px-2 py-0.5">ثقة الاستخراج ${Math.round(t.boq_items[0].confidence*100)}%</span></h3>
+    <div class="bg-card border border-line rounded-xl overflow-hidden">
+    <table class="w-full text-[13px]">
+      <thead><tr class="text-mut text-[11px] border-b border-line bg-paper/60">
+        <th class="text-right font-medium px-4 py-2">م</th><th class="text-right font-medium px-4 py-2">وصف البند</th>
+        <th class="text-center font-medium px-3 py-2">الوحدة</th><th class="text-left font-medium px-4 py-2">الكمية</th></tr></thead>
+      <tbody>${t.boq_items.map(b=>`<tr class="border-b border-line/70 last:border-0">
+        <td class="px-4 py-2 num text-mut">${b.item_no??''}</td><td class="px-4 py-2">${b.description}</td>
+        <td class="px-3 py-2 text-center text-mut">${b.unit??''}</td><td class="px-4 py-2 text-left num">${b.qty!=null?nf.format(b.qty):'—'}</td>
+      </tr>`).join('')}</tbody></table></div>` : '';
+
+  const lat = latencyTxt(t.published_at, t.detected_at);
   $('#detail').innerHTML = `
-    <h2>${t.name??''}</h2>
-    <dl>
-      <dt>الرقم المرجعي</dt><dd class="mono">${t.reference_number??''}</dd>
-      <dt>الجهة</dt><dd>${t.agency??''}</dd>
-      <dt>الفرع</dt><dd>${t.branch_name??'—'}</dd>
-      <dt>النشاط</dt><dd>${t.activity_name_raw??'—'}</dd>
-      <dt>نوع المنافسة</dt><dd>${t.tender_type_name??'—'}</dd>
-      <dt>قيمة الكراسة</dt><dd class="mono">${fmtMoney(t.booklet_price)}</dd>
-      <dt>النشر</dt><dd class="mono">${fmtDT(t.published_at)}</dd>
-      <dt>آخر استفسارات</dt><dd class="mono">${fmtDT(t.last_enquiries_date)} <span style="color:var(--muted)">${t.last_enquiries_date_hijri??''}</span></dd>
-      <dt>آخر تقديم</dt><dd class="mono">${fmtDT(t.last_offer_date)} <span style="color:var(--muted)">${t.last_offer_date_hijri??''}</span></dd>
-      <dt>فتح العروض</dt><dd class="mono">${fmtDT(t.offers_opening_date)}</dd>
-      <dt>رصدناها في</dt><dd class="mono">${fmtDT(t.detected_at)} (${latency(t.published_at,t.detected_at)})</dd>
-    </dl>
-    ${offers}${awards}`;
-  $('#drawer').classList.add('open');
+    <div class="flex items-start justify-between gap-4 mb-5">
+      <div>
+        <div class="flex items-center gap-2 text-[12px] text-mut mb-2">
+          <span class="num bg-card border border-line rounded-md px-2 py-0.5">${t.reference_number??''}</span>
+          <span>${t.agency??''}</span></div>
+        <h2 class="text-[18px] font-bold leading-snug max-w-[520px]">${t.name??''}</h2>
+      </div>
+      <button onclick="closeDrawer()" class="shrink-0 w-9 h-9 rounded-lg border border-line bg-card hover:bg-tint grid place-items-center">✕</button>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4 mb-2">
+      <div class="bg-card border border-line rounded-xl p-4">
+        <div class="text-[11px] tracking-[.14em] text-mut uppercase mb-2">المواعيد</div>
+        ${kv('آخر استفسارات', fmtD(t.last_enquiries_date), t.last_enquiries_date_hijri)}
+        ${kv('آخر تقديم', fmtD(t.last_offer_date), t.last_offer_date_hijri)}
+        ${kv('فتح العروض', fmtD(t.offers_opening_date), t.offers_opening_date_hijri)}
+      </div>
+      <div class="bg-card border border-line rounded-xl p-4">
+        <div class="text-[11px] tracking-[.14em] text-mut uppercase mb-2">بطاقة المنافسة</div>
+        ${kv('نوع المنافسة', t.tender_type_name??'—')}
+        ${kv('النشاط', t.activity_name_raw??'—')}
+        ${kv('قيمة الكراسة', money(t.booklet_price))}
+        ${lat?kv('رصدناها بعد النشر بـ', lat):''}
+      </div>
+    </div>
+    ${awards}${offers}${boq}
+    ${t.documents.length?`<div class="mt-6 text-[12px] text-mut">${t.documents.length} ملف في خزنة الوثائق</div>`:''}`;
+  $('#drawer').classList.remove('-translate-x-full');
   $('#drawer').setAttribute('aria-hidden','false');
+  $('#overlay').classList.remove('hidden');
 }
-function closeDrawer(){ $('#drawer').classList.remove('open'); $('#drawer').setAttribute('aria-hidden','true'); }
+function closeDrawer(){
+  $('#drawer').classList.add('-translate-x-full');
+  $('#drawer').setAttribute('aria-hidden','true');
+  $('#overlay').classList.add('hidden');
+}
+$('#overlay').onclick = closeDrawer;
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeDrawer(); });
 
-$('#go').onclick = () => { offset = 0; loadTenders(); };
-$('#q').addEventListener('keydown', e => { if(e.key==='Enter'){ offset=0; loadTenders(); }});
-$('#prev').onclick = () => { offset = Math.max(0, offset-limit); loadTenders(); };
-$('#next').onclick = () => { offset += limit; loadTenders(); };
-
-loadStats(); loadFilters(); loadTenders();
-setInterval(loadStats, 60_000);
+/* ---------- boot ---------- */
+show('dash'); loadDash(); loadFilters();
+setInterval(loadDash, 90_000);
 </script>
 </body>
 </html>
