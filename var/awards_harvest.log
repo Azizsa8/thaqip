@@ -215,3 +215,43 @@ For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/St
 /home/ais04/thaqip/bin/awards-harvest.sh: line 21: exec: uv: not found
 2026-09-03T18:15:01+03:00 cron harvest session starting
 /home/ais04/thaqip/bin/awards-harvest.sh: line 21: exec: uv: not found
+2026-09-03T21:04:29+03:00 cron harvest session starting
+2026-09-03 21:04:30,283 thaqip.awards INFO awards harvest resuming at listing page 6
+2026-09-03 21:04:32,100 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=6&TenderCategory=6 "HTTP/1.1 200 OK"
+2026-09-03 21:04:32,227 thaqip_ingestion.etimad.session INFO bootstrapping Etimad session via headless browser
+2026-09-03 21:04:40,410 thaqip_ingestion.etimad.session INFO bootstrap complete: 17 cookies (9 TSPD)
+2026-09-03 21:04:40,811 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mrkGx4G42y+%2A%40%40%2A%2AGNLCzodqFA%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:04:43,935 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=wD3H6ADz5eAYBBCkCkpy+w%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:04:47,031 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=dE0hL6m16Jfgb9FeIVlNFw%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:04:50,144 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=HfZ6tZimaXM0sYrnfpYsOA%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:04:53,302 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=AV44iItVXFg13kg7pC8ZlA%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:04:56,431 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=QfT%2A%40%40%2A%2ATKdIfmjSGCRgKrPAvg%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:04:59,572 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=kfGNYjNGbtTXKThjpvMQXA%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:05:02,652 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=5+shIyx683tH%2A%40%40%2A%2ANsYx7%2A%40%40%2A%2ARDA%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:05:05,724 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=ac1YUnrZwNPjybnFFMEG+w%3D%3D "HTTP/1.1 200 OK"
+2026-09-03 21:05:08,828 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=WmntYz+kTymYUccvXpMP4Q%3D%3D "HTTP/1.1 200 OK"
+2026-09-03 21:05:11,860 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=CXpAIA8cVAD6IHVUu6%2A%40%40%2A%2AeNw%3D%3D "HTTP/1.1 429 Too Many Requests"
+2026-09-03 21:05:11,863 thaqip.awards WARNING 429 on awarding component; sleeping 34s
+2026-09-03 21:05:46,159 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=CXpAIA8cVAD6IHVUu6%2A%40%40%2A%2AeNw%3D%3D "HTTP/1.1 200 OK"
+2026-09-03 21:05:49,323 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=sRvjUE1ELD06pLCbYo+v7A%3D%3D "HTTP/1.1 200 OK"
+2026-09-03 21:05:52,532 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=W%2A%40%40%2A%2Aet8fHTjb1MNNKx50vAYQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-03 21:05:56,370 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=4mgCUTGFrX9LfRTS534Rqg%3D%3D "HTTP/1.1 200 OK"
+2026-09-03 21:05:59,578 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=6Vq0SbX4zRyQZ7QMmgnUoQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-03 21:06:02,783 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=5OKtoRyVh%2A%40%40%2A%2AIzRo34cNaZ4w%3D%3D "HTTP/1.1 200 OK"
+2026-09-03 21:06:05,901 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=ytdGWH5vTRsrAexplj8%2A%40%40%2A%2AAg%3D%3D "HTTP/1.1 200 OK"
+2026-09-03 21:06:09,108 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=xR12zODA4d5VNbcrUvt1Pg%3D%3D "HTTP/1.1 200 OK"
+2026-09-03 21:06:12,308 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=qUTdXJf%2A%40%40%2A%2Aj3KeSkzXf6A3qg%3D%3D "HTTP/1.1 200 OK"
+2026-09-03 21:06:15,414 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=+Nc1zlsk2xPYiEfozWVQxQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-03 21:06:18,440 thaqip.awards INFO page 6 done: {'pages': 1, 'tenders': 20, 'skipped': 0, 'announced': 12, 'offers': 34, 'awards': 12, 'events': 12}
+2026-09-03 21:06:18,901 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=7&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-03 21:06:18,902 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 90s (attempt 1)
+2026-09-03 21:07:48,992 thaqip_ingestion.etimad.client WARNING etimad listing page=7 attempt=1 failed (waf cool-off); retrying in 1.4s
+2026-09-03 21:07:51,490 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=7&TenderCategory=6 "HTTP/1.1 200 OK"
+2026-09-03 21:07:51,861 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mrkGx4G42y+%2A%40%40%2A%2AGNLCzodqFA%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:07:54,937 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=wD3H6ADz5eAYBBCkCkpy+w%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:07:58,082 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=dE0hL6m16Jfgb9FeIVlNFw%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:08:01,159 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=HfZ6tZimaXM0sYrnfpYsOA%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:08:04,249 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=AV44iItVXFg13kg7pC8ZlA%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:08:07,333 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=QfT%2A%40%40%2A%2ATKdIfmjSGCRgKrPAvg%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:08:10,402 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=kfGNYjNGbtTXKThjpvMQXA%3D%3D "HTTP/1.1 302 Found"
+2026-09-03 21:08:13,531 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=5+shIyx683tH%2A%40%40%2A%2ANsYx7%2A%40%40%2A%2ARDA%3D%3D "HTTP/1.1 302 Found"

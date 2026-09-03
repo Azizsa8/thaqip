@@ -18,5 +18,5 @@ fi
 
 echo "$(date -Is) cron harvest session starting" >> "$LOG"
 cd "$REPO/services/ingestion"
-exec uv run --extra db --extra browser \
+exec /home/ais04/.local/bin/uv run --extra db --extra browser \
   python -m thaqip_ingestion.awards_harvest --pages 100 --page-size 20 >> "$LOG" 2>&1

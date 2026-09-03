@@ -112,9 +112,14 @@ async def handle(pool: asyncpg.Pool, sender: Sender, fields: dict) -> int:
         return 0
     t = dict(t)
     profiles = await pool.fetch("SELECT * FROM alert_profiles WHERE active")
+    # an award on a tender the team pursues always broadcasts
+    broadcast = event_type in BROADCAST_EVENTS or (
+        event_type == "tender.awarded"
+        and await pool.fetchval("SELECT 1 FROM pursuits WHERE tender_id=$1", tender_id)
+    )
     delivered = 0
     for p in map(dict, profiles):
-        if event_type not in BROADCAST_EVENTS and not matches(p, t, event_type):
+        if not broadcast and not matches(p, t, event_type):
             continue
         title, body = render(event_type, t)
         row = await pool.fetchrow(

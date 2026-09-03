@@ -3,3 +3,17 @@
 /home/ais04/thaqip/bin/forsah-pull.sh: line 6: exec: uv: not found
 /home/ais04/thaqip/bin/forsah-pull.sh: line 6: exec: uv: not found
 /home/ais04/thaqip/bin/forsah-pull.sh: line 6: exec: uv: not found
+2026-09-03 21:03:54,427 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-03 21:03:56,005 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-03 21:03:57,602 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-03 21:03:59,197 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-03 21:04:00,812 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-03 21:04:02,409 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-03 21:04:03,949 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}
+2026-09-03 21:05:02,421 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-03 21:05:04,008 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-03 21:05:05,614 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-03 21:05:07,194 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-03 21:05:08,775 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-03 21:05:10,347 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-03 21:05:11,871 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}

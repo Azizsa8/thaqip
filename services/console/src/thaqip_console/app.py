@@ -220,6 +220,28 @@ async def create_pursuit(body: PursuitIn):
                     """INSERT INTO compliance_items
                          (pursuit_id, requirement, category, source_ref, origin, sort_order)
                        VALUES ($1,$2,$3,$4,'rule',$5)""", pid, req, cat, ref, order)
+            # M5-4 groundwork: snapshot the baseline win prediction at decision time
+            live = (t["submitted_bids_count"] or 0) + (t["external_bids_count"] or 0)
+            if t["source"] == "forsah" and live > 0:
+                await conn.execute(
+                    """INSERT INTO predictions (pursuit_id, value, basis)
+                       VALUES ($1, $2, $3::jsonb)""",
+                    pid, round(1 / (live + 1), 4),
+                    f'{{"basis":"live","bidders":{live},"source":"forsah"}}')
+            else:
+                mb = await conn.fetchval(
+                    """SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY b.n)
+                       FROM tenders t2
+                       JOIN LATERAL (SELECT count(*) n FROM offers o WHERE o.tender_id=t2.id) b ON b.n > 0
+                       WHERE t2.activity_id IS NOT DISTINCT FROM $1
+                         AND EXISTS (SELECT 1 FROM awards w2 WHERE w2.tender_id = t2.id)""",
+                    t["activity_id"])
+                if mb:
+                    await conn.execute(
+                        """INSERT INTO predictions (pursuit_id, value, basis)
+                           VALUES ($1, $2, $3::jsonb)""",
+                        pid, round(1 / max(float(mb), 1), 4),
+                        f'{{"basis":"activity_history","median_bidders":{float(mb)}}}')
     return {"id": pid, "created": True}
 
 
