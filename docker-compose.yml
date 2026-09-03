@@ -26,7 +26,7 @@ services:
 
   poller:
     build: ./services/ingestion
-    command: ["python", "-m", "thaqip_ingestion.main", "--loop", "--every", "300", "--pages", "3"]
+    command: ["python", "-m", "thaqip_ingestion.main", "--loop", "--every", "300", "--pages", "6"]
     environment:
       DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
     depends_on: [postgres]
