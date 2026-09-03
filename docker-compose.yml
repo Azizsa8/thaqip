@@ -41,6 +41,16 @@ services:
     depends_on: [postgres, redis]
     restart: unless-stopped
 
+  alerts:
+    build: ./services/ingestion
+    command: ["python", "-m", "thaqip_ingestion.alerts"]
+    environment:
+      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
+      REDIS_URL: redis://redis:6379/0
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+    depends_on: [postgres, redis]
+    restart: unless-stopped
+
   console:
     build: ./services/console
     environment:
