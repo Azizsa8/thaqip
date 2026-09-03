@@ -15,6 +15,7 @@ from pathlib import Path
 import asyncpg
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
 
 STATIC = Path(__file__).parent / "static"
 
@@ -132,6 +133,71 @@ async def filters():
     }
 
 
+class ProfileIn(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    channel: str = "log"                       # log | telegram | email
+    target: str = "dev-console"
+    keywords: list[str] = []
+    activity_ids: list[int] = []
+    agency_ids: list[int] = []
+    sources: list[str] = ["etimad", "forsah"]
+    event_types: list[str] = ["tender.created", "tender.extended", "tender.awarded"]
+
+
+@app.get("/api/profiles")
+async def profiles():
+    rows = await app.state.pool.fetch(
+        """SELECT p.*,
+                  (SELECT count(*) FROM notifications n WHERE n.profile_id = p.id) AS sent_count,
+                  (SELECT max(created_at) FROM notifications n WHERE n.profile_id = p.id) AS last_at
+           FROM alert_profiles p ORDER BY p.id DESC"""
+    )
+    return [dict(r) for r in rows]
+
+
+@app.post("/api/profiles")
+async def create_profile(p: ProfileIn):
+    row = await app.state.pool.fetchrow(
+        """INSERT INTO alert_profiles (name, channel, target, keywords, activity_ids,
+                                       agency_ids, sources, event_types)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id""",
+        p.name, p.channel, p.target, p.keywords, p.activity_ids,
+        p.agency_ids, p.sources, p.event_types,
+    )
+    return {"id": row["id"]}
+
+
+@app.patch("/api/profiles/{pid}/toggle")
+async def toggle_profile(pid: int):
+    active = await app.state.pool.fetchval(
+        "UPDATE alert_profiles SET active = NOT active WHERE id=$1 RETURNING active", pid
+    )
+    if active is None:
+        raise HTTPException(404)
+    return {"active": active}
+
+
+@app.delete("/api/profiles/{pid}")
+async def delete_profile(pid: int):
+    await app.state.pool.execute("DELETE FROM notifications WHERE profile_id=$1", pid)
+    n = await app.state.pool.execute("DELETE FROM alert_profiles WHERE id=$1", pid)
+    if n.endswith("0"):
+        raise HTTPException(404)
+    return {"deleted": True}
+
+
+@app.get("/api/notifications")
+async def notifications(limit: int = Query(50, le=200)):
+    rows = await app.state.pool.fetch(
+        """SELECT n.id, n.event_type, n.channel, n.status, n.title, n.body, n.created_at,
+                  n.tender_id, p.name AS profile_name
+           FROM notifications n JOIN alert_profiles p ON p.id = n.profile_id
+           ORDER BY n.id DESC LIMIT $1""",
+        limit,
+    )
+    return [dict(r) for r in rows]
+
+
 @app.get("/api/tenders")
 async def tenders(
     q: str | None = None,
@@ -139,6 +205,7 @@ async def tenders(
     activity_id: int | None = None,
     awarded: bool | None = None,
     open_only: bool = False,
+    source: str | None = None,
     limit: int = Query(50, le=200),
     offset: int = 0,
 ):
@@ -159,9 +226,12 @@ async def tenders(
         where.append("EXISTS (SELECT 1 FROM awards w WHERE w.tender_id = t.id)")
     if open_only:
         where.append("t.last_offer_date > now()")
+    if source in ("etimad", "forsah"):
+        where.append(f"t.source = {arg(source)}")
 
     rows = await pool.fetch(
-        f"""SELECT t.id, t.source_tender_id, t.reference_number, t.name,
+        f"""SELECT t.id, t.source, t.source_tender_id, t.reference_number, t.name,
+                   t.submitted_bids_count, t.draft_bids_count, t.external_bids_count,
                    coalesce(a.canonical_name, t.agency_name_raw) AS agency,
                    t.activity_name_raw AS activity, t.status_id,
                    t.last_offer_date, t.published_at, t.detected_at,

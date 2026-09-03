@@ -63,6 +63,9 @@ tailwind.config = {
       <button data-view="disc" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
         <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
         <span>استكشاف المنافسات</span></button>
+      <button data-view="alerts" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+        <span>التنبيهات</span></button>
       <button data-view="intel" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
         <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20h18M6 16v-5m6 5V8m6 8v-9"/></svg>
         <span>ذكاء المنافسين</span></button>
@@ -145,6 +148,8 @@ tailwind.config = {
       <div class="flex gap-6">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-4 flex-wrap" id="chips">
+            <select id="fSource" class="bg-card border border-line rounded-lg px-3 py-2 text-[13px]">
+              <option value="">كل المصادر</option><option value="etimad">اعتماد</option><option value="forsah">فرصة</option></select>
             <select id="fAgency" class="bg-card border border-line rounded-lg px-3 py-2 text-[13px] max-w-[240px]"><option value="">كل الجهات</option></select>
             <select id="fActivity" class="bg-card border border-line rounded-lg px-3 py-2 text-[13px] max-w-[220px]"><option value="">كل الأنشطة</option></select>
             <label class="inline-flex items-center gap-2 bg-card border border-line rounded-lg px-3 py-2 text-[13px] cursor-pointer">
@@ -170,6 +175,52 @@ tailwind.config = {
               <button id="pgNext" class="border border-line rounded-lg px-3.5 py-1.5 text-[13px] bg-card hover:bg-tint disabled:opacity-40">التالي</button>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ALERTS ================= -->
+    <section id="view-alerts" class="hidden px-5 lg:px-8 py-7">
+      <div class="grid xl:grid-cols-5 gap-5">
+        <div class="xl:col-span-2 space-y-5">
+          <div class="bg-card border border-line rounded-2xl shadow-card p-6">
+            <h2 class="font-semibold text-[15px] mb-4">ملف تنبيه جديد</h2>
+            <div class="space-y-3">
+              <input id="pName" placeholder="اسم الملف (مثال: منافسات المقاولات في الرياض)"
+                class="w-full bg-paper border border-line rounded-lg px-3.5 py-2 text-[13px]">
+              <input id="pKeywords" placeholder="كلمات مفتاحية مفصولة بفواصل (اختياري)"
+                class="w-full bg-paper border border-line rounded-lg px-3.5 py-2 text-[13px]">
+              <div class="flex gap-2">
+                <select id="pChannel" class="flex-1 bg-paper border border-line rounded-lg px-3 py-2 text-[13px]">
+                  <option value="log">سجل النظام (تجريبي)</option>
+                  <option value="telegram">تيليجرام</option>
+                  <option value="email">بريد (قريباً)</option>
+                </select>
+                <input id="pTarget" placeholder="الوجهة (chat id / بريد)" value="dev-console"
+                  class="flex-1 bg-paper border border-line rounded-lg px-3.5 py-2 text-[13px]">
+              </div>
+              <div class="flex flex-wrap gap-3 text-[12.5px] text-mut">
+                <label class="inline-flex items-center gap-1.5"><input type="checkbox" id="pEvNew" checked class="accent-deep">جديدة</label>
+                <label class="inline-flex items-center gap-1.5"><input type="checkbox" id="pEvExt" checked class="accent-deep">تمديد</label>
+                <label class="inline-flex items-center gap-1.5"><input type="checkbox" id="pEvAward" checked class="accent-deep">ترسية</label>
+                <span class="text-line">|</span>
+                <label class="inline-flex items-center gap-1.5"><input type="checkbox" id="pSrcEt" checked class="accent-deep">اعتماد</label>
+                <label class="inline-flex items-center gap-1.5"><input type="checkbox" id="pSrcFo" checked class="accent-deep">فرصة</label>
+              </div>
+              <button id="pCreate" class="w-full bg-deep hover:bg-deepd text-white rounded-lg py-2.5 text-[13.5px] font-medium transition">إنشاء الملف</button>
+            </div>
+          </div>
+          <div class="bg-card border border-line rounded-2xl shadow-card overflow-hidden">
+            <h2 class="font-semibold text-[15px] px-6 pt-5 pb-3">ملفات التنبيه</h2>
+            <div id="profilesList"></div>
+          </div>
+        </div>
+        <div class="xl:col-span-3 bg-card border border-line rounded-2xl shadow-card overflow-hidden">
+          <div class="flex items-center justify-between px-6 pt-5 pb-3">
+            <h2 class="font-semibold text-[15px]">آخر التنبيهات المرسلة</h2>
+            <span id="notifCount" class="text-[12px] text-mut"></span>
+          </div>
+          <div id="notifFeed" class="divide-y divide-line max-h-[70vh] overflow-y-auto"></div>
         </div>
       </div>
     </section>
@@ -216,14 +267,18 @@ function countdown(sec){
 
 /* ---------- navigation ---------- */
 function show(view){
-  ['dash','disc','intel'].forEach(v => $('#view-'+v).classList.toggle('hidden', v!==view));
+  ['dash','disc','alerts','intel'].forEach(v => $('#view-'+v).classList.toggle('hidden', v!==view));
   document.querySelectorAll('#nav .navbtn').forEach(b => {
     const on = b.dataset.view === view;
     b.classList.toggle('bg-tint', on); b.classList.toggle('text-deep', on); b.classList.toggle('font-semibold', on);
   });
-  $('#viewTitle').textContent = {dash:'لوحة القيادة', disc:'استكشاف المنافسات', intel:'ذكاء المنافسين'}[view];
+  $('#viewTitle').textContent = {dash:'لوحة القيادة', disc:'استكشاف المنافسات', alerts:'التنبيهات', intel:'ذكاء المنافسين'}[view];
 }
-document.querySelectorAll('.navbtn').forEach(b => b.onclick = () => { show(b.dataset.view); if(b.dataset.view==='disc') loadDisc(); });
+document.querySelectorAll('.navbtn').forEach(b => b.onclick = () => {
+  show(b.dataset.view);
+  if(b.dataset.view==='disc') loadDisc();
+  if(b.dataset.view==='alerts') loadAlerts();
+});
 
 /* ---------- tooltip ---------- */
 const tip = $('#tip');
@@ -339,6 +394,7 @@ async function queryDisc(){
   if($('#fActivity').value) p.set('activity_id', $('#fActivity').value);
   if($('#fAwarded').checked) p.set('awarded','true');
   if($('#fOpen').checked) p.set('open_only','true');
+  if($('#fSource').value) p.set('source', $('#fSource').value);
   const d = await (await fetch(API+'/api/tenders?'+p)).json();
   $('#discCount').textContent = `${nf.format(d.total)} منافسة — عرض ${offset+1}–${offset+d.items.length}`;
   $('#discRows').innerHTML = d.items.map(t => {
@@ -347,10 +403,15 @@ async function queryDisc(){
       : t.remaining_s > 0 ? '<span class="inline-block text-[11px] font-medium bg-tint text-deep rounded-full px-2.5 py-0.5">مفتوحة</span>'
       : '<span class="inline-block text-[11px] text-mut border border-line rounded-full px-2.5 py-0.5">منتهية</span>';
     const urgent = t.remaining_s > 0 && t.remaining_s < 3*86400;
+    const srcBadge = t.source === 'forsah'
+      ? '<span class="text-[10px] font-semibold bg-bronzet text-bronze rounded px-1.5 py-0.5">فرصة</span>'
+      : '<span class="text-[10px] font-semibold bg-tint text-deep rounded px-1.5 py-0.5">اعتماد</span>';
+    const intensity = t.source === 'forsah' && (t.submitted_bids_count ?? 0) + (t.draft_bids_count ?? 0) > 0
+      ? `<div class="text-[11px] text-bronze mt-0.5 num">شدة المنافسة: ${t.submitted_bids_count??0} مقدَّم · ${t.draft_bids_count??0} مسودة</div>` : '';
     return `<tr class="border-b border-line last:border-0 hover:bg-tint/50 cursor-pointer transition" onclick="openDetail(${t.id})">
-      <td class="px-5 py-3.5 num text-[12px] text-mut">${t.reference_number??''}</td>
+      <td class="px-5 py-3.5"><div class="num text-[12px] text-mut">${t.reference_number??''}</div><div class="mt-1">${srcBadge}</div></td>
       <td class="px-4 py-3.5 max-w-[380px]"><div class="font-medium leading-snug">${t.name??''}</div>
-        <div class="text-[11.5px] text-mut mt-0.5">${t.activity??''}</div></td>
+        <div class="text-[11.5px] text-mut mt-0.5">${t.activity??''}</div>${intensity}</td>
       <td class="px-4 py-3.5 text-mut max-w-[200px]">${t.agency??''}</td>
       <td class="px-4 py-3.5">${st}</td>
       <td class="px-4 py-3.5 num text-[12.5px] ${urgent?'text-danger font-semibold':''}">${countdown(t.remaining_s)}</td>
@@ -360,11 +421,69 @@ async function queryDisc(){
   $('#pgPrev').disabled = offset===0;
   $('#pgNext').disabled = offset+LIMIT >= d.total;
 }
-['fAgency','fActivity','fAwarded','fOpen'].forEach(id => $('#'+id).addEventListener('change', ()=>{offset=0;queryDisc();}));
+['fSource','fAgency','fActivity','fAwarded','fOpen'].forEach(id => $('#'+id).addEventListener('change', ()=>{offset=0;queryDisc();}));
 $('#goSearch').onclick = () => { show('disc'); offset=0; loadDisc(); };
 $('#q').addEventListener('keydown', e => { if(e.key==='Enter'){ show('disc'); offset=0; loadDisc(); }});
 $('#pgPrev').onclick = ()=>{ offset=Math.max(0,offset-LIMIT); queryDisc(); };
 $('#pgNext').onclick = ()=>{ offset+=LIMIT; queryDisc(); };
+
+/* ---------- alerts ---------- */
+const CH_LABEL = {log:'سجل', telegram:'تيليجرام', email:'بريد'};
+async function loadAlerts(){
+  const [profiles, notifs] = await Promise.all([
+    (await fetch(API+'/api/profiles')).json(),
+    (await fetch(API+'/api/notifications?limit=60')).json(),
+  ]);
+  $('#profilesList').innerHTML = profiles.map(p => `
+    <div class="px-6 py-3.5 border-t border-line flex items-start gap-3 ${p.active?'':'opacity-50'}">
+      <div class="flex-1 min-w-0">
+        <div class="font-medium text-[13.5px]">${p.name}
+          <span class="text-[10.5px] font-normal bg-tint text-deep rounded-full px-2 py-0.5 ms-1">${CH_LABEL[p.channel]??p.channel}</span></div>
+        <div class="text-[11.5px] text-mut mt-0.5 truncate">
+          ${p.keywords.length?'كلمات: '+p.keywords.join('، ')+' · ':''}
+          مصادر: ${p.sources.map(s=>s==='etimad'?'اعتماد':'فرصة').join('، ')} ·
+          <span class="num">${p.sent_count}</span> تنبيه</div>
+      </div>
+      <button onclick="toggleProfile(${p.id})" title="تفعيل/إيقاف"
+        class="text-[11.5px] border border-line rounded-lg px-2.5 py-1 hover:bg-tint">${p.active?'إيقاف':'تفعيل'}</button>
+      <button onclick="delProfile(${p.id})" title="حذف"
+        class="text-[11.5px] border border-line rounded-lg px-2.5 py-1 hover:bg-dangert text-danger">حذف</button>
+    </div>`).join('') || '<div class="px-6 py-8 text-center text-mut border-t border-line">لا ملفات بعد — أنشئ أول ملف تنبيه</div>';
+  $('#notifCount').textContent = notifs.length ? `آخر ${notifs.length}` : '';
+  $('#notifFeed').innerHTML = notifs.map(n => `
+    <div class="px-6 py-3 hover:bg-tint/40 cursor-pointer" ${n.tender_id?`onclick="openDetail(${n.tender_id})"`:''}>
+      <div class="flex items-center gap-2 text-[11px] text-mut mb-1">
+        <span class="w-1.5 h-1.5 rounded-full ${n.status==='sent'?'bg-deep':n.status==='failed'?'bg-danger':'bg-bronze'} inline-block"></span>
+        <span class="font-medium text-ink">${n.profile_name}</span>
+        <span>·</span><span>${EVENT_AR[n.event_type]??n.event_type}</span>
+        <span class="ms-auto num">${new Date(n.created_at).toLocaleString('ar-SA-u-ca-gregory',{dateStyle:'short',timeStyle:'short'})}</span>
+      </div>
+      <div class="text-[12.5px] leading-relaxed whitespace-pre-line">${n.body.split('\n')[0]}</div>
+    </div>`).join('') || '<div class="px-6 py-10 text-center text-mut">لا تنبيهات بعد</div>';
+}
+const EVENT_AR = {'tender.created':'منافسة جديدة','tender.extended':'تمديد','tender.updated':'تحديث','tender.awarded':'ترسية','digest.daily':'ملخص يومي'};
+$('#pCreate').onclick = async () => {
+  const events = [];
+  if($('#pEvNew').checked) events.push('tender.created');
+  if($('#pEvExt').checked) events.push('tender.extended');
+  if($('#pEvAward').checked) events.push('tender.awarded');
+  const sources = [];
+  if($('#pSrcEt').checked) sources.push('etimad');
+  if($('#pSrcFo').checked) sources.push('forsah');
+  const body = {
+    name: $('#pName').value.trim(),
+    channel: $('#pChannel').value,
+    target: $('#pTarget').value.trim() || 'dev-console',
+    keywords: $('#pKeywords').value.split(/[،,]/).map(s=>s.trim()).filter(Boolean),
+    sources, event_types: events,
+  };
+  if(!body.name || !events.length || !sources.length) return;
+  await fetch(API+'/api/profiles', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  $('#pName').value = $('#pKeywords').value = '';
+  loadAlerts();
+};
+async function toggleProfile(id){ await fetch(API+`/api/profiles/${id}/toggle`, {method:'PATCH'}); loadAlerts(); }
+async function delProfile(id){ await fetch(API+`/api/profiles/${id}`, {method:'DELETE'}); loadAlerts(); }
 
 /* ---------- war-room drawer ---------- */
 async function openDetail(id){
