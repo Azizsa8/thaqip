@@ -360,6 +360,52 @@ async def log_outcome(pid: int, body: OutcomeIn):
             "competitor_count": competitor_count}
 
 
+@app.post("/api/follows/{tender_id}")
+async def follow(tender_id: int):
+    n = await app.state.pool.execute(
+        "INSERT INTO follows (tender_id) VALUES ($1) ON CONFLICT DO NOTHING", tender_id)
+    return {"following": True, "created": n.endswith("1")}
+
+
+@app.delete("/api/follows/{tender_id}")
+async def unfollow(tender_id: int):
+    await app.state.pool.execute("DELETE FROM follows WHERE tender_id=$1", tender_id)
+    return {"following": False}
+
+
+@app.get("/api/tenders.csv")
+async def tenders_csv(
+    q: str | None = None, agency_id: int | None = None, activity_id: int | None = None,
+    awarded: bool | None = None, open_only: bool = False, source: str | None = None,
+):
+    """M2-5: Excel-ready export (UTF-8 BOM so Arabic opens correctly)."""
+    import csv
+    import io as _io
+
+    from fastapi.responses import Response
+
+    data = await tenders(q=q, agency_id=agency_id, activity_id=activity_id,
+                         awarded=awarded, open_only=open_only, source=source,
+                         limit=200, offset=0)
+    buf = _io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["المرجع", "المنافسة", "الجهة", "النشاط", "المصدر", "الحالة",
+                "آخر تقديم", "تاريخ النشر", "مُرسّاة"])
+    for t in data["items"]:
+        w.writerow([
+            t.get("reference_number"), t.get("name"), t.get("agency"), t.get("activity"),
+            "اعتماد" if t.get("source") == "etimad" else "فرصة",
+            "مفتوحة" if (t.get("remaining_s") or 0) > 0 else "منتهية",
+            str(t.get("last_offer_date") or "")[:16], str(t.get("published_at") or "")[:10],
+            "نعم" if t.get("has_award") else "لا",
+        ])
+    return Response(
+        content="\ufeff" + buf.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="thaqip-tenders.csv"'},
+    )
+
+
 @app.get("/api/calibration")
 async def calibration():
     """M5-4: prediction-vs-outcome pairs — the calibration dataset status."""
@@ -683,6 +729,7 @@ async def tenders(
                    t.activity_name_raw AS activity, t.status_id,
                    t.last_offer_date, t.published_at, t.detected_at,
                    EXISTS (SELECT 1 FROM awards w WHERE w.tender_id = t.id) AS has_award,
+                   EXISTS (SELECT 1 FROM follows f WHERE f.tender_id = t.id) AS followed,
                    greatest(0, extract(epoch FROM t.last_offer_date - now()))::bigint AS remaining_s
             FROM tenders t LEFT JOIN agencies a ON a.id = t.agency_id
             WHERE {' AND '.join(where)}

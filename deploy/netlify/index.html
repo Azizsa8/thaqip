@@ -159,6 +159,8 @@ tailwind.config = {
               <input id="fAwarded" type="checkbox" class="accent-deep">مُرسّاة</label>
             <label class="inline-flex items-center gap-2 bg-card border border-line rounded-lg px-3 py-2 text-[13px] cursor-pointer">
               <input id="fOpen" type="checkbox" class="accent-deep">مفتوحة فقط</label>
+            <button id="exportCsv" class="inline-flex items-center gap-1.5 bg-card border border-line rounded-lg px-3 py-2 text-[13px] hover:bg-tint">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>تصدير إكسل</button>
             <span id="discCount" class="text-[12px] text-mut ms-auto"></span>
           </div>
           <div class="bg-card border border-line rounded-2xl shadow-card overflow-hidden">
@@ -470,7 +472,11 @@ async function queryDisc(){
     const intensity = t.source === 'forsah' && (t.submitted_bids_count ?? 0) + (t.draft_bids_count ?? 0) > 0
       ? `<div class="text-[11px] text-bronze mt-0.5 num">شدة المنافسة: ${t.submitted_bids_count??0} مقدَّم · ${t.draft_bids_count??0} مسودة</div>` : '';
     return `<tr class="border-b border-line last:border-0 hover:bg-tint/50 cursor-pointer transition" onclick="openDetail(${t.id})">
-      <td class="px-5 py-3.5"><div class="num text-[12px] text-mut">${t.reference_number??''}</div><div class="mt-1">${srcBadge}</div></td>
+      <td class="px-5 py-3.5">
+        <button onclick="event.stopPropagation(); toggleFollow(${t.id}, ${!!t.followed}, this)"
+          title="${t.followed?'إلغاء المتابعة':'متابعة — تنبيه عند أي تحديث'}"
+          class="text-[16px] leading-none ${t.followed?'text-bronze':'text-line hover:text-bronze'} transition">★</button>
+        <div class="num text-[12px] text-mut mt-1">${t.reference_number??''}</div><div class="mt-1">${srcBadge}</div></td>
       <td class="px-4 py-3.5 max-w-[380px]"><div class="font-medium leading-snug">${t.name??''}</div>
         <div class="text-[11.5px] text-mut mt-0.5">${t.activity??''}</div>${intensity}
         ${t.snippet?`<div class="text-[11px] mt-1 bg-[#2E7C8C]/10 text-[#2E7C8C] rounded px-2 py-1 leading-relaxed">📄 داخل الوثائق: …${t.snippet}…</div>`:''}</td>
@@ -488,6 +494,21 @@ $('#goSearch').onclick = () => { show('disc'); offset=0; loadDisc(); };
 $('#q').addEventListener('keydown', e => { if(e.key==='Enter'){ show('disc'); offset=0; loadDisc(); }});
 $('#pgPrev').onclick = ()=>{ offset=Math.max(0,offset-LIMIT); queryDisc(); };
 $('#pgNext').onclick = ()=>{ offset+=LIMIT; queryDisc(); };
+async function toggleFollow(id, isFollowed, btn){
+  await fetch(API+'/api/follows/'+id, {method: isFollowed ? 'DELETE' : 'POST'});
+  if(btn){ btn.classList.toggle('text-bronze'); btn.classList.toggle('text-line'); }
+  queryDisc();
+}
+$('#exportCsv').onclick = () => {
+  const p = new URLSearchParams();
+  if($('#q').value) p.set('q', $('#q').value);
+  if($('#fAgency').value) p.set('agency_id', $('#fAgency').value);
+  if($('#fActivity').value) p.set('activity_id', $('#fActivity').value);
+  if($('#fAwarded').checked) p.set('awarded','true');
+  if($('#fOpen').checked) p.set('open_only','true');
+  if($('#fSource').value) p.set('source', $('#fSource').value);
+  window.open(API+'/api/tenders.csv?'+p, '_blank');
+};
 
 /* ---------- war room ---------- */
 const STAGE_AR = {studying:'دراسة', pricing:'تسعير', writing:'كتابة', submitted:'مقدَّم', won:'فوز', lost:'خسارة'};
