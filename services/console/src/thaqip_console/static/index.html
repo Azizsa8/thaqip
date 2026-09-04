@@ -357,6 +357,7 @@ async function loadDash(){
   drawMonthly(d.monthly);
   pulse(d);
   loadCalibration();
+  loadLanes();
   $('#latestAwards').innerHTML = d.latest_awards.map(a => `
     <tr class="border-b border-line last:border-0 hover:bg-tint/50 cursor-pointer" onclick="openDetail(${a.id})">
       <td class="px-6 py-3">${a.name}</td>
@@ -376,12 +377,37 @@ function pulse(d){
     ${pulseRow('موردون في أرشيف العروض', nf.format(d.bidders))}
     ${pulseRow('حصاد الترسيات', 'كل 6 ساعات تلقائيًا')}
     <div id="calRow"></div>
+    <div id="mktRow"></div>
+    <div id="lanesBox" class="pt-3 border-t border-line space-y-1.5"></div>
     <div class="pt-3 border-t border-line text-[12px] text-mut leading-relaxed">
       كل الأرقام في هذه اللوحة محسوبة من بيانات اعتماد الفعلية — لا تقديرات ولا أرقام تجميلية.
     </div>`;
 }
 const pulseRow = (k,v) => `<div class="flex items-baseline justify-between">
   <span class="text-[13px] text-mut">${k}</span><span class="num font-semibold">${v}</span></div>`;
+const LANE_AR = {'etimad.listing':'الراصد اللحظي','etimad.reconcile':'المطابقة الليلية',
+  'etimad.awards_harvest':'حصاد الترسيات','etimad.backfill.all':'التعبئة التاريخية',
+  'etimad.backfill.awarded':'تعبئة المُرسّاة'};
+async function loadLanes(){
+  const [lanes, mkt] = await Promise.all([
+    (await fetch(API+'/api/lanes')).json(),
+    (await fetch(API+'/api/market/price-position')).json(),
+  ]);
+  const el = $('#lanesBox'); if(!el) return;
+  el.innerHTML = '<div class="text-[10.5px] tracking-[.12em] text-mut uppercase pb-0.5">صحة خطوط الاستيعاب</div>' +
+    lanes.filter(l=>LANE_AR[l.connector]).map(l=>`
+      <div class="flex items-center justify-between text-[12px]">
+        <span class="inline-flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full ${l.stale?'bg-danger':l.ok===false?'bg-bronze':'bg-deep'} inline-block"></span>
+          <span class="text-mut">${LANE_AR[l.connector]}</span></span>
+        <span class="num text-[11px] ${l.stale?'text-danger font-semibold':'text-mut'}">${l.age_minutes==null?'—':l.age_minutes<90?'منذ '+l.age_minutes+' د':'منذ '+(l.age_minutes/60).toFixed(1)+' س'}</span>
+      </div>`).join('');
+  const m = $('#mktRow');
+  if(m && mkt.awards_n){
+    m.innerHTML = pulseRow('أقل عرض مطابق يفوز',
+      `${mkt.lowest_wins_pct}% <span class="text-[10.5px] text-mut">(من ${mkt.awards_n} ترسية متعددة العروض)</span>`);
+  }
+}
 async function loadCalibration(){
   const c = await (await fetch(API+'/api/calibration')).json();
   const el = $('#calRow'); if(!el) return;

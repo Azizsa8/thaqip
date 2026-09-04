@@ -360,6 +360,54 @@ async def log_outcome(pid: int, body: OutcomeIn):
             "competitor_count": competitor_count}
 
 
+@app.get("/api/lanes")
+async def lanes():
+    """Ops: last run per ingestion lane + staleness verdict (born from two
+    silent failures: the cron PATH incident and a wedged poller)."""
+    rows = await app.state.pool.fetch(
+        """SELECT DISTINCT ON (connector) connector, started_at, finished_at, ok, error
+           FROM ingest_runs ORDER BY connector, started_at DESC""")
+    expected_minutes = {
+        "etimad.listing": 15, "etimad.reconcile": 26 * 60,
+        "etimad.awards_harvest": 7 * 60,
+    }
+    out = []
+    for r in rows:
+        age_min = (r["started_at"] and
+                   (await app.state.pool.fetchval("SELECT extract(epoch FROM now()-$1)/60",
+                                                  r["started_at"])))
+        limit = expected_minutes.get(r["connector"])
+        out.append({
+            "connector": r["connector"],
+            "last_run": r["started_at"],
+            "ok": r["ok"],
+            "age_minutes": round(age_min) if age_min is not None else None,
+            "stale": bool(limit and age_min and age_min > limit),
+        })
+    return out
+
+
+@app.get("/api/market/price-position")
+async def price_position():
+    """Market insight from the harvested corpus: how often does the lowest
+    technically-compliant bid win? Computed per multi-bidder awarded tender."""
+    row = await app.state.pool.fetchrow(
+        """WITH ranked AS (
+             SELECT o.tender_id, o.is_winner,
+                    rank() OVER (PARTITION BY o.tender_id ORDER BY o.offer_value) AS price_rank,
+                    count(*) OVER (PARTITION BY o.tender_id) AS n_compliant
+             FROM offers o
+             WHERE o.technical_pass AND o.offer_value IS NOT NULL
+           )
+           SELECT count(*) FILTER (WHERE is_winner)                             AS awards_n,
+                  count(*) FILTER (WHERE is_winner AND price_rank = 1)          AS lowest_won,
+                  round(avg(price_rank) FILTER (WHERE is_winner), 2)            AS avg_winner_rank
+           FROM ranked WHERE n_compliant >= 2""")
+    d = dict(row)
+    d["lowest_wins_pct"] = round(100 * d["lowest_won"] / d["awards_n"], 1) if d["awards_n"] else None
+    return d
+
+
 @app.post("/api/follows/{tender_id}")
 async def follow(tender_id: int):
     n = await app.state.pool.execute(

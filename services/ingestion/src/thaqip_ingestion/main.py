@@ -85,19 +85,26 @@ async def main() -> None:
 
     client = EtimadClient()
     mem_store: dict[int, dict] = {}
+    pass_timeout = 240  # watchdog: a 6-page pass takes ~8s; a wedged client gets recycled
     try:
         while True:
             started = datetime.now(UTC)
             try:
                 if pool is not None:
-                    stats = await run_pass_db(client, pool, pages=args.pages)
+                    stats = await asyncio.wait_for(
+                        run_pass_db(client, pool, pages=args.pages), pass_timeout)
                 else:
-                    stats = await run_pass_memory(client, mem_store, pages=args.pages)
+                    stats = await asyncio.wait_for(
+                        run_pass_memory(client, mem_store, pages=args.pages), pass_timeout)
                 log.info(
                     "pass done in %.1fs %s",
                     (datetime.now(UTC) - started).total_seconds(),
                     dict(stats),
                 )
+            except TimeoutError:
+                log.error("pass exceeded %ss — recycling HTTP client (watchdog)", pass_timeout)
+                await client.aclose()
+                client = EtimadClient()
             except ChallengeDetected:
                 log.error("bot challenge detected on listing route — backing off (ticket B5)")
                 await asyncio.sleep(600)
