@@ -355,6 +355,7 @@ async function loadDash(){
   } else { $('#freshTxt').textContent = 'الراصد يعمل — لا منشورات جديدة بعد'; }
   drawMonthly(d.monthly);
   pulse(d);
+  loadCalibration();
   $('#latestAwards').innerHTML = d.latest_awards.map(a => `
     <tr class="border-b border-line last:border-0 hover:bg-tint/50 cursor-pointer" onclick="openDetail(${a.id})">
       <td class="px-6 py-3">${a.name}</td>
@@ -373,12 +374,22 @@ function pulse(d){
     ${pulseRow('منافسات جديدة آخر 24 ساعة', nf.format(d.new_24h))}
     ${pulseRow('موردون في أرشيف العروض', nf.format(d.bidders))}
     ${pulseRow('حصاد الترسيات', 'كل 6 ساعات تلقائيًا')}
+    <div id="calRow"></div>
     <div class="pt-3 border-t border-line text-[12px] text-mut leading-relaxed">
       كل الأرقام في هذه اللوحة محسوبة من بيانات اعتماد الفعلية — لا تقديرات ولا أرقام تجميلية.
     </div>`;
 }
 const pulseRow = (k,v) => `<div class="flex items-baseline justify-between">
   <span class="text-[13px] text-mut">${k}</span><span class="num font-semibold">${v}</span></div>`;
+async function loadCalibration(){
+  const c = await (await fetch(API+'/api/calibration')).json();
+  const el = $('#calRow'); if(!el) return;
+  el.innerHTML = pulseRow('عيّنة معايرة التوقعات',
+    `${nf.format(c.resolved)}/${nf.format(c.predictions)}` +
+    (c.resolved>0 && c.avg_predicted!=null
+      ? ` <span class="text-[10.5px] text-mut">(متوقع ${Math.round(c.avg_predicted*100)}% · فعلي ${Math.round(c.actual_win_rate*100)}%)</span>`
+      : ''));
+}
 
 /* grouped bar chart — Won #108A5F / Lost #B45309 (palette validated) */
 function drawMonthly(rows){

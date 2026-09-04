@@ -1,0 +1,11 @@
+2026-09-04 03:30:02,871 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=1&PageNumber=1 "HTTP/1.1 200 OK"
+2026-09-04 03:30:04,646 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=1&PageNumber=1&TenderCategory=6 "HTTP/1.1 200 OK"
+2026-09-04 03:30:06,974 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=50&PageNumber=1 "HTTP/1.1 200 OK"
+2026-09-04 03:30:08,900 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=50&PageNumber=2 "HTTP/1.1 200 OK"
+2026-09-04 03:30:11,002 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=50&PageNumber=3 "HTTP/1.1 200 OK"
+2026-09-04 03:30:13,026 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=50&PageNumber=4 "HTTP/1.1 200 OK"
+2026-09-04 03:30:14,943 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=50&PageNumber=5 "HTTP/1.1 200 OK"
+2026-09-04 03:30:16,987 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=50&PageNumber=6 "HTTP/1.1 200 OK"
+2026-09-04 03:30:18,890 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=50&PageNumber=7 "HTTP/1.1 200 OK"
+2026-09-04 03:30:20,842 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=50&PageNumber=8 "HTTP/1.1 200 OK"
+2026-09-04 03:30:20,927 thaqip.reconcile INFO reconciliation report: {"at": "2026-09-04T00:30:01.821781+00:00", "census": {"all": {"source_total": 288040, "db_total": 1125, "coverage": 0.0039}, "awarded": {"source_total": 238659, "db_total": 139, "coverage": 0.0006}}, "head_sample": {"sampled": 192, "healed_missing": 0, "updated": 20, "miss_rate": 0.0}, "staleness": {"stale_open_tenders": 16, "sample_ids": [2000002692, 2000002571, 1099637, 1099640, 2000002504, 2000002483, 2000002514, 2000002535, 2000002542, 2000002538]}}

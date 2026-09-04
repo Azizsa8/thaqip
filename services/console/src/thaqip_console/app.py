@@ -168,9 +168,10 @@ class PursuitIn(BaseModel):
     tender_id: int
 
 
-async def _forsah_declared_requirements(source_uid: str) -> list[tuple[str, str, str, int]]:
-    """Forsah publicly declares required documents per opportunity — real
-    compliance data, no extraction needed. Best-effort with a short timeout."""
+async def _forsah_enrichment(source_uid: str) -> tuple[list[tuple[str, str, str, int]], list[str]]:
+    """Forsah publicly declares required documents AND line items per
+    opportunity — real compliance + BOQ data, no extraction needed.
+    Returns (compliance_rows, boq_item_names); best-effort, short timeout."""
     import httpx
 
     try:
@@ -179,7 +180,7 @@ async def _forsah_declared_requirements(source_uid: str) -> list[tuple[str, str,
                 f"https://forsah-api.910ths.sa/api/v1/opportunities/{source_uid}",
                 headers={"Accept": "application/json"})
         if r.status_code != 200:
-            return []
+            return [], []
         d = r.json()
         items = []
         for i, doc in enumerate((d.get("requiredGlobalDocuments") or [])
@@ -192,9 +193,10 @@ async def _forsah_declared_requirements(source_uid: str) -> list[tuple[str, str,
         if d.get("referenceNumber"):
             items.append((f"مرجع الفرصة الرسمي: {d['referenceNumber']}", "general",
                           "بيانات فرصة", 99))
-        return items
+        boq = [it.get("name") for it in (d.get("items") or []) if it.get("name")]
+        return items, boq
     except Exception:  # noqa: BLE001 — enrichment must never block pursuit creation
-        return []
+        return [], []
 
 
 @app.post("/api/pursuits")
@@ -204,8 +206,9 @@ async def create_pursuit(body: PursuitIn):
     if t is None:
         raise HTTPException(404, "tender not found")
     extra: list[tuple[str, str, str, int]] = []
+    forsah_boq: list[str] = []
     if t["source"] == "forsah" and t["source_uid"]:
-        extra = await _forsah_declared_requirements(t["source_uid"])
+        extra, forsah_boq = await _forsah_enrichment(t["source_uid"])
     async with pool.acquire() as conn:
         async with conn.transaction():
             existing = await conn.fetchval(
@@ -220,6 +223,12 @@ async def create_pursuit(body: PursuitIn):
                     """INSERT INTO compliance_items
                          (pursuit_id, requirement, category, source_ref, origin, sort_order)
                        VALUES ($1,$2,$3,$4,'rule',$5)""", pid, req, cat, ref, order)
+            for i, name in enumerate(forsah_boq, 1):
+                await conn.execute(
+                    """INSERT INTO boq_items (tender_id, item_no, description, confidence)
+                       VALUES ($1, $2, $3, 1.0)
+                       ON CONFLICT DO NOTHING""",
+                    body.tender_id, str(i), name)
             # M5-4 groundwork: snapshot the baseline win prediction at decision time
             live = (t["submitted_bids_count"] or 0) + (t["external_bids_count"] or 0)
             if t["source"] == "forsah" and live > 0:
@@ -349,6 +358,29 @@ async def log_outcome(pid: int, body: OutcomeIn):
                    VALUES ('outcome.logged', 'pursuit', $1, '{}')""", pid)
     return {"ok": True, "award_value": float(award_value) if award_value else None,
             "competitor_count": competitor_count}
+
+
+@app.get("/api/calibration")
+async def calibration():
+    """M5-4: prediction-vs-outcome pairs — the calibration dataset status."""
+    pool: asyncpg.Pool = app.state.pool
+    row = await pool.fetchrow(
+        """SELECT count(pr.id)                                       AS predictions,
+                  count(o.id)                                        AS resolved,
+                  round(avg(pr.value) FILTER (WHERE o.id IS NOT NULL), 4)      AS avg_predicted,
+                  round(avg((o.result='won')::int::numeric)
+                        FILTER (WHERE o.id IS NOT NULL), 4)          AS actual_win_rate
+           FROM predictions pr
+           LEFT JOIN outcomes o ON o.pursuit_id = pr.pursuit_id""")
+    pairs = await pool.fetch(
+        """SELECT pr.pursuit_id, pr.value AS predicted, o.result,
+                  left(t.name, 50) AS name
+           FROM predictions pr
+           JOIN outcomes o ON o.pursuit_id = pr.pursuit_id
+           JOIN pursuits p ON p.id = pr.pursuit_id
+           JOIN tenders t ON t.id = p.tender_id
+           ORDER BY o.logged_at DESC LIMIT 20""")
+    return {**dict(row), "recent_pairs": [dict(r) for r in pairs]}
 
 
 @app.get("/api/outcomes/summary")
