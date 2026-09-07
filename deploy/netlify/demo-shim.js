@@ -6,7 +6,7 @@
 
   /* ---------------- password gate ---------------- */
   // SHA-256 of the share password
-  const GATE_HASH = '42bb494e479c23a6e1e785c1eb9b4020833a32df5216e0a18e64cc08b33150c6';
+  const GATE_HASH = '80fd8896ffa0a27092200a1be847987baa813beb2ca7f0088c78ad5e0467047b';
   const KEY = 'thaqip_demo_gate_v1';
 
   async function sha256(s) {
