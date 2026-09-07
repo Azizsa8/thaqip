@@ -162,8 +162,13 @@ async def main() -> None:
     log.info("alert engine consuming %s as group=%s", STREAM, GROUP)
     try:
         while True:
-            resp = await r.xreadgroup(GROUP, "worker-1", {STREAM: ">"},
-                                      count=BATCH, block=0 if args.once else BLOCK_MS)
+            try:
+                resp = await r.xreadgroup(GROUP, "worker-1", {STREAM: ">"},
+                                          count=BATCH, block=0 if args.once else BLOCK_MS)
+            except (TimeoutError, aioredis.TimeoutError, aioredis.ConnectionError) as exc:
+                log.debug("blocking read cycle: %r", exc)
+                await asyncio.sleep(1)
+                continue
             if not resp:
                 if args.once:
                     break

@@ -209,48 +209,47 @@ async def create_pursuit(body: PursuitIn):
     forsah_boq: list[str] = []
     if t["source"] == "forsah" and t["source_uid"]:
         extra, forsah_boq = await _forsah_enrichment(t["source_uid"])
-    async with pool.acquire() as conn:
-        async with conn.transaction():
-            existing = await conn.fetchval(
-                "SELECT id FROM pursuits WHERE tender_id=$1", body.tender_id)
-            if existing:
-                return {"id": existing, "created": False}
-            pid = await conn.fetchval(
-                "INSERT INTO pursuits (tender_id) VALUES ($1) RETURNING id", body.tender_id)
-            base = _field_requirements(dict(t)) + (GTPL_BASELINE if t["source"] == "etimad" else [])
-            for req, cat, ref, order in base + extra:
-                await conn.execute(
-                    """INSERT INTO compliance_items
-                         (pursuit_id, requirement, category, source_ref, origin, sort_order)
-                       VALUES ($1,$2,$3,$4,'rule',$5)""", pid, req, cat, ref, order)
-            for i, name in enumerate(forsah_boq, 1):
-                await conn.execute(
-                    """INSERT INTO boq_items (tender_id, item_no, description, confidence)
-                       VALUES ($1, $2, $3, 1.0)
-                       ON CONFLICT DO NOTHING""",
-                    body.tender_id, str(i), name)
-            # M5-4 groundwork: snapshot the baseline win prediction at decision time
-            live = (t["submitted_bids_count"] or 0) + (t["external_bids_count"] or 0)
-            if t["source"] == "forsah" and live > 0:
+    async with pool.acquire() as conn, conn.transaction():
+        existing = await conn.fetchval(
+            "SELECT id FROM pursuits WHERE tender_id=$1", body.tender_id)
+        if existing:
+            return {"id": existing, "created": False}
+        pid = await conn.fetchval(
+            "INSERT INTO pursuits (tender_id) VALUES ($1) RETURNING id", body.tender_id)
+        base = _field_requirements(dict(t)) + (GTPL_BASELINE if t["source"] == "etimad" else [])
+        for req, cat, ref, order in base + extra:
+            await conn.execute(
+                """INSERT INTO compliance_items
+                     (pursuit_id, requirement, category, source_ref, origin, sort_order)
+                   VALUES ($1,$2,$3,$4,'rule',$5)""", pid, req, cat, ref, order)
+        for i, name in enumerate(forsah_boq, 1):
+            await conn.execute(
+                """INSERT INTO boq_items (tender_id, item_no, description, confidence)
+                   VALUES ($1, $2, $3, 1.0)
+                   ON CONFLICT DO NOTHING""",
+                body.tender_id, str(i), name)
+        # M5-4 groundwork: snapshot the baseline win prediction at decision time
+        live = (t["submitted_bids_count"] or 0) + (t["external_bids_count"] or 0)
+        if t["source"] == "forsah" and live > 0:
+            await conn.execute(
+                """INSERT INTO predictions (pursuit_id, value, basis)
+                   VALUES ($1, $2, $3::jsonb)""",
+                pid, round(1 / (live + 1), 4),
+                f'{{"basis":"live","bidders":{live},"source":"forsah"}}')
+        else:
+            mb = await conn.fetchval(
+                """SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY b.n)
+                   FROM tenders t2
+                   JOIN LATERAL (SELECT count(*) n FROM offers o WHERE o.tender_id=t2.id) b ON b.n > 0
+                   WHERE t2.activity_id IS NOT DISTINCT FROM $1
+                     AND EXISTS (SELECT 1 FROM awards w2 WHERE w2.tender_id = t2.id)""",
+                t["activity_id"])
+            if mb:
                 await conn.execute(
                     """INSERT INTO predictions (pursuit_id, value, basis)
                        VALUES ($1, $2, $3::jsonb)""",
-                    pid, round(1 / (live + 1), 4),
-                    f'{{"basis":"live","bidders":{live},"source":"forsah"}}')
-            else:
-                mb = await conn.fetchval(
-                    """SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY b.n)
-                       FROM tenders t2
-                       JOIN LATERAL (SELECT count(*) n FROM offers o WHERE o.tender_id=t2.id) b ON b.n > 0
-                       WHERE t2.activity_id IS NOT DISTINCT FROM $1
-                         AND EXISTS (SELECT 1 FROM awards w2 WHERE w2.tender_id = t2.id)""",
-                    t["activity_id"])
-                if mb:
-                    await conn.execute(
-                        """INSERT INTO predictions (pursuit_id, value, basis)
-                           VALUES ($1, $2, $3::jsonb)""",
-                        pid, round(1 / max(float(mb), 1), 4),
-                        f'{{"basis":"activity_history","median_bidders":{float(mb)}}}')
+                    pid, round(1 / max(float(mb), 1), 4),
+                    f'{{"basis":"activity_history","median_bidders":{float(mb)}}}')
     return {"id": pid, "created": True}
 
 
@@ -340,22 +339,21 @@ async def log_outcome(pid: int, body: OutcomeIn):
         "SELECT award_value FROM awards WHERE tender_id=$1 ORDER BY id LIMIT 1", tender_id)
     competitor_count = await pool.fetchval(
         "SELECT count(*) FROM offers WHERE tender_id=$1", tender_id) or None
-    async with pool.acquire() as conn:
-        async with conn.transaction():
-            await conn.execute(
-                """INSERT INTO outcomes (pursuit_id, result, submitted_value, award_value,
-                                         competitor_count, notes)
-                   VALUES ($1,$2,$3,$4,$5,$6)
-                   ON CONFLICT (pursuit_id) DO UPDATE SET result=EXCLUDED.result,
-                     submitted_value=EXCLUDED.submitted_value, notes=EXCLUDED.notes,
-                     award_value=EXCLUDED.award_value, competitor_count=EXCLUDED.competitor_count,
-                     logged_at=now()""",
-                pid, body.result, body.submitted_value, award_value, competitor_count, body.notes)
-            await conn.execute(
-                "UPDATE pursuits SET stage=$2, updated_at=now() WHERE id=$1", pid, body.result)
-            await conn.execute(
-                """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
-                   VALUES ('outcome.logged', 'pursuit', $1, '{}')""", pid)
+    async with pool.acquire() as conn, conn.transaction():
+        await conn.execute(
+            """INSERT INTO outcomes (pursuit_id, result, submitted_value, award_value,
+                                     competitor_count, notes)
+               VALUES ($1,$2,$3,$4,$5,$6)
+               ON CONFLICT (pursuit_id) DO UPDATE SET result=EXCLUDED.result,
+                 submitted_value=EXCLUDED.submitted_value, notes=EXCLUDED.notes,
+                 award_value=EXCLUDED.award_value, competitor_count=EXCLUDED.competitor_count,
+                 logged_at=now()""",
+            pid, body.result, body.submitted_value, award_value, competitor_count, body.notes)
+        await conn.execute(
+            "UPDATE pursuits SET stage=$2, updated_at=now() WHERE id=$1", pid, body.result)
+        await conn.execute(
+            """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
+               VALUES ('outcome.logged', 'pursuit', $1, '{}')""", pid)
     return {"ok": True, "award_value": float(award_value) if award_value else None,
             "competitor_count": competitor_count}
 
@@ -882,3 +880,216 @@ async def tender_detail(tender_id: int):
     out["benchmark"] = dict(bench) if bench and bench["n"] else None
     out["competition"] = competition
     return out
+
+@app.get("/api/pursuits/{pid}/export/compliance")
+async def export_compliance(pid: int):
+    """M3-1: Export pursuit compliance matrix as CSV (Arabic UTF-8 with BOM)."""
+    import csv
+    import io
+
+    from fastapi.responses import StreamingResponse
+
+    pool: asyncpg.Pool = app.state.pool
+    p = await pool.fetchrow(
+        """SELECT p.*, t.name, t.reference_number
+           FROM pursuits p JOIN tenders t ON t.id = p.tender_id
+           WHERE p.id=$1""", pid)
+    if p is None:
+        raise HTTPException(404, "pursuit not found")
+
+    items = await pool.fetch(
+        """SELECT sort_order, requirement, category, source_ref, status, origin, confidence
+           FROM compliance_items WHERE pursuit_id=$1
+           ORDER BY sort_order, id""", pid)
+
+    stream = io.StringIO()
+    # Write UTF-8 BOM so Excel opens Arabic correctly
+    stream.write("\ufeff")
+    writer = csv.writer(stream)
+    writer.writerow(["م", "المتطلب", "التصنيف", "المرجع النظامي / الفني", "الحالة", "المصدر", "نسبة الثقة"])
+    for i, it in enumerate(items, 1):
+        writer.writerow([
+            i,
+            it["requirement"],
+            it["category"],
+            it["source_ref"],
+            it["status"],
+            it["origin"],
+            f"{it['confidence'] * 100:.0f}%" if it["confidence"] is not None else "",
+        ])
+
+    stream.seek(0)
+    filename = f"compliance_pursuit_{pid}_{p['reference_number']}.csv"
+    return StreamingResponse(
+        io.BytesIO(stream.getvalue().encode("utf-8")),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+class PriceSimulationIn(BaseModel):
+    proposed_price: float
+    target_margin_pct: float | None = None
+
+
+@app.post("/api/pursuits/{pid}/simulate-price")
+async def simulate_price(pid: int, body: PriceSimulationIn):
+    """M5-2, M5-3: Dynamic Win-Probability & Pricing Intelligence Simulator."""
+    if body.proposed_price <= 0:
+        raise HTTPException(422, "Proposed price must be greater than zero")
+
+    pool: asyncpg.Pool = app.state.pool
+    p = await pool.fetchrow(
+        """SELECT p.id, t.*
+           FROM pursuits p
+           JOIN tenders t ON t.id = p.tender_id
+           WHERE p.id = $1""", pid
+    )
+    if p is None:
+        raise HTTPException(404, "pursuit not found")
+
+    tender = dict(p)
+    activity_id = tender.get("activity_id")
+    tender_id = tender.get("id")
+
+    async with pool.acquire() as conn:
+        bench_row = await conn.fetchrow(
+            """SELECT count(*) AS n,
+                      min(w.award_value)::float AS min_val,
+                      percentile_cont(0.25) WITHIN GROUP (ORDER BY w.award_value)::float AS p25_val,
+                      percentile_cont(0.50) WITHIN GROUP (ORDER BY w.award_value)::float AS p50_val,
+                      percentile_cont(0.75) WITHIN GROUP (ORDER BY w.award_value)::float AS p75_val,
+                      max(w.award_value)::float AS max_val
+               FROM awards w
+               JOIN tenders t2 ON t2.id = w.tender_id
+               WHERE t2.id <> $1 AND t2.activity_id IS NOT DISTINCT FROM $2
+                 AND w.award_value IS NOT NULL""",
+            tender_id, activity_id,
+        )
+
+        sample_count = bench_row["n"] if bench_row else 0
+        min_award = bench_row["min_val"] if bench_row and bench_row["min_val"] is not None else None
+        p25_award = bench_row["p25_val"] if bench_row and bench_row["p25_val"] is not None else None
+        median_award = bench_row["p50_val"] if bench_row and bench_row["p50_val"] is not None else None
+        p75_award = bench_row["p75_val"] if bench_row and bench_row["p75_val"] is not None else None
+        max_award = bench_row["max_val"] if bench_row and bench_row["max_val"] is not None else None
+
+        bidders_row = await conn.fetchrow(
+            """SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY b.n)::float AS median_bidders
+               FROM tenders t2
+               JOIN LATERAL (SELECT count(*) n FROM offers o WHERE o.tender_id=t2.id) b ON b.n > 0
+               WHERE t2.activity_id IS NOT DISTINCT FROM $1
+                 AND EXISTS (SELECT 1 FROM awards w2 WHERE w2.tender_id = t2.id)""",
+            activity_id,
+        )
+        median_bidders = bidders_row["median_bidders"] if bidders_row and bidders_row["median_bidders"] else 4.0
+        live_bidders = (tender.get("submitted_bids_count") or 0) + (tender.get("external_bids_count") or 0)
+
+        basis = "activity_history"
+        if tender.get("source") == "forsah" and live_bidders > 0:
+            basis = "live_bidders"
+            effective_bidders = float(live_bidders)
+        else:
+            effective_bidders = max(float(median_bidders), 1.0)
+
+        baseline_p = 1.0 / (effective_bidders + 1.0)
+        import math
+        if median_award and median_award > 0:
+            ratio = body.proposed_price / median_award
+            win_prob = 1.0 / (1.0 + math.exp(4.0 * (ratio - 0.95)))
+            win_prob = max(0.02, min(0.95, win_prob))
+        else:
+            basis = "density_fallback"
+            win_prob = baseline_p
+
+        win_prob_pct = round(win_prob * 100.0, 1)
+        gtpl_abnormally_low = bool(median_award and body.proposed_price < (0.70 * median_award))
+        expected_value = round(body.proposed_price * (win_prob_pct / 100.0), 2)
+
+        if not median_award or not p25_award or not p75_award:
+            zone = "sweet_spot"
+        elif body.proposed_price < p25_award:
+            zone = "aggressive"
+        elif body.proposed_price <= median_award:
+            zone = "sweet_spot"
+        elif body.proposed_price <= p75_award:
+            zone = "conservative"
+        else:
+            zone = "uncompetitive"
+
+        benchmarks = {
+            "sample_count": sample_count,
+            "min_award": min_award,
+            "p25_award": p25_award,
+            "median_award": median_award,
+            "p75_award": p75_award,
+            "max_award": max_award,
+            "median_bidders": median_bidders,
+        }
+
+        # Snapshot into pursuit_simulations
+        import json
+        await conn.execute(
+            """INSERT INTO pursuit_simulations (pursuit_id, proposed_price, win_pct, expected_value, basis, metadata)
+               VALUES ($1, $2, $3, $4, $5, $6::jsonb)""",
+            pid, body.proposed_price, win_prob_pct, expected_value, basis, json.dumps(benchmarks)
+        )
+
+        return {
+            "proposed_price": body.proposed_price,
+            "win_probability_pct": win_prob_pct,
+            "expected_value": expected_value,
+            "competitive_zone": zone,
+            "gtpl_abnormally_low_flag": gtpl_abnormally_low,
+            "basis": basis,
+            "benchmarks": benchmarks,
+            "recommendations": {
+                "optimal_price": round(median_award * 0.92, 2) if median_award else round(body.proposed_price * 0.95, 2),
+                "safe_margin_floor": round(median_award * 0.72, 2) if median_award else round(body.proposed_price * 0.75, 2),
+            },
+        }
+
+@app.get("/api/vendors/{vid}/export")
+async def export_vendor_dossier(vid: int):
+    """M8-1: Export competitor bidding dossier as CSV (Arabic UTF-8 with BOM)."""
+    import csv
+    import io
+
+    from fastapi.responses import StreamingResponse
+
+    pool: asyncpg.Pool = app.state.pool
+    v = await pool.fetchrow("SELECT * FROM vendors WHERE id=$1", vid)
+    if v is None:
+        raise HTTPException(404, "vendor not found")
+
+    history = await pool.fetch("""
+        SELECT t.id AS tender_id, t.name AS tender_name, t.reference_number,
+               coalesce(a.canonical_name, t.agency_name_raw) AS agency,
+               t.activity_name_raw AS activity,
+               o.offer_value, o.is_winner, o.technical_pass
+        FROM offers o
+        JOIN tenders t ON t.id = o.tender_id
+        LEFT JOIN agencies a ON a.id = t.agency_id
+        WHERE o.vendor_id=$1 ORDER BY o.id DESC LIMIT 500""", vid)
+
+    stream = io.StringIO()
+    stream.write("\ufeff")
+    writer = csv.writer(stream)
+    writer.writerow(["المنافسة", "الرقم المرجعي", "الجهة الحكومية", "النشاط", "قيمة العرض (ر.س)", "مطابق فنياً", "فاز بالمنافسة"])
+    for h in history:
+        writer.writerow([
+            h["tender_name"],
+            h["reference_number"] or "",
+            h["agency"] or "",
+            h["activity"] or "",
+            f"{float(h['offer_value']):,.2f}" if h["offer_value"] is not None else "",
+            "نعم" if h["technical_pass"] else ("لا" if h["technical_pass"] is False else "—"),
+            "نعم" if h["is_winner"] else "لا",
+        ])
+
+    stream.seek(0)
+    filename = f"competitor_dossier_{vid}.csv"
+    return StreamingResponse(
+        io.BytesIO(stream.getvalue().encode("utf-8")),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

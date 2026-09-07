@@ -32,7 +32,12 @@ uv run pytest                                          # fixture-based tests
 - [x] C4 checkpointed backfill — page-walk with per-page checkpoint in ingest_runs, resume verified; full corpus is ~5,800 pages ≈ 2h at 1 req/s
 - [x] D3 freshness harness — p50/p95 detection-latency report vs published_at (best observed live: 1m35s); public board ships Phase 1
 - [x] C3 entity resolution v1 — Arabic normalization (hamza/taa-marbuta/diacritics), agency canonicalization + tender linking (165 agencies from first 480 tenders), vendor dedupe with offer/award repointing
-- [ ] B5 anti-bot hardening (429 discipline started: Retry-After honored; listing rate-limits after sustained multi-session pulls — plan paced sessions) · C5 reconciliation · C6 doc pipeline · C7 BOQ parser · D2 continuous deployment of the loop
+- [x] B5 anti-bot hardening — per-route circuit breakers (`circuit_breaker.py`), global kill switch (`THAQIP_KILL_SWITCH`), 429 Retry-After discipline, WAF cool-off backoff
+- [x] C5 reconciliation — nightly census & head-sample sweep with gap detection (`reconcile.py`)
+- [x] C6 doc pipeline — MinIO content-hash storage, text extraction (PDF/DOCX/XLSX), text chunking, pgvector embedding readiness (`documents.py`)
+- [x] C7 BOQ parser — Arabic column detection (بند، بيان، وحدة، كمية) with confidence scoring & review queue routing (`boq.py`)
+- [x] D2 continuous deployment — delta loop containerized in Docker Compose (`poller` service) with automatic client recycling watchdog
+- [x] D4 capture-rate audit harness — automated sampling vs live Etimad listing verifying >= 99% capture SLO (`audit.py`)
 
 Key source facts (probed 2026-09-02): listing API is public JSON (~288k tenders); detail/awarding routes need TSPD cookies (one browser bootstrap per session); components take `tenderIdStr` (raw encrypted id); awarding returns 302→/Home/Error for non-awarded tenders and 429s under fast polling — default pacing is 3s between component fetches.
 

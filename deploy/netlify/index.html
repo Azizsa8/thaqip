@@ -358,6 +358,7 @@ async function loadDash(){
   drawMonthly(d.monthly);
   pulse(d);
   loadCalibration();
+  loadLanes();
   $('#latestAwards').innerHTML = d.latest_awards.map(a => `
     <tr class="border-b border-line last:border-0 hover:bg-tint/50 cursor-pointer" onclick="openDetail(${a.id})">
       <td class="px-6 py-3">${a.name}</td>
@@ -377,12 +378,37 @@ function pulse(d){
     ${pulseRow('موردون في أرشيف العروض', nf.format(d.bidders))}
     ${pulseRow('حصاد الترسيات', 'كل 6 ساعات تلقائيًا')}
     <div id="calRow"></div>
+    <div id="mktRow"></div>
+    <div id="lanesBox" class="pt-3 border-t border-line space-y-1.5"></div>
     <div class="pt-3 border-t border-line text-[12px] text-mut leading-relaxed">
       كل الأرقام في هذه اللوحة محسوبة من بيانات اعتماد الفعلية — لا تقديرات ولا أرقام تجميلية.
     </div>`;
 }
 const pulseRow = (k,v) => `<div class="flex items-baseline justify-between">
   <span class="text-[13px] text-mut">${k}</span><span class="num font-semibold">${v}</span></div>`;
+const LANE_AR = {'etimad.listing':'الراصد اللحظي','etimad.reconcile':'المطابقة الليلية',
+  'etimad.awards_harvest':'حصاد الترسيات','etimad.backfill.all':'التعبئة التاريخية',
+  'etimad.backfill.awarded':'تعبئة المُرسّاة'};
+async function loadLanes(){
+  const [lanes, mkt] = await Promise.all([
+    (await fetch(API+'/api/lanes')).json(),
+    (await fetch(API+'/api/market/price-position')).json(),
+  ]);
+  const el = $('#lanesBox'); if(!el) return;
+  el.innerHTML = '<div class="text-[10.5px] tracking-[.12em] text-mut uppercase pb-0.5">صحة خطوط الاستيعاب</div>' +
+    lanes.filter(l=>LANE_AR[l.connector]).map(l=>`
+      <div class="flex items-center justify-between text-[12px]">
+        <span class="inline-flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full ${l.stale?'bg-danger':l.ok===false?'bg-bronze':'bg-deep'} inline-block"></span>
+          <span class="text-mut">${LANE_AR[l.connector]}</span></span>
+        <span class="num text-[11px] ${l.stale?'text-danger font-semibold':'text-mut'}">${l.age_minutes==null?'—':l.age_minutes<90?'منذ '+l.age_minutes+' د':'منذ '+(l.age_minutes/60).toFixed(1)+' س'}</span>
+      </div>`).join('');
+  const m = $('#mktRow');
+  if(m && mkt.awards_n){
+    m.innerHTML = pulseRow('أقل عرض مطابق يفوز',
+      `${mkt.lowest_wins_pct}% <span class="text-[10.5px] text-mut">(من ${mkt.awards_n} ترسية متعددة العروض)</span>`);
+  }
+}
 async function loadCalibration(){
   const c = await (await fetch(API+'/api/calibration')).json();
   const el = $('#calRow'); if(!el) return;
@@ -554,9 +580,15 @@ async function openPursuit(id){
             <div class="text-[11.5px] text-mut mb-1"><span class="num">${p.reference_number??''}</span> · ${p.agency??''}</div>
             <h2 class="font-bold text-[15.5px] leading-snug">${p.name}</h2>
           </div>
-          <select onchange="setStage(${p.id}, this.value)" class="bg-paper border border-line rounded-lg px-2.5 py-1.5 text-[12px]">
-            ${Object.entries(STAGE_AR).map(([k,v])=>`<option value="${k}" ${p.stage===k?'selected':''}>${v}</option>`).join('')}
-          </select>
+          <div class="flex items-center gap-2">
+            <a href="${API}/api/pursuits/${p.id}/export/compliance" download class="inline-flex items-center gap-1 bg-paper hover:bg-tint border border-line rounded-lg px-2.5 py-1.5 text-[12px] text-deep font-medium transition">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>تصدير CSV</span>
+            </a>
+            <select onchange="setStage(${p.id}, this.value)" class="bg-paper border border-line rounded-lg px-2.5 py-1.5 text-[12px]">
+              ${Object.entries(STAGE_AR).map(([k,v])=>`<option value="${k}" ${p.stage===k?'selected':''}>${v}</option>`).join('')}
+            </select>
+          </div>
         </div>
         <div class="flex items-center gap-3 mt-3">
           <div class="flex-1 h-2 bg-line rounded-full overflow-hidden">
@@ -587,8 +619,104 @@ async function openPursuit(id){
           المتطلبات المعروضة مستخرجة آلياً من بيانات المنافسة وقواعد نظام المنافسات (origin: rule) — استخراج بنود الكراسة بالذكاء الاصطناعي يتفعّل عند توفر نص الوثائق ومفتاح النموذج. انقر الحالة لتدويرها.
         </div>
       </div>
+
+      <!-- M5-2 Dynamic Pricing & Win Simulator -->
+      <div class="px-6 py-5 bg-paper/50 border-t border-line">
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-lg bg-deep/10 text-deep grid place-items-center font-bold text-[12px]">🎯</div>
+            <h3 class="font-bold text-[14px]">محاكي التسعير واحتمالية الفوز</h3>
+          </div>
+          <span id="simZoneBadge" class="text-[10.5px] font-medium bg-tint text-deep rounded-full px-2.5 py-0.5">جاهز للمحاكاة</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+          <div class="md:col-span-2">
+            <label class="block text-[11px] text-mut mb-1">قيمة العرض المقترح بالريال السعودي (SAR)</label>
+            <div class="flex items-center gap-2">
+              <input id="simPriceInput" type="number" step="5000" placeholder="مثال: 750000"
+                class="flex-1 bg-card border border-line rounded-lg px-3 py-2 text-[13px] font-mono focus:border-deep outline-none"
+                oninput="debounceSim(${p.id})">
+              <button onclick="runPriceSim(${p.id})" class="bg-deep hover:bg-deepd text-white font-medium rounded-lg px-4 py-2 text-[12px] transition shrink-0">
+                محاكاة
+              </button>
+            </div>
+          </div>
+          <div class="bg-card border border-line rounded-xl p-3 text-center">
+            <div class="text-[10.5px] text-mut mb-0.5">احتمالية الفوز التقديرية</div>
+            <div id="simWinPct" class="num text-[22px] font-bold text-deep">—</div>
+          </div>
+        </div>
+
+        <div id="simResults" class="hidden mt-4 pt-3 border-t border-line/60 text-[12px] space-y-2">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center text-[11.5px]">
+            <div class="bg-card border border-line/80 rounded-lg p-2">
+              <div class="text-mut text-[10px]">العائد المتوقع</div>
+              <div id="simExpVal" class="num font-semibold mt-0.5">—</div>
+            </div>
+            <div class="bg-card border border-line/80 rounded-lg p-2">
+              <div class="text-mut text-[10px]">وسيط الترسيات المماثلة</div>
+              <div id="simMedian" class="num font-semibold mt-0.5">—</div>
+            </div>
+            <div class="bg-card border border-line/80 rounded-lg p-2">
+              <div class="text-mut text-[10px]">السعر الأمثل الموصى به</div>
+              <div id="simOptPrice" class="num font-semibold text-won mt-0.5">—</div>
+            </div>
+            <div class="bg-card border border-line/80 rounded-lg p-2">
+              <div class="text-mut text-[10px]">حد الأمان الأدنى للتسعير</div>
+              <div id="simSafeFloor" class="num font-semibold text-bronze mt-0.5">—</div>
+            </div>
+          </div>
+          <div id="simGtplWarning" class="hidden text-[11px] p-2.5 rounded-lg bg-dangert text-danger font-medium flex items-center gap-1.5">
+            <span>⚠️ تنبيه نظامي: السعر المقترح أقل من 70% من وسيط الترسيات، مما قد يعرّضه للاستبعاد تحت معايير العرض المنخفض غير الطبيعي (المادة 68 من نظام المنافسات).</span>
+          </div>
+        </div>
+      </div>
+
     </div>`;
   loadWar();
+}
+
+let simTimeout = null;
+function debounceSim(pid){
+  clearTimeout(simTimeout);
+  simTimeout = setTimeout(() => runPriceSim(pid), 400);
+}
+
+async function runPriceSim(pid){
+  const val = parseFloat($('#simPriceInput')?.value);
+  if(!val || val <= 0) return;
+  try {
+    const res = await (await fetch(API+`/api/pursuits/${pid}/simulate-price`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({proposed_price: val})
+    })).json();
+
+    $('#simResults').classList.remove('hidden');
+    $('#simWinPct').textContent = res.win_probability_pct + '%';
+    $('#simExpVal').textContent = Number(res.expected_value).toLocaleString('en-US') + ' ر.س';
+
+    const b = res.benchmarks;
+    $('#simMedian').textContent = b.median_award ? Number(b.median_award).toLocaleString('en-US') + ' ر.س' : 'غير متوفر';
+    $('#simOptPrice').textContent = Number(res.recommendations.optimal_price).toLocaleString('en-US') + ' ر.س';
+    $('#simSafeFloor').textContent = Number(res.recommendations.safe_margin_floor).toLocaleString('en-US') + ' ر.س';
+
+    const zoneNames = {
+      aggressive: 'هجومي (أقل من p25)',
+      sweet_spot: 'نطاق الفوز الأمثل (متوازن)',
+      conservative: 'متحفظ (أعلى من الوسيط)',
+      uncompetitive: 'غير تنافسي (مرتفع جداً)'
+    };
+    $('#simZoneBadge').textContent = zoneNames[res.competitive_zone] || res.competitive_zone;
+
+    if(res.gtpl_abnormally_low_flag){
+      $('#simGtplWarning').classList.remove('hidden');
+    } else {
+      $('#simGtplWarning').classList.add('hidden');
+    }
+  } catch(err){
+    console.error("Simulation failed", err);
+  }
 }
 async function cycleItem(id, cur){
   await fetch(API+'/api/compliance/'+id, {method:'PATCH', headers:{'Content-Type':'application/json'},
@@ -644,7 +772,13 @@ async function openVendor(id){
   $('#vendorPanel').innerHTML = `
     <div class="bg-card border border-line rounded-2xl shadow-card overflow-hidden">
       <div class="px-6 pt-5 pb-4 border-b border-line">
-        <h2 class="font-bold text-[16px]">${v.canonical_name}</h2>
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="font-bold text-[16px]">${v.canonical_name}</h2>
+          <a href="${API}/api/vendors/${v.id}/export" download class="inline-flex items-center gap-1.5 bg-paper hover:bg-tint border border-line rounded-lg px-3 py-1.5 text-[12px] text-deep font-medium transition">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>تصدير السجل الكامل</span>
+          </a>
+        </div>
         <div class="grid grid-cols-4 gap-3 mt-4">
           ${[['المشاركات', s.participations],['الفوز', s.wins],['نسبة الفوز', winRate+'%'],['المطابقة الفنية', (s.tech_rate??0)+'%']]
             .map(([k,val])=>`<div class="bg-paper border border-line rounded-xl px-3 py-2.5 text-center">

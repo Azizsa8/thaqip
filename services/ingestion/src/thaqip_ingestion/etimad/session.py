@@ -12,7 +12,7 @@ supply cookies relayed from a user-authorized browser extension instead.
 from __future__ import annotations
 
 import logging
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 log = logging.getLogger(__name__)
 
@@ -24,6 +24,7 @@ USER_AGENT = (
 )
 
 
+@runtime_checkable
 class SessionProvider(Protocol):
     async def get_cookies(self) -> dict[str, str]:
         """Return cookies that satisfy the source's bot protection."""

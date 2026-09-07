@@ -17,6 +17,7 @@ from collections.abc import AsyncIterator
 
 import httpx
 
+from ..circuit_breaker import RouteCircuitBreaker
 from .models import EtimadListingPage, EtimadTenderRow
 
 log = logging.getLogger(__name__)
@@ -57,6 +58,7 @@ class EtimadClient:
         self._max_retries = max_retries
         self._last_request_at = 0.0
         self._lock = asyncio.Lock()
+        self._circuit_breaker = RouteCircuitBreaker(LISTING_PATH, failure_threshold=4, recovery_timeout=300.0)
         self._http = httpx.AsyncClient(
             base_url=BASE_URL, headers=DEFAULT_HEADERS, timeout=timeout, http2=True
         )
@@ -76,6 +78,7 @@ class EtimadClient:
     async def fetch_listing_page(
         self, page: int, page_size: int = 50, extra_params: dict | None = None
     ) -> EtimadListingPage:
+        await self._circuit_breaker.before_request()
         params: dict[str, object] = {"PageSize": page_size, "PageNumber": page}
         if extra_params:
             params.update(extra_params)
@@ -98,12 +101,16 @@ class EtimadClient:
                     raise httpx.HTTPStatusError("retryable", request=resp.request, response=resp)
                 resp.raise_for_status()
                 if looks_like_challenge(resp.content):
+                    await self._circuit_breaker.record_failure()
                     raise ChallengeDetected(LISTING_PATH)
+                await self._circuit_breaker.record_success()
                 return EtimadListingPage.model_validate_json(resp.content)
             except ChallengeDetected:
+                await self._circuit_breaker.record_failure()
                 raise  # circuit-breaker territory (B5) — never retry blindly into a challenge
             except (httpx.HTTPError, ValueError) as exc:
                 if attempt == self._max_retries:
+                    await self._circuit_breaker.record_failure(exc)
                     raise
                 sleep_for = delay + random.uniform(0, delay / 2)
                 log.warning(
