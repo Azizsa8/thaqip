@@ -382,6 +382,35 @@ async def _measure_pricing_predictions(conn: asyncpg.Connection, pursuit_id: int
     return len(rows)
 
 
+async def _measure_all_pricing_predictions(pool: asyncpg.Pool) -> int:
+    """Backfill accuracy rows for every simulation whose tender now has an award."""
+    rows = await pool.fetch(
+        """WITH actual AS (
+               SELECT DISTINCT ON (p.id) p.id AS pursuit_id, w.award_value::numeric AS award_value
+               FROM pursuits p
+               JOIN awards w ON w.tender_id = p.tender_id
+               WHERE w.award_value IS NOT NULL
+               ORDER BY p.id, w.id
+             )
+           INSERT INTO pricing_prediction_results
+             (simulation_id, pursuit_id, actual_award_value, predicted_price,
+              absolute_error, percentage_error)
+           SELECT s.id, s.pursuit_id, actual.award_value, s.proposed_price,
+                  abs(s.proposed_price - actual.award_value),
+                  (abs(s.proposed_price - actual.award_value) / nullif(actual.award_value, 0))::real
+           FROM pursuit_simulations s
+           JOIN actual ON actual.pursuit_id = s.pursuit_id
+           ON CONFLICT (simulation_id) DO UPDATE SET
+             actual_award_value = EXCLUDED.actual_award_value,
+             predicted_price = EXCLUDED.predicted_price,
+             absolute_error = EXCLUDED.absolute_error,
+             percentage_error = EXCLUDED.percentage_error,
+             measured_at = now()
+           RETURNING id"""
+    )
+    return len(rows)
+
+
 @app.post("/api/pursuits/{pid}/outcome")
 async def log_outcome(pid: int, body: OutcomeIn):
     """M5-1: capture bid outcome; auto-reconcile award value + competitor count."""
@@ -537,10 +566,17 @@ async def calibration():
 
 @app.get("/api/pricing/accuracy")
 async def pricing_accuracy():
-    """M5: measured price predictions versus announced award values."""
+    """M5: measured latest price prediction per pursuit versus announced awards."""
     pool: asyncpg.Pool = app.state.pool
+    refreshed = await _measure_all_pricing_predictions(pool)
     row = await pool.fetchrow(
-        """SELECT count(*)::int AS measured,
+        """WITH latest AS (
+               SELECT DISTINCT ON (r.pursuit_id) r.*
+               FROM pricing_prediction_results r
+               JOIN pursuit_simulations s ON s.id = r.simulation_id
+               ORDER BY r.pursuit_id, s.created_at DESC, r.id DESC
+             )
+           SELECT count(*)::int AS measured,
                   round(avg(percentage_error)::numeric, 4)::float AS mape_all,
                   round(avg(percentage_error) FILTER (WHERE measured_at >= now() - interval '30 days')::numeric, 4)::float AS mape_30d,
                   round(avg(percentage_error) FILTER (WHERE measured_at >= now() - interval '90 days')::numeric, 4)::float AS mape_90d,
@@ -549,10 +585,17 @@ async def pricing_accuracy():
                   round(100.0 * count(*) FILTER (WHERE percentage_error <= 0.10) / nullif(count(*),0), 1)::float AS within_10_pct,
                   round(100.0 * count(*) FILTER (WHERE percentage_error <= 0.20) / nullif(count(*),0), 1)::float AS within_20_pct,
                   round(100.0 * count(*) FILTER (WHERE percentage_error <= 0.30) / nullif(count(*),0), 1)::float AS within_30_pct
-           FROM pricing_prediction_results"""
+           FROM latest"""
     )
+    total_measured = await pool.fetchval("SELECT count(*) FROM pricing_prediction_results")
     recent = await pool.fetch(
-        """SELECT r.pursuit_id, left(t.name, 70) AS name,
+        """WITH latest AS (
+               SELECT DISTINCT ON (r.pursuit_id) r.*
+               FROM pricing_prediction_results r
+               JOIN pursuit_simulations s ON s.id = r.simulation_id
+               ORDER BY r.pursuit_id, s.created_at DESC, r.id DESC
+             )
+           SELECT r.pursuit_id, left(t.name, 70) AS name,
                   r.predicted_price::float AS predicted_price,
                   r.actual_award_value::float AS actual_award_value,
                   r.absolute_error::float AS absolute_error,
@@ -560,13 +603,15 @@ async def pricing_accuracy():
                   s.win_pct::float AS win_pct,
                   s.basis,
                   r.measured_at
-           FROM pricing_prediction_results r
+           FROM latest r
            JOIN pursuit_simulations s ON s.id = r.simulation_id
            JOIN pursuits p ON p.id = r.pursuit_id
            JOIN tenders t ON t.id = p.tender_id
            ORDER BY r.measured_at DESC LIMIT 12"""
     )
     out = dict(row)
+    out["total_measured_simulations"] = total_measured
+    out["refreshed"] = refreshed
     out["status"] = "measured" if out["measured"] else "awaiting_awards"
     out["confidence"] = "high" if out["sample_90d"] >= 50 else "medium" if out["sample_90d"] >= 10 else "low"
     out["recent"] = [dict(r) for r in recent]

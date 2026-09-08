@@ -73,6 +73,11 @@
 
     if (p === '/api/dashboard') return json(db.dashboard);
     if (p === '/api/filters') return json(db.filters);
+    if (p === '/api/pricing/accuracy') return json(db.pricing_accuracy || {
+      measured: 0, status: 'awaiting_awards', confidence: 'low', recent: [],
+      mape_all: null, mape_30d: null, mape_90d: null,
+      sample_30d: 0, sample_90d: 0, within_10_pct: null, within_20_pct: null, within_30_pct: null
+    });
 
     if (p === '/api/tenders') {
       let items = db.tenders.slice();

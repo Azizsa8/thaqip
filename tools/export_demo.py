@@ -69,6 +69,7 @@ def main() -> None:
         "pursuit_details": {str(p["id"]): get(f"/api/pursuits/{p['id']}") for p in pursuits},
         "profiles": get("/api/profiles"),
         "notifications": get("/api/notifications?limit=60"),
+        "pricing_accuracy": get("/api/pricing/accuracy"),
     }
     (OUT / "data" / "db.json").write_text(json.dumps(db, ensure_ascii=False, default=str))
 
