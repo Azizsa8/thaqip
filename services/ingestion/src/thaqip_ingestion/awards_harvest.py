@@ -29,6 +29,11 @@ AWARDED_CATEGORY_PARAM = {"TenderCategory": 6}  # "تم اعلان الترسي�
 AWARDING_COMPONENT = "/Tender/GetAwardingResultsForVisitorViewComponenet"
 
 
+def _is_waf_cooloff(exc: Exception) -> bool:
+    """Return True for Etimad's temporary listing cool-off window."""
+    return isinstance(exc, httpx.HTTPStatusError) and "waf cool-off" in str(exc)
+
+
 async def get_or_create_vendor(conn: asyncpg.Connection, name: str) -> int:
     row = await conn.fetchrow(
         """INSERT INTO vendors (canonical_name) VALUES ($1)
@@ -119,7 +124,7 @@ class AwardsHarvester:
     async def run(self, *, pages: int, page_size: int = 20) -> dict:
         connector = "etimad.awards_harvest"
         stats = {"pages": 0, "tenders": 0, "skipped": 0, "announced": 0,
-                 "offers": 0, "awards": 0, "events": 0}
+                 "offers": 0, "awards": 0, "events": 0, "cooldown": False}
         client = EtimadClient(rate_limit_per_sec=0.5)
         run_id = await self._pool.fetchval(
             "INSERT INTO ingest_runs (connector) VALUES ($1) RETURNING id", connector
@@ -166,12 +171,17 @@ class AwardsHarvester:
                 )
                 log.info("page %d done: %s", page, stats)
         except Exception as exc:
-            error = repr(exc)
-            raise
+            if _is_waf_cooloff(exc):
+                stats["cooldown"] = True
+                error = "waf cool-off"
+                log.warning("awards harvest paused by Etimad WAF cool-off; next schedule will retry")
+            else:
+                error = repr(exc)
+                raise
         finally:
             await self._pool.execute(
                 "UPDATE ingest_runs SET finished_at=now(), ok=$2, error=$3 WHERE id=$1",
-                run_id, error is None, error,
+                run_id, error is None or stats["cooldown"], error,
             )
             await client.aclose()
         return stats
