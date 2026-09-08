@@ -395,6 +395,7 @@ function pricingAccuracyCard(acc){
         <span class="text-[10px] bg-bronzet text-bronze rounded-full px-2 py-0.5">بانتظار القياس</span>
       </div>
       <div class="text-[11.5px] text-mut mt-2 leading-relaxed">ستظهر MAPE بعد ربط محاكاة تسعير بترسية فعلية.</div>
+      <button onclick="seedPricingBaselines()" class="mt-2 text-[10.5px] text-deep font-semibold bg-tint hover:bg-deep hover:text-white rounded-lg px-2.5 py-1 transition">بذر فرضيات ناقصة</button>
     </div>`;
   }
   const mape = Math.round((acc.mape_90d ?? acc.mape_all) * 1000) / 10;
@@ -419,7 +420,15 @@ function pricingAccuracyCard(acc){
     ${recent?`<div class="mt-3 pt-2 border-t border-line/70 text-[11px] text-mut leading-relaxed">
       آخر قياس: توقع <span class="num text-ink">${money(recent.predicted_price)}</span> مقابل ترسية <span class="num text-ink">${money(recent.actual_award_value)}</span> · خطأ <span class="num text-deep">${recent.error_pct}%</span>
     </div>`:''}
+    <button onclick="seedPricingBaselines()" class="mt-3 text-[10.5px] text-deep font-semibold bg-tint hover:bg-deep hover:text-white rounded-lg px-2.5 py-1 transition">بذر فرضيات ناقصة</button>
   </div>`;
+}
+async function seedPricingBaselines(){
+  const btnText = 'جاري بذر فرضيات التسعير…';
+  const p = $('#priceAccRow');
+  if(p) p.insertAdjacentHTML('beforeend', `<div class="mt-2 text-[10.5px] text-mut">${btnText}</div>`);
+  await fetch(API+'/api/pricing/seed-baselines', {method:'POST'});
+  await loadCalibration();
 }
 const LANE_AR = {'etimad.listing':'الراصد اللحظي','etimad.reconcile':'المطابقة الليلية',
   'etimad.awards_harvest':'حصاد الترسيات','etimad.backfill.all':'التعبئة التاريخية',

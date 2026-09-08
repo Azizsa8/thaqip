@@ -8,6 +8,7 @@ Run:  DATABASE_URL=... uv run uvicorn thaqip_console.app:app --port 8080
 """
 from __future__ import annotations
 
+import json
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -638,6 +639,93 @@ async def pricing_accuracy():
     out["confidence"] = "high" if out["sample_90d"] >= 50 else "medium" if out["sample_90d"] >= 10 else "low"
     out["recent"] = [dict(r) for r in recent]
     return out
+
+
+@app.post("/api/pricing/seed-baselines")
+async def seed_pricing_baselines():
+    """Create one baseline pricing simulation for active pursuits lacking one.
+
+    This accelerates the calibration loop: once an award is announced, the
+    pursuit already has a recorded hypothesis to measure against. The seed is
+    deliberately conservative and based only on public/historical corpus data.
+    """
+    pool: asyncpg.Pool = app.state.pool
+    rows = await pool.fetch(
+        """SELECT p.id AS pursuit_id, t.id AS tender_id, t.activity_id,
+                  t.booklet_price::float AS booklet_price,
+                  t.submitted_bids_count, t.external_bids_count
+           FROM pursuits p
+           JOIN tenders t ON t.id = p.tender_id
+           WHERE p.stage NOT IN ('submitted', 'won', 'lost')
+             AND NOT EXISTS (
+               SELECT 1 FROM pursuit_simulations s WHERE s.pursuit_id = p.id
+             )
+           ORDER BY p.updated_at DESC, p.id DESC
+           LIMIT 100"""
+    )
+    seeded = []
+    async with pool.acquire() as conn:
+        for r in rows:
+            bench = await conn.fetchrow(
+                """SELECT count(*)::int AS n,
+                          percentile_cont(0.25) WITHIN GROUP (ORDER BY w.award_value)::float AS p25_award,
+                          percentile_cont(0.50) WITHIN GROUP (ORDER BY w.award_value)::float AS median_award,
+                          percentile_cont(0.75) WITHIN GROUP (ORDER BY w.award_value)::float AS p75_award
+                   FROM awards w
+                   JOIN tenders t2 ON t2.id = w.tender_id
+                   WHERE t2.id <> $1 AND t2.activity_id IS NOT DISTINCT FROM $2
+                     AND w.award_value IS NOT NULL""",
+                r["tender_id"], r["activity_id"],
+            )
+            median_award = bench["median_award"] if bench else None
+            p25_award = bench["p25_award"] if bench else None
+            p75_award = bench["p75_award"] if bench else None
+            sample_count = bench["n"] if bench else 0
+            if median_award:
+                proposed_price = round(median_award * 0.92, 2)
+                basis = "baseline_activity_history"
+            elif r["booklet_price"] and r["booklet_price"] > 0:
+                proposed_price = round(max(r["booklet_price"] * 120.0, 10000.0), 2)
+                basis = "baseline_booklet_price"
+            else:
+                proposed_price = 100000.0
+                basis = "baseline_default"
+
+            live_bidders = (r["submitted_bids_count"] or 0) + (r["external_bids_count"] or 0)
+            effective_bidders = max(float(live_bidders or 4), 1.0)
+            if median_award and median_award > 0:
+                import math
+                ratio = proposed_price / median_award
+                win_prob = max(0.02, min(0.95, 1.0 / (1.0 + math.exp(4.0 * (ratio - 0.95)))))
+            else:
+                win_prob = 1.0 / (effective_bidders + 1.0)
+            win_prob_pct = round(win_prob * 100.0, 1)
+            expected_value = round(proposed_price * (win_prob_pct / 100.0), 2)
+            metadata = {
+                "seeded": True,
+                "sample_count": sample_count,
+                "p25_award": p25_award,
+                "median_award": median_award,
+                "p75_award": p75_award,
+                "live_bidders": live_bidders,
+            }
+            sim_id = await conn.fetchval(
+                """INSERT INTO pursuit_simulations
+                     (pursuit_id, proposed_price, win_pct, expected_value, basis, metadata)
+                   VALUES ($1, $2, $3, $4, $5, $6::jsonb)
+                   RETURNING id""",
+                r["pursuit_id"], proposed_price, win_prob_pct, expected_value, basis, json.dumps(metadata),
+            )
+            seeded.append({
+                "simulation_id": sim_id,
+                "pursuit_id": r["pursuit_id"],
+                "proposed_price": proposed_price,
+                "win_probability_pct": win_prob_pct,
+                "basis": basis,
+                "sample_count": sample_count,
+            })
+    measured = await _measure_all_pricing_predictions(pool)
+    return {"seeded": len(seeded), "measured_after_seed": measured, "items": seeded}
 
 
 @app.get("/api/outcomes/summary")

@@ -79,6 +79,10 @@
       mape_all: null, mape_30d: null, mape_90d: null,
       sample_30d: 0, sample_90d: 0, within_10_pct: null, within_20_pct: null, within_30_pct: null
     });
+    if (p === '/api/pricing/seed-baselines' && method === 'POST') {
+      const missing = db.pursuits.filter(x => !((db.pursuit_details[String(x.id)] || {}).market || {}).last_simulation).length;
+      return json({ seeded: missing, measured_after_seed: 0, items: [] });
+    }
 
     if (p === '/api/tenders') {
       let items = db.tenders.slice();
