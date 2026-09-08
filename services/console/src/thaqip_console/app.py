@@ -351,6 +351,37 @@ class OutcomeIn(BaseModel):
     notes: str | None = None
 
 
+async def _measure_pricing_predictions(conn: asyncpg.Connection, pursuit_id: int) -> int:
+    """Attach actual award values to stored pricing simulations once known."""
+    rows = await conn.fetch(
+        """WITH actual AS (
+               SELECT p.id AS pursuit_id, w.award_value::numeric AS award_value
+               FROM pursuits p
+               JOIN awards w ON w.tender_id = p.tender_id
+               WHERE p.id = $1 AND w.award_value IS NOT NULL
+               ORDER BY w.id LIMIT 1
+             )
+           INSERT INTO pricing_prediction_results
+             (simulation_id, pursuit_id, actual_award_value, predicted_price,
+              absolute_error, percentage_error)
+           SELECT s.id, s.pursuit_id, actual.award_value, s.proposed_price,
+                  abs(s.proposed_price - actual.award_value),
+                  (abs(s.proposed_price - actual.award_value) / nullif(actual.award_value, 0))::real
+           FROM pursuit_simulations s
+           JOIN actual ON actual.pursuit_id = s.pursuit_id
+           WHERE s.pursuit_id = $1
+           ON CONFLICT (simulation_id) DO UPDATE SET
+             actual_award_value = EXCLUDED.actual_award_value,
+             predicted_price = EXCLUDED.predicted_price,
+             absolute_error = EXCLUDED.absolute_error,
+             percentage_error = EXCLUDED.percentage_error,
+             measured_at = now()
+           RETURNING id""",
+        pursuit_id,
+    )
+    return len(rows)
+
+
 @app.post("/api/pursuits/{pid}/outcome")
 async def log_outcome(pid: int, body: OutcomeIn):
     """M5-1: capture bid outcome; auto-reconcile award value + competitor count."""
@@ -364,6 +395,7 @@ async def log_outcome(pid: int, body: OutcomeIn):
         "SELECT award_value FROM awards WHERE tender_id=$1 ORDER BY id LIMIT 1", tender_id)
     competitor_count = await pool.fetchval(
         "SELECT count(*) FROM offers WHERE tender_id=$1", tender_id) or None
+    measured_predictions = 0
     async with pool.acquire() as conn, conn.transaction():
         await conn.execute(
             """INSERT INTO outcomes (pursuit_id, result, submitted_value, award_value,
@@ -374,13 +406,16 @@ async def log_outcome(pid: int, body: OutcomeIn):
                  award_value=EXCLUDED.award_value, competitor_count=EXCLUDED.competitor_count,
                  logged_at=now()""",
             pid, body.result, body.submitted_value, award_value, competitor_count, body.notes)
+        if award_value:
+            measured_predictions = await _measure_pricing_predictions(conn, pid)
         await conn.execute(
             "UPDATE pursuits SET stage=$2, updated_at=now() WHERE id=$1", pid, body.result)
         await conn.execute(
             """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
                VALUES ('outcome.logged', 'pursuit', $1, '{}')""", pid)
     return {"ok": True, "award_value": float(award_value) if award_value else None,
-            "competitor_count": competitor_count}
+            "competitor_count": competitor_count,
+            "measured_pricing_predictions": measured_predictions}
 
 
 @app.get("/api/lanes")
@@ -498,6 +533,44 @@ async def calibration():
            JOIN tenders t ON t.id = p.tender_id
            ORDER BY o.logged_at DESC LIMIT 20""")
     return {**dict(row), "recent_pairs": [dict(r) for r in pairs]}
+
+
+@app.get("/api/pricing/accuracy")
+async def pricing_accuracy():
+    """M5: measured price predictions versus announced award values."""
+    pool: asyncpg.Pool = app.state.pool
+    row = await pool.fetchrow(
+        """SELECT count(*)::int AS measured,
+                  round(avg(percentage_error)::numeric, 4)::float AS mape_all,
+                  round(avg(percentage_error) FILTER (WHERE measured_at >= now() - interval '30 days')::numeric, 4)::float AS mape_30d,
+                  round(avg(percentage_error) FILTER (WHERE measured_at >= now() - interval '90 days')::numeric, 4)::float AS mape_90d,
+                  count(*) FILTER (WHERE measured_at >= now() - interval '30 days')::int AS sample_30d,
+                  count(*) FILTER (WHERE measured_at >= now() - interval '90 days')::int AS sample_90d,
+                  round(100.0 * count(*) FILTER (WHERE percentage_error <= 0.10) / nullif(count(*),0), 1)::float AS within_10_pct,
+                  round(100.0 * count(*) FILTER (WHERE percentage_error <= 0.20) / nullif(count(*),0), 1)::float AS within_20_pct,
+                  round(100.0 * count(*) FILTER (WHERE percentage_error <= 0.30) / nullif(count(*),0), 1)::float AS within_30_pct
+           FROM pricing_prediction_results"""
+    )
+    recent = await pool.fetch(
+        """SELECT r.pursuit_id, left(t.name, 70) AS name,
+                  r.predicted_price::float AS predicted_price,
+                  r.actual_award_value::float AS actual_award_value,
+                  r.absolute_error::float AS absolute_error,
+                  round((r.percentage_error * 100)::numeric, 1)::float AS error_pct,
+                  s.win_pct::float AS win_pct,
+                  s.basis,
+                  r.measured_at
+           FROM pricing_prediction_results r
+           JOIN pursuit_simulations s ON s.id = r.simulation_id
+           JOIN pursuits p ON p.id = r.pursuit_id
+           JOIN tenders t ON t.id = p.tender_id
+           ORDER BY r.measured_at DESC LIMIT 12"""
+    )
+    out = dict(row)
+    out["status"] = "measured" if out["measured"] else "awaiting_awards"
+    out["confidence"] = "high" if out["sample_90d"] >= 50 else "medium" if out["sample_90d"] >= 10 else "low"
+    out["recent"] = [dict(r) for r in recent]
+    return out
 
 
 @app.get("/api/outcomes/summary")

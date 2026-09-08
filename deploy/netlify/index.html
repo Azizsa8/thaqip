@@ -378,6 +378,7 @@ function pulse(d){
     ${pulseRow('موردون في أرشيف العروض', nf.format(d.bidders))}
     ${pulseRow('حصاد الترسيات', 'كل 6 ساعات تلقائيًا')}
     <div id="calRow"></div>
+    <div id="priceAccRow"></div>
     <div id="mktRow"></div>
     <div id="lanesBox" class="pt-3 border-t border-line space-y-1.5"></div>
     <div class="pt-3 border-t border-line text-[12px] text-mut leading-relaxed">
@@ -410,13 +411,23 @@ async function loadLanes(){
   }
 }
 async function loadCalibration(){
-  const c = await (await fetch(API+'/api/calibration')).json();
+  const [c, acc] = await Promise.all([
+    (await fetch(API+'/api/calibration')).json(),
+    (await fetch(API+'/api/pricing/accuracy')).json(),
+  ]);
   const el = $('#calRow'); if(!el) return;
   el.innerHTML = pulseRow('عيّنة معايرة التوقعات',
     `${nf.format(c.resolved)}/${nf.format(c.predictions)}` +
     (c.resolved>0 && c.avg_predicted!=null
       ? ` <span class="text-[10.5px] text-mut">(متوقع ${Math.round(c.avg_predicted*100)}% · فعلي ${Math.round(c.actual_win_rate*100)}%)</span>`
       : ''));
+  const p = $('#priceAccRow');
+  if(p){
+    p.innerHTML = pulseRow('دقة توقع السعر',
+      acc.measured > 0
+        ? `${Math.round((acc.mape_90d ?? acc.mape_all) * 100)}% MAPE <span class="text-[10.5px] text-mut">(عينة ${nf.format(acc.sample_90d || acc.measured)} · داخل 20%: ${acc.within_20_pct ?? 0}%)</span>`
+        : 'بانتظار ترسيات تقيس المحاكاة');
+  }
 }
 
 /* grouped bar chart — Won #108A5F / Lost #B45309 (palette validated) */
