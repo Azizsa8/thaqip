@@ -449,27 +449,41 @@ async def log_outcome(pid: int, body: OutcomeIn):
 
 @app.get("/api/lanes")
 async def lanes():
-    """Ops: last run per ingestion lane + staleness verdict (born from two
-    silent failures: the cron PATH incident and a wedged poller)."""
+    """Ops: last run per ingestion lane + health verdict.
+
+    A lane needs attention when its latest run failed or when it has not run
+    within its expected cadence. Keeping ``stale`` as age-only preserves the
+    old field while ``status`` and ``needs_attention`` make failures explicit.
+    """
     rows = await app.state.pool.fetch(
         """SELECT DISTINCT ON (connector) connector, started_at, finished_at, ok, error
            FROM ingest_runs ORDER BY connector, started_at DESC""")
     expected_minutes = {
-        "etimad.listing": 15, "etimad.reconcile": 26 * 60,
+        "etimad.listing": 15,
+        "etimad.reconcile": 26 * 60,
         "etimad.awards_harvest": 7 * 60,
     }
     out = []
     for r in rows:
-        age_min = (r["started_at"] and
-                   (await app.state.pool.fetchval("SELECT extract(epoch FROM now()-$1)/60",
-                                                  r["started_at"])))
+        age_min = (
+            r["started_at"]
+            and await app.state.pool.fetchval(
+                "SELECT extract(epoch FROM now()-$1)/60", r["started_at"]
+            )
+        )
         limit = expected_minutes.get(r["connector"])
+        stale = bool(limit and age_min and age_min > limit)
+        failed = r["ok"] is False
+        status = "failed" if failed else ("stale" if stale else "healthy")
         out.append({
             "connector": r["connector"],
             "last_run": r["started_at"],
             "ok": r["ok"],
             "age_minutes": round(age_min) if age_min is not None else None,
-            "stale": bool(limit and age_min and age_min > limit),
+            "stale": stale,
+            "status": status,
+            "needs_attention": failed or stale,
+            "error": r["error"] if failed else None,
         })
     return out
 

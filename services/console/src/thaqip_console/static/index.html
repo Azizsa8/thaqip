@@ -423,6 +423,11 @@ function pricingAccuracyCard(acc){
 const LANE_AR = {'etimad.listing':'الراصد اللحظي','etimad.reconcile':'المطابقة الليلية',
   'etimad.awards_harvest':'حصاد الترسيات','etimad.backfill.all':'التعبئة التاريخية',
   'etimad.backfill.awarded':'تعبئة المُرسّاة'};
+function laneHealth(l){
+  if(l.status === 'failed' || l.ok === false) return {dot:'bg-danger', text:'فشل آخر تشغيل', cls:'text-danger font-semibold'};
+  if(l.status === 'stale' || l.stale) return {dot:'bg-bronze', text:'متأخر', cls:'text-bronze font-semibold'};
+  return {dot:'bg-deep', text:null, cls:'text-mut'};
+}
 async function loadLanes(){
   const [lanes, mkt] = await Promise.all([
     (await fetch(API+'/api/lanes')).json(),
@@ -430,13 +435,16 @@ async function loadLanes(){
   ]);
   const el = $('#lanesBox'); if(!el) return;
   el.innerHTML = '<div class="text-[10.5px] tracking-[.12em] text-mut uppercase pb-0.5">صحة خطوط الاستيعاب</div>' +
-    lanes.filter(l=>LANE_AR[l.connector]).map(l=>`
-      <div class="flex items-center justify-between text-[12px]">
+    lanes.filter(l=>LANE_AR[l.connector]).map(l=>{
+      const h = laneHealth(l);
+      const age = l.age_minutes==null?'—':l.age_minutes<90?'منذ '+l.age_minutes+' د':'منذ '+(l.age_minutes/60).toFixed(1)+' س';
+      return `<div class="flex items-center justify-between text-[12px]" title="${l.error || ''}">
         <span class="inline-flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full ${l.stale?'bg-danger':l.ok===false?'bg-bronze':'bg-deep'} inline-block"></span>
-          <span class="text-mut">${LANE_AR[l.connector]}</span></span>
-        <span class="num text-[11px] ${l.stale?'text-danger font-semibold':'text-mut'}">${l.age_minutes==null?'—':l.age_minutes<90?'منذ '+l.age_minutes+' د':'منذ '+(l.age_minutes/60).toFixed(1)+' س'}</span>
-      </div>`).join('');
+          <span class="w-1.5 h-1.5 rounded-full ${h.dot} inline-block"></span>
+          <span class="text-mut">${LANE_AR[l.connector]}</span>
+          ${h.text?`<span class="text-[10px] ${h.cls}">${h.text}</span>`:''}</span>
+        <span class="num text-[11px] ${h.cls}">${age}</span>
+      </div>`}).join('');
   const m = $('#mktRow');
   if(m && mkt.awards_n){
     m.innerHTML = pulseRow('أقل عرض مطابق يفوز',
