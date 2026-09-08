@@ -357,16 +357,21 @@ class OpsAckIn(BaseModel):
     note: str | None = None
 
 
-def _checkpoint_has_acknowledgement(checkpoint: object) -> bool:
-    """Return true only when a checkpoint carries a structured ack marker."""
+def _checkpoint_json(checkpoint: object) -> dict:
+    """Decode an ingest checkpoint into a dict when it is structured JSON."""
     if checkpoint is None:
-        return False
+        return {}
     if isinstance(checkpoint, str):
         try:
             checkpoint = json.loads(checkpoint)
         except json.JSONDecodeError:
-            return False
-    return isinstance(checkpoint, dict) and bool(checkpoint.get("acknowledged_at"))
+            return {}
+    return checkpoint if isinstance(checkpoint, dict) else {}
+
+
+def _checkpoint_has_acknowledgement(checkpoint: object) -> bool:
+    """Return true only when a checkpoint carries a structured ack marker."""
+    return bool(_checkpoint_json(checkpoint).get("acknowledged_at"))
 
 
 async def _measure_pricing_predictions(conn: asyncpg.Connection, pursuit_id: int) -> int:
@@ -502,7 +507,8 @@ async def lanes():
         limit = expected_minutes.get(r["connector"])
         stale = bool(limit and age_min and age_min > limit)
         checkpoint = r["checkpoint"]
-        acknowledged = _checkpoint_has_acknowledgement(checkpoint)
+        checkpoint_meta = _checkpoint_json(checkpoint)
+        acknowledged = bool(checkpoint_meta.get("acknowledged_at"))
         cooldown = bool(r["error"] and "waf cool-off" in r["error"])
         failed = r["ok"] is False and not cooldown and not acknowledged
         running = r["finished_at"] is None and r["ok"] is None
@@ -531,6 +537,8 @@ async def lanes():
             "status": status,
             "needs_attention": failed or stale or stalled,
             "error": r["error"] if failed or cooldown or acknowledged else None,
+            "acknowledged_at": checkpoint_meta.get("acknowledged_at"),
+            "acknowledged_note": checkpoint_meta.get("acknowledged_note"),
             "pages": r["pages"],
             "items_seen": r["items_seen"],
             "items_new": r["items_new"],

@@ -78,7 +78,8 @@
     if (p === '/api/ops/incidents/acknowledge' && method === 'POST') {
       const connector = body && body.connector;
       if (Array.isArray(db.lanes)) {
-        db.lanes = db.lanes.map((lane) => lane.connector === connector ? { ...lane, status: 'acknowledged', needs_attention: false } : lane);
+        const acknowledgedAt = new Date().toISOString();
+        db.lanes = db.lanes.map((lane) => lane.connector === connector ? { ...lane, status: 'acknowledged', needs_attention: false, acknowledged_at: acknowledgedAt, acknowledged_note: body && body.note } : lane);
       }
       if (db.ops_summary) { db.ops_summary.verdict = 'operational'; db.ops_summary.lanes_need_attention = 0; db.ops_summary.attention = []; db.ops_summary.next_actions = []; }
       return json({ acknowledged: true, connector, run_id: null });

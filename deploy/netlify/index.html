@@ -490,7 +490,8 @@ async function loadLanes(){
       const h = laneHealth(l);
       const age = l.age_minutes==null?'—':l.age_minutes<90?'منذ '+l.age_minutes+' د':'منذ '+(l.age_minutes/60).toFixed(1)+' س';
       const work = laneWork(l);
-      return `<div class="flex items-center justify-between text-[12px]" title="${l.error || ''}">
+      const title = [l.error, l.acknowledged_at ? `تمت المراجعة: ${dt(l.acknowledged_at)}` : null, l.acknowledged_note].filter(Boolean).join(' · ');
+      return `<div class="flex items-center justify-between text-[12px]" title="${title}">
         <span class="inline-flex items-center gap-1.5">
           <span class="w-1.5 h-1.5 rounded-full ${h.dot} inline-block"></span>
           <span class="text-mut">${LANE_AR[l.connector]}</span>
