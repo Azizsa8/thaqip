@@ -1295,6 +1295,35 @@ async def simulate_price(pid: int, body: PriceSimulationIn):
             pid, body.proposed_price, win_prob_pct, expected_value, basis, json.dumps(benchmarks)
         )
 
+        optimal_price = round(median_award * 0.92, 2) if median_award else round(body.proposed_price * 0.95, 2)
+        safe_margin_floor = round(median_award * 0.72, 2) if median_award else round(body.proposed_price * 0.75, 2)
+        pricing_ladder = [
+            {
+                "key": "aggressive",
+                "label": "هجومي",
+                "price": round(median_award * 0.82, 2) if median_award else round(body.proposed_price * 0.88, 2),
+                "note": "يضغط المنافسين ويرفع احتمالية الفوز، راقب هامش الربح وخطر العرض المنخفض.",
+            },
+            {
+                "key": "balanced",
+                "label": "متوازن",
+                "price": optimal_price,
+                "note": "النقطة العملية الأقرب للفوز مع بقاء مساحة ربح معقولة.",
+            },
+            {
+                "key": "safe",
+                "label": "آمن",
+                "price": safe_margin_floor,
+                "note": "حد أدنى إرشادي لا ينبغي النزول عنه دون مبرر تكلفة موثق.",
+            },
+            {
+                "key": "conservative",
+                "label": "متحفظ",
+                "price": round(p75_award * 0.98, 2) if p75_award else round(body.proposed_price * 1.05, 2),
+                "note": "يحافظ على الهامش لكنه قد يخفض احتمالية الفوز إذا كان السوق حساساً للسعر.",
+            },
+        ]
+
         return {
             "proposed_price": body.proposed_price,
             "win_probability_pct": win_prob_pct,
@@ -1304,9 +1333,10 @@ async def simulate_price(pid: int, body: PriceSimulationIn):
             "basis": basis,
             "benchmarks": benchmarks,
             "recommendations": {
-                "optimal_price": round(median_award * 0.92, 2) if median_award else round(body.proposed_price * 0.95, 2),
-                "safe_margin_floor": round(median_award * 0.72, 2) if median_award else round(body.proposed_price * 0.75, 2),
+                "optimal_price": optimal_price,
+                "safe_margin_floor": safe_margin_floor,
             },
+            "pricing_ladder": pricing_ladder,
         }
 
 @app.get("/api/vendors/{vid}/export")

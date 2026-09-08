@@ -134,6 +134,34 @@
       return json({ id, created: true });
     }
     if ((m = p.match(/^\/api\/pursuits\/(\d+)$/))) return json(db.pursuit_details[m[1]]);
+    if ((m = p.match(/^\/api\/pursuits\/(\d+)\/simulate-price$/))) {
+      const proposed = Number(body && body.proposed_price) || 0;
+      const detail = db.pursuit_details[m[1]] || {};
+      const market = detail.market || {};
+      const median = market.median_award || proposed || 1;
+      const p25 = market.p25_award || median * 0.85;
+      const p75 = market.p75_award || median * 1.15;
+      const ratio = proposed / median;
+      const win = Math.max(2, Math.min(95, 100 / (1 + Math.exp(4 * (ratio - 0.95)))));
+      const optimal = Math.round(median * 0.92 * 100) / 100;
+      const floor = Math.round(median * 0.72 * 100) / 100;
+      return json({
+        proposed_price: proposed,
+        win_probability_pct: Math.round(win * 10) / 10,
+        expected_value: Math.round(proposed * win) / 100,
+        competitive_zone: proposed < p25 ? 'aggressive' : proposed <= median ? 'sweet_spot' : proposed <= p75 ? 'conservative' : 'uncompetitive',
+        gtpl_abnormally_low_flag: proposed < median * 0.70,
+        basis: market.award_samples ? 'activity_history' : 'demo_fallback',
+        benchmarks: { sample_count: market.award_samples || 0, median_award: median, p25_award: p25, p75_award: p75 },
+        recommendations: { optimal_price: optimal, safe_margin_floor: floor },
+        pricing_ladder: [
+          { key: 'aggressive', label: 'هجومي', price: Math.round(median * 0.82 * 100) / 100, note: 'يضغط المنافسين ويرفع احتمالية الفوز، راقب هامش الربح وخطر العرض المنخفض.' },
+          { key: 'balanced', label: 'متوازن', price: optimal, note: 'النقطة العملية الأقرب للفوز مع بقاء مساحة ربح معقولة.' },
+          { key: 'safe', label: 'آمن', price: floor, note: 'حد أدنى إرشادي لا ينبغي النزول عنه دون مبرر تكلفة موثق.' },
+          { key: 'conservative', label: 'متحفظ', price: Math.round(p75 * 0.98 * 100) / 100, note: 'يحافظ على الهامش لكنه قد يخفض احتمالية الفوز إذا كان السوق حساساً للسعر.' }
+        ]
+      });
+    }
     if ((m = p.match(/^\/api\/pursuits\/(\d+)\/stage$/))) {
       const pur = db.pursuits.find(x => x.id === +m[1]);
       if (pur) { pur.stage = body.stage; db.pursuit_details[m[1]].stage = body.stage; }

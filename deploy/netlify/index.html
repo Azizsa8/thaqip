@@ -752,6 +752,7 @@ async function openPursuit(id){
           <div id="simGtplWarning" class="hidden text-[11px] p-2.5 rounded-lg bg-dangert text-danger font-medium flex items-center gap-1.5">
             <span>⚠️ تنبيه نظامي: السعر المقترح أقل من 70% من وسيط الترسيات، مما قد يعرّضه للاستبعاد تحت معايير العرض المنخفض غير الطبيعي (المادة 68 من نظام المنافسات).</span>
           </div>
+          <div id="simPricingLadder" class="grid grid-cols-1 md:grid-cols-4 gap-2"></div>
         </div>
       </div>
 
@@ -763,6 +764,19 @@ let simTimeout = null;
 function debounceSim(pid){
   clearTimeout(simTimeout);
   simTimeout = setTimeout(() => runPriceSim(pid), 400);
+}
+function renderPricingLadder(rows){
+  const el = $('#simPricingLadder');
+  if(!el) return;
+  const cls = {aggressive:'text-danger bg-dangert', balanced:'text-deep bg-tint', safe:'text-bronze bg-bronzet', conservative:'text-ink bg-paper'};
+  el.innerHTML = (rows || []).map(r => `
+    <div class="bg-card border border-line/80 rounded-lg p-2.5">
+      <div class="flex items-center justify-between gap-2 mb-1">
+        <span class="text-[10px] rounded-full px-2 py-0.5 ${cls[r.key] || 'text-mut bg-paper'}">${r.label}</span>
+        <span class="num text-[12px] font-semibold">${money(r.price)}</span>
+      </div>
+      <div class="text-[10.5px] text-mut leading-relaxed">${r.note}</div>
+    </div>`).join('');
 }
 
 async function runPriceSim(pid){
@@ -783,6 +797,7 @@ async function runPriceSim(pid){
     $('#simMedian').textContent = b.median_award ? Number(b.median_award).toLocaleString('en-US') + ' ر.س' : 'غير متوفر';
     $('#simOptPrice').textContent = Number(res.recommendations.optimal_price).toLocaleString('en-US') + ' ر.س';
     $('#simSafeFloor').textContent = Number(res.recommendations.safe_margin_floor).toLocaleString('en-US') + ' ر.س';
+    renderPricingLadder(res.pricing_ladder);
 
     const zoneNames = {
       aggressive: 'هجومي (أقل من p25)',
