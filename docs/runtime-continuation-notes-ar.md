@@ -13,6 +13,7 @@
 - الـ static demo يصدّر ويخدم `/api/lanes` حتى يرى المستخدم صحة خطوط الاستيعاب في النسخة العامة.
 - حلقة دقة التسعير مفعلة: كل محاكاة سعر تُقاس لاحقًا مقابل قيمة الترسية عند توفرها.
 - تمت إضافة `POST /api/pricing/seed-baselines` لبذر فرضية تسعير واحدة لكل pursuit نشط لا يملك محاكاة. آخر تشغيل محلي زرع 5 فرضيات ورفع القياسات إلى 2 مع 43 محاكاة محفوظة/مقاسة.
+- تمت إضافة `thaqip_ingestion.pricing_seed` وتشغيله في Modal كل 6 ساعات حتى تصبح فرضيات التسعير جزءًا من التشغيل 24/7 لا زرًا يدويًا فقط.
 - آخر محاولتي نشر Netlify في 2026-09-09 رجعت `JSONHTTPError: Forbidden` رغم وجود login؛ يلزم إصلاح صلاحية/ربط Netlify ثم إعادة أمر النشر.
 
 ## آخر سلسلة تحقق موصى بها
@@ -75,7 +76,7 @@ modal deploy deploy/modal/modal_app.py
 
 1. نشر Modal فعليًا بعد توفير secret `thaqip-runtime`، ثم مراقبة `/api/lanes` و`/api/pricing/accuracy`.
 2. جعل `awards_harvest` يسجل `cooldown` في checkpoint/metadata أيضًا إذا احتجنا تقارير تفصيلية لاحقًا.
-3. شغّل `POST /api/pricing/seed-baselines` دوريًا بعد إنشاء pursuits جديدة، ثم راقب `/api/pricing/accuracy`.
+3. بعد نشر Modal، راقب lane `pricing_seed` وتأكد أن active pursuits الجديدة تحصل على baseline simulation خلال 6 ساعات.
 4. أصلح صلاحية Netlify وأعد نشر export الأخير حتى تظهر `seed-baselines` وpricing ladder في الرابط العام.
 5. رفع corpus الترسيات والعروض تدريجيًا بدون ضغط على Etimad، مع إعطاء الأولوية للأنشطة التجارية ذات الطلب الأعلى.
 

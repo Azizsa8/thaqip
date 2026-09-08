@@ -65,6 +65,12 @@ def award_watch() -> None:
     _run("thaqip_ingestion.award_watch")
 
 
+@app.function(image=BASE_IMAGE, secrets=[SECRET], schedule=modal.Period(hours=6), timeout=900)
+def pricing_seed() -> None:
+    """Seed baseline price hypotheses for active pursuits awaiting calibration."""
+    _run("thaqip_ingestion.pricing_seed", "--limit", "100")
+
+
 @app.function(image=BASE_IMAGE, secrets=[SECRET], schedule=modal.Period(hours=1), timeout=900)
 def forsah_pull() -> None:
     """Forsah public opportunity and competition-intensity lane."""

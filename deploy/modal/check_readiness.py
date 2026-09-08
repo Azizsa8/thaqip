@@ -30,6 +30,7 @@ EXPECTED_SCHEDULED = {
     "delta_poller": "Every 5 minutes Etimad newest-first pass",
     "awards_harvest": "Every 6 hours award/offers corpus growth",
     "award_watch": "Every 4 hours pursued-award watcher",
+    "pricing_seed": "Every 6 hours seed price hypotheses for active pursuits",
     "forsah_pull": "Hourly Forsah opportunity pull",
     "reminders": "Hourly pursuit deadline reminders",
     "reconcile": "Daily corpus gap reconciliation",
