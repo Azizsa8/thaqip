@@ -463,6 +463,7 @@ async def lanes():
         "etimad.listing": 15,
         "etimad.reconcile": 26 * 60,
         "etimad.awards_harvest": 7 * 60,
+        "pricing.seed": 7 * 60,
     }
     out = []
     for r in rows:

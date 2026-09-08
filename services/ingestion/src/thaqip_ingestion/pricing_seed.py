@@ -128,10 +128,28 @@ async def main() -> None:
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
     pool = await db.connect(os.environ["DATABASE_URL"])
+    run_id = await pool.fetchval("INSERT INTO ingest_runs (connector) VALUES ('pricing.seed') RETURNING id")
+    error: str | None = None
+    seeded_count = 0
     try:
         seeded = await seed_pricing_baselines(pool, limit=args.limit)
-        log.info("seeded %d pricing baselines", len(seeded))
+        seeded_count = len(seeded)
+        log.info("seeded %d pricing baselines", seeded_count)
+    except Exception as exc:
+        error = repr(exc)
+        raise
     finally:
+        await pool.execute(
+            """UPDATE ingest_runs
+               SET finished_at=now(), ok=$2, error=$3, items_new=$4,
+                   checkpoint=$5::jsonb
+               WHERE id=$1""",
+            run_id,
+            error is None,
+            error,
+            seeded_count,
+            json.dumps({"limit": args.limit, "seeded": seeded_count}),
+        )
         await pool.close()
 
 
