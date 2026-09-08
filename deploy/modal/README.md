@@ -48,6 +48,7 @@ modal deploy deploy/modal/modal_app.py
 - `awards_harvest`: every 6 hours, expands the offers and awards corpus.
 - `award_watch`: every 4 hours, checks pursued tenders for newly announced awards and backfills outcomes.
 - `pricing_seed`: every 6 hours, records one baseline pricing hypothesis for active pursuits that do not yet have a simulation.
+- `ops_health`: hourly, closes orphaned unfinished `ingest_runs` rows as stalled so `/api/lanes` stays truthful.
 - `forsah_pull`: hourly, tracks Forsah public opportunities and bid intensity.
 - `reminders`: hourly, emits pursuit deadline reminders.
 - `reconcile`: daily, checks source/corpus gaps and emits gap events.
@@ -58,6 +59,7 @@ modal deploy deploy/modal/modal_app.py
 ```bash
 modal run deploy/modal/modal_app.py::backfill --category all --max-pages 250
 modal run deploy/modal/modal_app.py::pricing_seed
+modal run deploy/modal/modal_app.py::ops_health
 modal run deploy/modal/modal_app.py::bulk_index
 ```
 

@@ -71,6 +71,12 @@ def pricing_seed() -> None:
     _run("thaqip_ingestion.pricing_seed", "--limit", "100")
 
 
+@app.function(image=BASE_IMAGE, secrets=[SECRET], schedule=modal.Period(hours=1), timeout=300)
+def ops_health() -> None:
+    """Close orphaned/stalled ingest run records so lane health stays truthful."""
+    _run("thaqip_ingestion.ops_health", "--close-stalled")
+
+
 @app.function(image=BASE_IMAGE, secrets=[SECRET], schedule=modal.Period(hours=1), timeout=900)
 def forsah_pull() -> None:
     """Forsah public opportunity and competition-intensity lane."""

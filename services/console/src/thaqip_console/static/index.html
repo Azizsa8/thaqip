@@ -431,7 +431,8 @@ async function seedPricingBaselines(){
 }
 const LANE_AR = {'etimad.listing':'الراصد اللحظي','etimad.reconcile':'المطابقة الليلية',
   'etimad.awards_harvest':'حصاد الترسيات','pricing.seed':'بذر فرضيات السعر',
-  'etimad.backfill.all':'التعبئة التاريخية','etimad.backfill.awarded':'تعبئة المُرسّاة'};
+  'ops.health':'حارس التشغيل','etimad.backfill.all':'التعبئة التاريخية',
+  'etimad.backfill.awarded':'تعبئة المُرسّاة'};
 function laneHealth(l){
   if(l.status === 'failed' || l.ok === false) return {dot:'bg-danger', text:'فشل آخر تشغيل', cls:'text-danger font-semibold'};
   if(l.status === 'stalled') return {dot:'bg-danger', text:'عالِق', cls:'text-danger font-semibold'};
