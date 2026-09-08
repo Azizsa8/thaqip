@@ -572,6 +572,11 @@ async function openPursuit(id){
   const p = await (await fetch(API+'/api/pursuits/'+id)).json();
   const done = p.compliance.filter(c=>['met','n_a'].includes(c.status)).length;
   const pct = p.compliance.length ? Math.round(100*done/p.compliance.length) : 0;
+  const d = p.decision || {};
+  const bandAr = {go:'ادخل', review:'مراجعة', no_bid:'لا تدخل الآن'};
+  const bandCls = {go:'bg-won/10 text-won border-won/25', review:'bg-bronzet text-bronze border-bronze/25', no_bid:'bg-dangert text-danger border-danger/25'};
+  const confAr = {high:'ثقة عالية', medium:'ثقة متوسطة', low:'ثقة منخفضة'};
+  const riskCls = {critical:'bg-dangert text-danger', high:'bg-dangert text-danger', medium:'bg-bronzet text-bronze', low:'bg-tint text-deep'};
   $('#pursuitPanel').innerHTML = `
     <div class="bg-card border border-line rounded-2xl shadow-card overflow-hidden">
       <div class="px-6 pt-5 pb-4 border-b border-line">
@@ -595,6 +600,30 @@ async function openPursuit(id){
             <div class="h-full rounded-full transition-all" style="width:${pct}%;background:${pct>=80?'#108A5F':pct>=40?'#A16207':'#A63D2F'}"></div></div>
           <span class="num text-[12px] font-semibold">${pct}%</span>
           <span class="text-[11px] text-mut">جاهزية الامتثال (${done}/${p.compliance.length})</span>
+        </div>
+        <div class="mt-4 grid grid-cols-1 lg:grid-cols-[210px_1fr] gap-3">
+          <div class="border ${bandCls[d.decision_band] || bandCls.review} rounded-xl p-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[11px] font-medium">${bandAr[d.decision_band] || 'مراجعة'}</span>
+              <span class="text-[10px]">${confAr[d.confidence] || 'ثقة منخفضة'}</span>
+            </div>
+            <div class="num text-[30px] font-bold leading-none mt-2">${d.decision_score ?? '—'}<span class="text-[13px]">/100</span></div>
+            <div class="text-[10.5px] mt-2">جاهزية ${d.readiness_score ?? pct}% · عينة ${d.market?.award_samples ?? 0} ترسية</div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="bg-paper/70 border border-line rounded-xl p-3">
+              <div class="text-[11px] text-mut mb-2">إشارات الخطر</div>
+              <div class="flex flex-wrap gap-1.5">
+                ${(d.risk_flags || []).map(r=>`<span title="${r.reason || ''}" class="${riskCls[r.level] || riskCls.low} rounded-full px-2.5 py-1 text-[10.5px] font-medium">${r.label}</span>`).join('') || '<span class="text-[11px] text-mut">لا توجد إشارات حرجة حالياً</span>'}
+              </div>
+            </div>
+            <div class="bg-paper/70 border border-line rounded-xl p-3">
+              <div class="text-[11px] text-mut mb-2">الخطوات التالية</div>
+              <ol class="space-y-1.5 text-[11.5px] leading-snug">
+                ${(d.next_actions || []).slice(0,3).map(a=>`<li class="flex gap-2"><span class="text-deep">•</span><span>${a}</span></li>`).join('') || '<li class="text-mut">افتح محاكي التسعير أو حدّث بنود الامتثال.</li>'}
+              </ol>
+            </div>
+          </div>
         </div>
       </div>
       <div class="px-3 py-2">

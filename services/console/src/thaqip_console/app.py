@@ -276,6 +276,8 @@ async def pursuit_detail(pid: int):
     pool: asyncpg.Pool = app.state.pool
     p = await pool.fetchrow(
         """SELECT p.*, t.name, t.reference_number, t.source,
+                  t.activity_id, t.activity_name_raw, t.submitted_bids_count,
+                  t.external_bids_count, t.booklet_price,
                   coalesce(a.canonical_name, t.agency_name_raw) AS agency,
                   t.last_offer_date, t.last_offer_date_hijri,
                   greatest(0, extract(epoch FROM t.last_offer_date - now()))::bigint AS remaining_s
@@ -285,8 +287,31 @@ async def pursuit_detail(pid: int):
         raise HTTPException(404)
     items = await pool.fetch(
         "SELECT * FROM compliance_items WHERE pursuit_id=$1 ORDER BY sort_order, id", pid)
+    market = await pool.fetchrow(
+        """SELECT count(w.id)::int AS award_samples,
+                  percentile_cont(0.5) WITHIN GROUP (ORDER BY w.award_value)::float AS median_award,
+                  percentile_cont(0.25) WITHIN GROUP (ORDER BY w.award_value)::float AS p25_award,
+                  percentile_cont(0.75) WITHIN GROUP (ORDER BY w.award_value)::float AS p75_award
+           FROM awards w
+           JOIN tenders t2 ON t2.id = w.tender_id
+           WHERE t2.activity_id IS NOT DISTINCT FROM $1
+             AND w.award_value IS NOT NULL""",
+        p["activity_id"],
+    )
+    last_sim = await pool.fetchrow(
+        """SELECT proposed_price::float AS proposed_price, win_pct::float AS win_pct,
+                  expected_value::float AS expected_value, basis, created_at
+           FROM pursuit_simulations
+           WHERE pursuit_id=$1 ORDER BY created_at DESC LIMIT 1""",
+        pid,
+    )
+    market_out = dict(market) if market else {"award_samples": 0}
+    market_out["last_simulation"] = dict(last_sim) if last_sim else None
+    market_out["last_win_pct"] = last_sim["win_pct"] if last_sim else None
+    compliance = [dict(r) for r in items]
     out = dict(p)
-    out["compliance"] = [dict(r) for r in items]
+    out["compliance"] = compliance
+    out["decision"] = _war_room_decision(out, compliance, market_out)
     return out
 
 
@@ -929,6 +954,102 @@ async def export_compliance(pid: int):
 class PriceSimulationIn(BaseModel):
     proposed_price: float
     target_margin_pct: float | None = None
+
+
+def _score_band(score: int) -> str:
+    if score >= 75:
+        return "go"
+    if score >= 50:
+        return "review"
+    return "no_bid"
+
+
+def _score_confidence(sample_count: int, has_recent_simulation: bool) -> str:
+    if sample_count >= 20 and has_recent_simulation:
+        return "high"
+    if sample_count >= 5 or has_recent_simulation:
+        return "medium"
+    return "low"
+
+
+def _war_room_decision(tender: dict, compliance: list[dict], market: dict) -> dict:
+    actionable = [c for c in compliance if c.get("status") != "n_a"]
+    met = [c for c in actionable if c.get("status") == "met"]
+    readiness = round(100 * len(met) / len(actionable)) if actionable else 0
+
+    remaining_s = tender.get("remaining_s") or 0
+    days_left = remaining_s / 86400 if remaining_s else 0
+    live_bidders = (tender.get("submitted_bids_count") or 0) + (tender.get("external_bids_count") or 0)
+    award_samples = int(market.get("award_samples") or 0)
+    median_award = market.get("median_award")
+    last_win_pct = market.get("last_win_pct")
+    has_recent_simulation = last_win_pct is not None
+
+    decision_score = 42
+    decision_score += min(28, round(readiness * 0.28))
+    if days_left >= 5:
+        decision_score += 10
+    elif days_left >= 2:
+        decision_score += 5
+    elif days_left > 0:
+        decision_score -= 8
+    else:
+        decision_score -= 25
+    if award_samples >= 20:
+        decision_score += 10
+    elif award_samples >= 5:
+        decision_score += 5
+    else:
+        decision_score -= 4
+    if last_win_pct is not None:
+        if last_win_pct >= 35:
+            decision_score += 10
+        elif last_win_pct < 15:
+            decision_score -= 8
+    if live_bidders >= 10:
+        decision_score -= 10
+    elif live_bidders >= 5:
+        decision_score -= 5
+    decision_score = max(0, min(100, decision_score))
+
+    risk_flags = []
+    next_actions = []
+    missing_docs = [c for c in actionable if c.get("category") in ("document", "guarantee", "qualification") and c.get("status") == "missing"]
+    open_deadlines = [c for c in actionable if c.get("category") == "deadline" and c.get("status") == "missing"]
+
+    if days_left <= 0:
+        risk_flags.append({"level": "critical", "label": "انتهى موعد التقديم", "reason": "لا يظهر وقت متبقٍ لتقديم العرض."})
+    elif days_left < 2:
+        risk_flags.append({"level": "high", "label": "وقت ضيق", "reason": "أقل من يومين على الإغلاق."})
+        next_actions.append("تثبيت قرار الدخول اليوم وتجميد نطاق السعر.")
+    if missing_docs:
+        risk_flags.append({"level": "high", "label": "نواقص امتثال", "reason": f"{len(missing_docs)} متطلبات نظامية أو تأهيلية غير مكتملة."})
+        next_actions.append("إغلاق نواقص السجل التجاري والزكاة والتأمينات والضمان قبل التسعير النهائي.")
+    if open_deadlines:
+        next_actions.append("تأكيد مواعيد الاستفسارات والتقديم داخل ملف العرض.")
+    if live_bidders >= 5:
+        risk_flags.append({"level": "medium", "label": "منافسة مرتفعة", "reason": f"يوجد {live_bidders} عروض/اهتمامات مرصودة."})
+    if award_samples < 5:
+        risk_flags.append({"level": "medium", "label": "عينة تسعير ضعيفة", "reason": "الترسيات المشابهة غير كافية لثقة عالية."})
+        next_actions.append("تشغيل حصاد ترسيات أعمق للنشاط أو الجهة قبل اعتماد السعر.")
+    if last_win_pct is None:
+        next_actions.append("شغّل محاكي التسعير لحفظ توقع سعري قابل للقياس لاحقاً.")
+    elif last_win_pct < 15:
+        next_actions.append("راجع السعر المقترح؛ آخر محاكاة تعطي احتمال فوز منخفضاً.")
+    if median_award:
+        next_actions.append(f"استخدم وسيط الترسيات المشابهة كنقطة مرجعية: {median_award:,.0f} ر.س.")
+    if not next_actions:
+        next_actions.append("الملف جاهز للمراجعة التجارية النهائية وتثبيت السعر.")
+
+    return {
+        "decision_score": decision_score,
+        "decision_band": _score_band(decision_score),
+        "readiness_score": readiness,
+        "confidence": _score_confidence(award_samples, has_recent_simulation),
+        "market": market,
+        "risk_flags": risk_flags[:5],
+        "next_actions": next_actions[:5],
+    }
 
 
 @app.post("/api/pursuits/{pid}/simulate-price")
