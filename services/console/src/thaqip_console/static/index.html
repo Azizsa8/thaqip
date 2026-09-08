@@ -425,6 +425,7 @@ const LANE_AR = {'etimad.listing':'الراصد اللحظي','etimad.reconcile'
   'etimad.backfill.awarded':'تعبئة المُرسّاة'};
 function laneHealth(l){
   if(l.status === 'failed' || l.ok === false) return {dot:'bg-danger', text:'فشل آخر تشغيل', cls:'text-danger font-semibold'};
+  if(l.status === 'cooldown') return {dot:'bg-bronze', text:'تهدئة المصدر', cls:'text-bronze font-semibold'};
   if(l.status === 'stale' || l.stale) return {dot:'bg-bronze', text:'متأخر', cls:'text-bronze font-semibold'};
   return {dot:'bg-deep', text:null, cls:'text-mut'};
 }

@@ -452,8 +452,8 @@ async def lanes():
     """Ops: last run per ingestion lane + health verdict.
 
     A lane needs attention when its latest run failed or when it has not run
-    within its expected cadence. Keeping ``stale`` as age-only preserves the
-    old field while ``status`` and ``needs_attention`` make failures explicit.
+    within its expected cadence. WAF cool-off is tracked separately: it is a
+    source-imposed pause, not an operator failure.
     """
     rows = await app.state.pool.fetch(
         """SELECT DISTINCT ON (connector) connector, started_at, finished_at, ok, error
@@ -474,7 +474,15 @@ async def lanes():
         limit = expected_minutes.get(r["connector"])
         stale = bool(limit and age_min and age_min > limit)
         failed = r["ok"] is False
-        status = "failed" if failed else ("stale" if stale else "healthy")
+        cooldown = bool(r["ok"] is True and r["error"] and "waf cool-off" in r["error"])
+        if failed:
+            status = "failed"
+        elif cooldown:
+            status = "cooldown"
+        elif stale:
+            status = "stale"
+        else:
+            status = "healthy"
         out.append({
             "connector": r["connector"],
             "last_run": r["started_at"],
@@ -483,7 +491,7 @@ async def lanes():
             "stale": stale,
             "status": status,
             "needs_attention": failed or stale,
-            "error": r["error"] if failed else None,
+            "error": r["error"] if failed or cooldown else None,
         })
     return out
 
