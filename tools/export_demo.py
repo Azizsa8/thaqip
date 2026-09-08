@@ -11,12 +11,14 @@ Run:  uv run python tools/export_demo.py  (console must be up on :8091)
 from __future__ import annotations
 
 import json
+import logging
 import pathlib
 import urllib.request
 
 BASE = "http://localhost:8091"
 OUT = pathlib.Path(__file__).resolve().parent.parent / "deploy" / "netlify"
 REPO = pathlib.Path(__file__).resolve().parent.parent
+log = logging.getLogger("thaqip.export_demo")
 
 
 def get(path: str):
@@ -25,6 +27,7 @@ def get(path: str):
 
 
 def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
     (OUT / "data").mkdir(parents=True, exist_ok=True)
 
     tenders = get("/api/tenders?limit=200")["items"]
@@ -42,8 +45,8 @@ def main() -> None:
     for tid in detail_ids:
         try:
             tender_details[str(tid)] = get(f"/api/tenders/{tid}")
-        except Exception:
-            pass
+        except (OSError, TimeoutError, json.JSONDecodeError) as exc:
+            log.warning("skipping tender detail %s during demo export: %s", tid, exc)
 
     agencies_board = get("/api/agencies?limit=80")
     agency_details = {}
@@ -69,6 +72,7 @@ def main() -> None:
         "pursuit_details": {str(p["id"]): get(f"/api/pursuits/{p['id']}") for p in pursuits},
         "profiles": get("/api/profiles"),
         "notifications": get("/api/notifications?limit=60"),
+        "lanes": get("/api/lanes"),
         "pricing_accuracy": get("/api/pricing/accuracy"),
     }
     (OUT / "data" / "db.json").write_text(json.dumps(db, ensure_ascii=False, default=str))
