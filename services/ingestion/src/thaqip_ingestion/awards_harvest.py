@@ -14,6 +14,7 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 
 import asyncpg
 import httpx
@@ -125,7 +126,8 @@ class AwardsHarvester:
         connector = "etimad.awards_harvest"
         stats = {"pages": 0, "tenders": 0, "skipped": 0, "announced": 0,
                  "offers": 0, "awards": 0, "events": 0, "cooldown": False}
-        client = EtimadClient(rate_limit_per_sec=0.5)
+        max_retries = int(os.environ.get("THAQIP_AWARDS_MAX_RETRIES", "5"))
+        client = EtimadClient(rate_limit_per_sec=0.5, max_retries=max_retries)
         run_id = await self._pool.fetchval(
             "INSERT INTO ingest_runs (connector) VALUES ($1) RETURNING id", connector
         )
@@ -174,6 +176,16 @@ class AwardsHarvester:
             if _is_waf_cooloff(exc):
                 stats["cooldown"] = True
                 error = "waf cool-off"
+                await self._pool.execute(
+                    """UPDATE ingest_runs SET checkpoint=$2::jsonb WHERE id=$1""",
+                    run_id,
+                    json.dumps({
+                        "last_page": max(start_page - 1, 0),
+                        "page_size": page_size,
+                        "cooldown": True,
+                        "reason": error,
+                    }),
+                )
                 log.warning("awards harvest paused by Etimad WAF cool-off; next schedule will retry")
             else:
                 error = repr(exc)

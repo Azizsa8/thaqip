@@ -81,6 +81,9 @@ async def test_awards_harvest_treats_waf_cooloff_as_scheduled_cooldown(monkeypat
     stats = await harvester.run(pages=1)
 
     assert stats["cooldown"] is True
+    checkpoint_updates = [u for u in pool.updates if "checkpoint=$2::jsonb" in u[0]]
+    assert checkpoint_updates
+    assert '"cooldown": true' in checkpoint_updates[-1][1][1]
     finish_updates = [u for u in pool.updates if "finished_at=now()" in u[0]]
     assert finish_updates
     _, args = finish_updates[-1]

@@ -93,7 +93,11 @@ class EtimadClient:
                     raise httpx.HTTPStatusError("rate limited", request=resp.request, response=resp)
                 if resp.status_code == 400:
                     # observed WAF behavior: sustained pulls get a temporary 400 window
+                    # For WAF cool-off, use much longer waits and more retries
                     wait = 90.0 * attempt
+                    if attempt > 5:
+                        # After 5 attempts, cap at 10 minutes but keep retrying
+                        wait = min(600.0, 90.0 * attempt)
                     log.warning("400 (likely WAF cool-off); sleeping %.0fs (attempt %s)", wait, attempt)
                     await asyncio.sleep(wait)
                     raise httpx.HTTPStatusError("waf cool-off", request=resp.request, response=resp)

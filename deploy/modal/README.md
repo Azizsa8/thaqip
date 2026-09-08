@@ -22,6 +22,7 @@ Optional variables:
 - `MINIO_ACCESS_KEY`
 - `MINIO_SECRET_KEY`
 - `THAQIP_KILL_SWITCH`
+- `THAQIP_AWARDS_MAX_RETRIES` — optional; default `5`, increase only when Modal timeout/rate window allows a longer awards harvest wait.
 
 ## Readiness Check
 
@@ -65,4 +66,5 @@ modal run deploy/modal/modal_app.py::bulk_index
 - Keep Etimad rates conservative. The default crawler policy remains approximately 1 request per second unless a lane has its own stricter pacing.
 - Use `THAQIP_KILL_SWITCH=1` to stop crawler behavior without removing the deployed schedules.
 - Watch `ingest_runs`, `/api/lanes`, `/api/pricing/accuracy`, and the War Room after deployment. A scheduled function being green in Modal is not enough; the product health source is the database and measured customer outcomes.
+- If `etimad.awards_harvest` reports `cooldown`, inspect the latest `ingest_runs.checkpoint` for `{ "cooldown": true, "reason": "waf cool-off" }`; this means the source asked us to slow down and the next schedule should retry.
 
