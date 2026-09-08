@@ -427,6 +427,8 @@ Add `deploy/modal/` or `services/ingestion/modal_app.py`.
 - README.
 - Local dry-run notes.
 
+Status 2026-09-08: scaffold started in `deploy/modal/` with scheduled lanes for delta polling, awards harvest, Forsah, reconcile, digest, plus manual backfill and bulk index. Next step is to deploy against the real Modal account after creating the `thaqip-runtime` secret.
+
 ### P1-07 Health hardening
 
 Make `/api/health` classify each lane:
@@ -489,4 +491,3 @@ Phase 1 is complete when:
 - At least one public demo scenario is polished and shareable.
 - Legal guardrails are documented in product and engineering docs.
 - A new model/agent can pick up any ticket from this document and run it without needing the original conversation.
-
