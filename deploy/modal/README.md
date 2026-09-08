@@ -34,7 +34,9 @@ modal deploy deploy/modal/modal_app.py
 
 - `delta_poller`: every 5 minutes, one Etimad newest-first pass.
 - `awards_harvest`: every 6 hours, expands the offers and awards corpus.
+- `award_watch`: every 4 hours, checks pursued tenders for newly announced awards and backfills outcomes.
 - `forsah_pull`: hourly, tracks Forsah public opportunities and bid intensity.
+- `reminders`: hourly, emits pursuit deadline reminders.
 - `reconcile`: daily, checks source/corpus gaps and emits gap events.
 - `daily_digest`: daily at 07:00 KSA.
 
@@ -51,5 +53,5 @@ modal run deploy/modal/modal_app.py::bulk_index
 - Secrets stay in Modal. Do not hardcode database URLs, API keys, or tokens in this repository.
 - Keep Etimad rates conservative. The default crawler policy remains approximately 1 request per second unless a lane has its own stricter pacing.
 - Use `THAQIP_KILL_SWITCH=1` to stop crawler behavior without removing the deployed schedules.
-- Watch `ingest_runs` and `/api/lanes` after deployment. A scheduled function being green in Modal is not enough; the product health source is the database.
+- Watch `ingest_runs`, `/api/lanes`, `/api/pricing/accuracy`, and the War Room after deployment. A scheduled function being green in Modal is not enough; the product health source is the database and measured customer outcomes.
 

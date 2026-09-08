@@ -59,10 +59,22 @@ def awards_harvest() -> None:
     _run("thaqip_ingestion.awards_harvest", "--pages", "4")
 
 
+@app.function(image=BROWSER_IMAGE, secrets=[SECRET], schedule=modal.Period(hours=4), timeout=3600)
+def award_watch() -> None:
+    """Focused pursued-tender award watcher and outcome backfill lane."""
+    _run("thaqip_ingestion.award_watch")
+
+
 @app.function(image=BASE_IMAGE, secrets=[SECRET], schedule=modal.Period(hours=1), timeout=900)
 def forsah_pull() -> None:
     """Forsah public opportunity and competition-intensity lane."""
     _run("thaqip_ingestion.forsah", "--pages", "3")
+
+
+@app.function(image=BASE_IMAGE, secrets=[SECRET], schedule=modal.Period(hours=1), timeout=900)
+def reminders() -> None:
+    """Hourly pursuit deadline reminder lane."""
+    _run("thaqip_ingestion.reminders")
 
 
 @app.function(image=BASE_IMAGE, secrets=[SECRET], schedule=modal.Cron("15 2 * * *"), timeout=3600)
