@@ -379,6 +379,7 @@ function pulse(d){
     <div id="calRow"></div>
     <div id="priceAccRow"></div>
     <div id="mktRow"></div>
+    <div id="opsSummaryBox" class="pt-3 border-t border-line"></div>
     <div id="lanesBox" class="pt-3 border-t border-line space-y-1.5"></div>
     <div class="pt-3 border-t border-line text-[12px] text-mut leading-relaxed">
       كل الأرقام في هذه اللوحة محسوبة من بيانات اعتماد الفعلية — لا تقديرات ولا أرقام تجميلية.
@@ -448,11 +449,30 @@ function laneWork(l){
   else if(l.items_seen) bits.push(nf.format(l.items_seen)+' عنصر');
   return bits.length ? bits.join(' · ') : '';
 }
+function renderOpsSummary(s){
+  const el = $('#opsSummaryBox'); if(!el || !s) return;
+  const label = {operational:'تشغيل مستقر', degraded:'تشغيل متدهور', down:'تعطل حرج'}[s.verdict] || s.verdict;
+  const cls = s.verdict === 'operational' ? 'bg-tint text-deep' : s.verdict === 'degraded' ? 'bg-bronzet text-bronze' : 'bg-dangert text-danger';
+  el.innerHTML = `<div class="rounded-xl border border-line bg-paper/70 p-3">
+    <div class="flex items-center justify-between gap-2">
+      <span class="text-[12px] text-mut">ملخص التشغيل</span>
+      <span class="text-[10px] ${cls} rounded-full px-2 py-0.5">${label}</span>
+    </div>
+    <div class="mt-2 grid grid-cols-3 gap-2 text-center text-[10.5px]">
+      <div><span class="num text-ink font-semibold">${nf.format(s.lanes_healthy)}</span><div class="text-mut">سليم</div></div>
+      <div><span class="num text-ink font-semibold">${nf.format(s.lanes_running)}</span><div class="text-mut">يعمل</div></div>
+      <div><span class="num ${s.lanes_need_attention?'text-danger':'text-ink'} font-semibold">${nf.format(s.lanes_need_attention)}</span><div class="text-mut">يحتاج انتباه</div></div>
+    </div>
+    ${(s.next_actions || [])[0] ? `<div class="mt-2 text-[10.5px] text-mut leading-relaxed">${s.next_actions[0]}</div>` : ''}
+  </div>`;
+}
 async function loadLanes(){
-  const [lanes, mkt] = await Promise.all([
+  const [lanes, mkt, ops] = await Promise.all([
     (await fetch(API+'/api/lanes')).json(),
     (await fetch(API+'/api/market/price-position')).json(),
+    (await fetch(API+'/api/ops/summary')).json(),
   ]);
+  renderOpsSummary(ops);
   const el = $('#lanesBox'); if(!el) return;
   el.innerHTML = '<div class="text-[10.5px] tracking-[.12em] text-mut uppercase pb-0.5">صحة خطوط الاستيعاب</div>' +
     lanes.filter(l=>LANE_AR[l.connector]).map(l=>{

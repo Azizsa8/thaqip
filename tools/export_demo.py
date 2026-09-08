@@ -73,6 +73,7 @@ def main() -> None:
         "profiles": get("/api/profiles"),
         "notifications": get("/api/notifications?limit=60"),
         "lanes": get("/api/lanes"),
+        "ops_summary": get("/api/ops/summary"),
         "pricing_accuracy": get("/api/pricing/accuracy"),
     }
     (OUT / "data" / "db.json").write_text(json.dumps(db, ensure_ascii=False, default=str))

@@ -519,6 +519,53 @@ async def lanes():
     return out
 
 
+@app.get("/api/ops/summary")
+async def ops_summary():
+    """Single operational verdict for monitors, demos, and handoff reviews."""
+    lane_rows = await lanes()
+    accuracy = await pricing_accuracy()
+    attention = [r for r in lane_rows if r.get("needs_attention")]
+    running = [r for r in lane_rows if r.get("status") == "running"]
+    healthy = [r for r in lane_rows if r.get("status") == "healthy"]
+    critical_connectors = {"etimad.listing", "pricing.seed", "ops.health"}
+    critical_attention = [r for r in attention if r.get("connector") in critical_connectors]
+    if critical_attention:
+        verdict = "down"
+    elif attention:
+        verdict = "degraded"
+    else:
+        verdict = "operational"
+    next_actions = []
+    for row in attention[:5]:
+        connector = row.get("connector")
+        status = row.get("status")
+        if status == "failed" and row.get("error") == "stalled watchdog closed orphaned run":
+            next_actions.append(f"راجع سجل {connector}: أغلقه watchdog كسجل يتيم؛ لا تشغل نسخة ثانية قبل فحص العملية.")
+        elif status == "failed":
+            next_actions.append(f"راجع آخر خطأ في {connector}: {row.get('error') or 'غير محدد'}")
+        elif status == "stale":
+            next_actions.append(f"أعد تشغيل {connector} أو تحقق من جدولة Modal/cron؛ آخر نبض متأخر.")
+        elif status == "stalled":
+            next_actions.append(f"افحص عملية {connector}؛ run مفتوح تجاوز حد التعليق.")
+    if accuracy.get("confidence") == "low":
+        next_actions.append("زد عينات قياس التسعير عبر pursuits نشطة وترسيات فعلية؛ الثقة الحالية منخفضة.")
+    return {
+        "verdict": verdict,
+        "lanes_total": len(lane_rows),
+        "lanes_healthy": len(healthy),
+        "lanes_running": len(running),
+        "lanes_need_attention": len(attention),
+        "attention": attention,
+        "pricing_accuracy": {
+            "status": accuracy.get("status"),
+            "measured": accuracy.get("measured"),
+            "confidence": accuracy.get("confidence"),
+            "mape_90d": accuracy.get("mape_90d"),
+        },
+        "next_actions": next_actions[:6],
+    }
+
+
 @app.get("/api/market/price-position")
 async def price_position():
     """Market insight from the harvested corpus: how often does the lowest

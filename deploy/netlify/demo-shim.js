@@ -74,6 +74,7 @@
     if (p === '/api/dashboard') return json(db.dashboard);
     if (p === '/api/filters') return json(db.filters);
     if (p === '/api/lanes') return json(db.lanes || []);
+    if (p === '/api/ops/summary') return json(db.ops_summary || { verdict: 'operational', lanes_total: (db.lanes || []).length, lanes_healthy: (db.lanes || []).length, lanes_running: 0, lanes_need_attention: 0, attention: [], pricing_accuracy: db.pricing_accuracy || {}, next_actions: [] });
     if (p === '/api/pricing/accuracy') return json(db.pricing_accuracy || {
       measured: 0, status: 'awaiting_awards', confidence: 'low', recent: [],
       mape_all: null, mape_30d: null, mape_90d: null,
