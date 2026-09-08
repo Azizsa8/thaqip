@@ -352,6 +352,11 @@ class OutcomeIn(BaseModel):
     notes: str | None = None
 
 
+class OpsAckIn(BaseModel):
+    connector: str
+    note: str | None = None
+
+
 async def _measure_pricing_predictions(conn: asyncpg.Connection, pursuit_id: int) -> int:
     """Attach actual award values to stored pricing simulations once known."""
     rows = await conn.fetch(
@@ -484,12 +489,16 @@ async def lanes():
         )
         limit = expected_minutes.get(r["connector"])
         stale = bool(limit and age_min and age_min > limit)
+        checkpoint = r["checkpoint"]
+        acknowledged = bool(checkpoint and "acknowledged_at" in str(checkpoint))
         cooldown = bool(r["error"] and "waf cool-off" in r["error"])
-        failed = r["ok"] is False and not cooldown
+        failed = r["ok"] is False and not cooldown and not acknowledged
         running = r["finished_at"] is None and r["ok"] is None
         stalled = bool(running and age_min and age_min > running_grace_minutes.get(r["connector"], 60))
         if failed:
             status = "failed"
+        elif acknowledged:
+            status = "acknowledged"
         elif stalled:
             status = "stalled"
         elif running:
@@ -509,7 +518,7 @@ async def lanes():
             "stale": stale,
             "status": status,
             "needs_attention": failed or stale or stalled,
-            "error": r["error"] if failed or cooldown else None,
+            "error": r["error"] if failed or cooldown or acknowledged else None,
             "pages": r["pages"],
             "items_seen": r["items_seen"],
             "items_new": r["items_new"],
@@ -564,6 +573,30 @@ async def ops_summary():
         },
         "next_actions": next_actions[:6],
     }
+
+
+@app.post("/api/ops/incidents/acknowledge")
+async def acknowledge_ops_incident(body: OpsAckIn):
+    """Acknowledge the latest failed/stalled lane incident without rewriting history."""
+    pool: asyncpg.Pool = app.state.pool
+    row = await pool.fetchrow(
+        """SELECT id FROM ingest_runs
+           WHERE connector=$1 AND (ok=false OR finished_at IS NULL)
+           ORDER BY started_at DESC LIMIT 1""",
+        body.connector,
+    )
+    if row is None:
+        raise HTTPException(404, "incident not found")
+    await pool.execute(
+        """UPDATE ingest_runs
+           SET checkpoint = coalesce(checkpoint, '{}'::jsonb) || jsonb_build_object(
+                 'acknowledged_at', now(),
+                 'acknowledged_note', $2::text
+               )
+           WHERE id=$1""",
+        row["id"], body.note or "acknowledged by operator",
+    )
+    return {"acknowledged": True, "connector": body.connector, "run_id": row["id"]}
 
 
 @app.get("/api/market/price-position")

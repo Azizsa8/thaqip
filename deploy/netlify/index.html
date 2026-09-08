@@ -436,6 +436,7 @@ const LANE_AR = {'etimad.listing':'الراصد اللحظي','etimad.reconcile'
   'ops.health':'حارس التشغيل','etimad.backfill.all':'التعبئة التاريخية',
   'etimad.backfill.awarded':'تعبئة المُرسّاة'};
 function laneHealth(l){
+  if(l.status === 'acknowledged') return {dot:'bg-deep', text:'مراجع', cls:'text-deep font-semibold'};
   if(l.status === 'failed' || l.ok === false) return {dot:'bg-danger', text:'فشل آخر تشغيل', cls:'text-danger font-semibold'};
   if(l.status === 'stalled') return {dot:'bg-danger', text:'عالِق', cls:'text-danger font-semibold'};
   if(l.status === 'running') return {dot:'bg-bronze animate-pulse', text:'يعمل الآن', cls:'text-bronze font-semibold'};
@@ -465,7 +466,16 @@ function renderOpsSummary(s){
       <div><span class="num ${s.lanes_need_attention?'text-danger':'text-ink'} font-semibold">${nf.format(s.lanes_need_attention)}</span><div class="text-mut">يحتاج انتباه</div></div>
     </div>
     ${(s.next_actions || [])[0] ? `<div class="mt-2 text-[10.5px] text-mut leading-relaxed">${s.next_actions[0]}</div>` : ''}
+    ${s.attention && s.attention[0] ? `<button onclick="acknowledgeOpsIncident('${s.attention[0].connector}')" class="mt-2 text-[10.5px] text-deep font-semibold bg-tint hover:bg-deep hover:text-white rounded-lg px-2.5 py-1 transition">تمت المراجعة</button>` : ''}
   </div>`;
+}
+async function acknowledgeOpsIncident(connector){
+  await fetch(API+'/api/ops/incidents/acknowledge', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({connector, note:'acknowledged from dashboard'})
+  });
+  await loadLanes();
 }
 async function loadLanes(){
   const [lanes, mkt, ops] = await Promise.all([
