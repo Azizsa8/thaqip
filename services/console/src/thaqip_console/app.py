@@ -484,10 +484,10 @@ async def lanes():
         )
         limit = expected_minutes.get(r["connector"])
         stale = bool(limit and age_min and age_min > limit)
-        failed = r["ok"] is False
+        cooldown = bool(r["error"] and "waf cool-off" in r["error"])
+        failed = r["ok"] is False and not cooldown
         running = r["finished_at"] is None and r["ok"] is None
         stalled = bool(running and age_min and age_min > running_grace_minutes.get(r["connector"], 60))
-        cooldown = bool(r["ok"] is True and r["error"] and "waf cool-off" in r["error"])
         if failed:
             status = "failed"
         elif stalled:
