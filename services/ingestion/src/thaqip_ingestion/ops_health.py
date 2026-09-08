@@ -69,10 +69,27 @@ async def main() -> None:
     if not args.close_stalled:
         parser.error("nothing to do; pass --close-stalled")
     pool = await db.connect(os.environ["DATABASE_URL"])
+    run_id = await pool.fetchval("INSERT INTO ingest_runs (connector) VALUES ('ops.health') RETURNING id")
+    error: str | None = None
+    closed = 0
     try:
         closed = await close_stalled_runs(pool, older_than_minutes=args.older_than_minutes)
         log.info("closed %d stalled ingest runs", closed)
+    except Exception as exc:
+        error = repr(exc)
+        raise
     finally:
+        await pool.execute(
+            """UPDATE ingest_runs
+               SET finished_at=now(), ok=$2, error=$3, items_changed=$4,
+                   checkpoint=$5::jsonb
+               WHERE id=$1""",
+            run_id,
+            error is None,
+            error,
+            closed,
+            json.dumps({"closed_stalled_runs": closed, "older_than_minutes": args.older_than_minutes}),
+        )
         await pool.close()
 
 

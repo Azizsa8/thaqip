@@ -467,6 +467,7 @@ async def lanes():
         "etimad.reconcile": 26 * 60,
         "etimad.awards_harvest": 7 * 60,
         "pricing.seed": 7 * 60,
+        "ops.health": 90,
     }
     running_grace_minutes = {
         "etimad.awards_harvest": 90,
