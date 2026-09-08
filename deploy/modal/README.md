@@ -23,6 +23,17 @@ Optional variables:
 - `MINIO_SECRET_KEY`
 - `THAQIP_KILL_SWITCH`
 
+## Readiness Check
+
+Run this before a real Modal deploy. It validates the deployment module without importing Modal, so it still works on a machine where the Modal CLI/SDK is not installed yet.
+
+```bash
+cd /home/ais04/thaqip
+python3 deploy/modal/check_readiness.py
+```
+
+Required checks must pass. Warnings for the local Modal CLI or local environment are expected until the operator installs Modal and creates the `thaqip-runtime` secret in the Modal account.
+
 ## Deploy
 
 ```bash
