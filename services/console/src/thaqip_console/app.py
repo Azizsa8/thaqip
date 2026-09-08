@@ -357,6 +357,18 @@ class OpsAckIn(BaseModel):
     note: str | None = None
 
 
+def _checkpoint_has_acknowledgement(checkpoint: object) -> bool:
+    """Return true only when a checkpoint carries a structured ack marker."""
+    if checkpoint is None:
+        return False
+    if isinstance(checkpoint, str):
+        try:
+            checkpoint = json.loads(checkpoint)
+        except json.JSONDecodeError:
+            return False
+    return isinstance(checkpoint, dict) and bool(checkpoint.get("acknowledged_at"))
+
+
 async def _measure_pricing_predictions(conn: asyncpg.Connection, pursuit_id: int) -> int:
     """Attach actual award values to stored pricing simulations once known."""
     rows = await conn.fetch(
@@ -490,7 +502,7 @@ async def lanes():
         limit = expected_minutes.get(r["connector"])
         stale = bool(limit and age_min and age_min > limit)
         checkpoint = r["checkpoint"]
-        acknowledged = bool(checkpoint and "acknowledged_at" in str(checkpoint))
+        acknowledged = _checkpoint_has_acknowledgement(checkpoint)
         cooldown = bool(r["error"] and "waf cool-off" in r["error"])
         failed = r["ok"] is False and not cooldown and not acknowledged
         running = r["finished_at"] is None and r["ok"] is None
