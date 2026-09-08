@@ -73,6 +73,14 @@ services:
     depends_on: [postgres, redis, typesense]
     restart: unless-stopped
 
+  pricing-seed:
+    build: ./services/ingestion
+    command: ["sh", "-c", "while true; do python -m thaqip_ingestion.pricing_seed --limit 100; sleep 21600; done"]
+    environment:
+      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
+    depends_on: [postgres]
+    restart: unless-stopped
+
   console:
     build: ./services/console
     environment:
