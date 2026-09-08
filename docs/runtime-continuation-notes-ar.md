@@ -1,6 +1,6 @@
 # ثاقب — ملاحظات استمرار التطوير والتشغيل
 
-آخر تحديث: 2026-09-08
+آخر تحديث: 2026-09-09
 
 ## الحالة المثبتة الآن
 
@@ -12,6 +12,8 @@
 - `/api/lanes` يميز الآن بين `healthy`, `failed`, `stale`, و`cooldown`.
 - الـ static demo يصدّر ويخدم `/api/lanes` حتى يرى المستخدم صحة خطوط الاستيعاب في النسخة العامة.
 - حلقة دقة التسعير مفعلة: كل محاكاة سعر تُقاس لاحقًا مقابل قيمة الترسية عند توفرها.
+- تمت إضافة `POST /api/pricing/seed-baselines` لبذر فرضية تسعير واحدة لكل pursuit نشط لا يملك محاكاة. آخر تشغيل محلي زرع 5 فرضيات ورفع القياسات إلى 2 مع 43 محاكاة محفوظة/مقاسة.
+- آخر محاولتي نشر Netlify في 2026-09-09 رجعت `JSONHTTPError: Forbidden` رغم وجود login؛ يلزم إصلاح صلاحية/ربط Netlify ثم إعادة أمر النشر.
 
 ## آخر سلسلة تحقق موصى بها
 
@@ -36,7 +38,7 @@ find .netlify -depth -type d -empty -delete 2>/dev/null || true
 بعد النشر تحقق من:
 
 ```bash
-curl -fsS https://thaqip-demo.netlify.app/data/db.json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(len(d.get("lanes", [])), d.get("pricing_accuracy", {}).get("status"))'
+curl -fsS https://thaqip-demo.netlify.app/data/db.json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(len(d.get("lanes", [])), d.get("pricing_accuracy", {}).get("status"), d.get("pricing_accuracy", {}).get("measured"))'
 ```
 
 ## Modal 24/7
@@ -73,8 +75,8 @@ modal deploy deploy/modal/modal_app.py
 
 1. نشر Modal فعليًا بعد توفير secret `thaqip-runtime`، ثم مراقبة `/api/lanes` و`/api/pricing/accuracy`.
 2. جعل `awards_harvest` يسجل `cooldown` في checkpoint/metadata أيضًا إذا احتجنا تقارير تفصيلية لاحقًا.
-3. زيادة عينات دقة التسعير عبر إنشاء محاكاة سعر لكل pursuit نشط ثم انتظار/حصاد الترسية.
-4. إضافة لوحة “فرص السعر” في War Room: السعر العدواني، السعر المتوازن، السعر الآمن، وخطر العرض المنخفض غير الطبيعي.
+3. شغّل `POST /api/pricing/seed-baselines` دوريًا بعد إنشاء pursuits جديدة، ثم راقب `/api/pricing/accuracy`.
+4. أصلح صلاحية Netlify وأعد نشر export الأخير حتى تظهر `seed-baselines` وpricing ladder في الرابط العام.
 5. رفع corpus الترسيات والعروض تدريجيًا بدون ضغط على Etimad، مع إعطاء الأولوية للأنشطة التجارية ذات الطلب الأعلى.
 
 ## ملفات لا تُثبت عادة
