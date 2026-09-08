@@ -387,6 +387,40 @@ function pulse(d){
 }
 const pulseRow = (k,v) => `<div class="flex items-baseline justify-between">
   <span class="text-[13px] text-mut">${k}</span><span class="num font-semibold">${v}</span></div>`;
+function pricingAccuracyCard(acc){
+  if(!acc || acc.measured === 0){
+    return `<div class="rounded-xl border border-line bg-paper/70 p-3">
+      <div class="flex items-center justify-between">
+        <span class="text-[12px] text-mut">دقة توقع السعر</span>
+        <span class="text-[10px] bg-bronzet text-bronze rounded-full px-2 py-0.5">بانتظار القياس</span>
+      </div>
+      <div class="text-[11.5px] text-mut mt-2 leading-relaxed">ستظهر MAPE بعد ربط محاكاة تسعير بترسية فعلية.</div>
+    </div>`;
+  }
+  const mape = Math.round((acc.mape_90d ?? acc.mape_all) * 1000) / 10;
+  const recent = (acc.recent || [])[0];
+  const conf = {high:'ثقة عالية', medium:'ثقة متوسطة', low:'ثقة منخفضة'}[acc.confidence] || 'ثقة منخفضة';
+  return `<div class="rounded-xl border border-line bg-paper/70 p-3">
+    <div class="flex items-center justify-between gap-2">
+      <span class="text-[12px] text-mut">دقة توقع السعر</span>
+      <span class="text-[10px] ${acc.confidence==='low'?'bg-bronzet text-bronze':'bg-tint text-deep'} rounded-full px-2 py-0.5">${conf}</span>
+    </div>
+    <div class="flex items-end justify-between mt-2">
+      <div>
+        <div class="num text-[24px] font-bold text-deep leading-none">${mape}%</div>
+        <div class="text-[10.5px] text-mut mt-1">MAPE آخر 90 يوم · ${nf.format(acc.measured)} pursuit</div>
+      </div>
+      <div class="text-left text-[10.5px] text-mut leading-relaxed">
+        <div>داخل 10%: <span class="num text-ink">${acc.within_10_pct ?? 0}%</span></div>
+        <div>داخل 20%: <span class="num text-ink">${acc.within_20_pct ?? 0}%</span></div>
+        <div>كل القياسات: <span class="num text-ink">${nf.format(acc.total_measured_simulations || acc.measured)}</span></div>
+      </div>
+    </div>
+    ${recent?`<div class="mt-3 pt-2 border-t border-line/70 text-[11px] text-mut leading-relaxed">
+      آخر قياس: توقع <span class="num text-ink">${money(recent.predicted_price)}</span> مقابل ترسية <span class="num text-ink">${money(recent.actual_award_value)}</span> · خطأ <span class="num text-deep">${recent.error_pct}%</span>
+    </div>`:''}
+  </div>`;
+}
 const LANE_AR = {'etimad.listing':'الراصد اللحظي','etimad.reconcile':'المطابقة الليلية',
   'etimad.awards_harvest':'حصاد الترسيات','etimad.backfill.all':'التعبئة التاريخية',
   'etimad.backfill.awarded':'تعبئة المُرسّاة'};
@@ -423,10 +457,7 @@ async function loadCalibration(){
       : ''));
   const p = $('#priceAccRow');
   if(p){
-    p.innerHTML = pulseRow('دقة توقع السعر',
-      acc.measured > 0
-        ? `${Math.round((acc.mape_90d ?? acc.mape_all) * 100)}% MAPE <span class="text-[10.5px] text-mut">(عينة ${nf.format(acc.sample_90d || acc.measured)} · داخل 20%: ${acc.within_20_pct ?? 0}%)</span>`
-        : 'بانتظار ترسيات تقيس المحاكاة');
+    p.innerHTML = pricingAccuracyCard(acc);
   }
 }
 
