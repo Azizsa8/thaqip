@@ -452,18 +452,26 @@ async def log_outcome(pid: int, body: OutcomeIn):
 async def lanes():
     """Ops: last run per ingestion lane + health verdict.
 
-    A lane needs attention when its latest run failed or when it has not run
-    within its expected cadence. WAF cool-off is tracked separately: it is a
-    source-imposed pause, not an operator failure.
+    A lane needs attention when its latest run failed, has not run within its
+    expected cadence, or appears stuck with an unfinished ingest run. WAF
+    cool-off is tracked separately: it is a source-imposed pause, not an
+    operator failure.
     """
     rows = await app.state.pool.fetch(
-        """SELECT DISTINCT ON (connector) connector, started_at, finished_at, ok, error
-           FROM ingest_runs ORDER BY connector, started_at DESC""")
+        """SELECT DISTINCT ON (connector) connector, started_at, finished_at, ok, error,
+                  pages, items_seen, items_new, items_changed, checkpoint
+           FROM ingest_runs ORDER BY connector, started_at DESC"""
+    )
     expected_minutes = {
         "etimad.listing": 15,
         "etimad.reconcile": 26 * 60,
         "etimad.awards_harvest": 7 * 60,
         "pricing.seed": 7 * 60,
+    }
+    running_grace_minutes = {
+        "etimad.awards_harvest": 90,
+        "etimad.backfill.all": 180,
+        "etimad.backfill.awarded": 180,
     }
     out = []
     for r in rows:
@@ -476,9 +484,15 @@ async def lanes():
         limit = expected_minutes.get(r["connector"])
         stale = bool(limit and age_min and age_min > limit)
         failed = r["ok"] is False
+        running = r["finished_at"] is None and r["ok"] is None
+        stalled = bool(running and age_min and age_min > running_grace_minutes.get(r["connector"], 60))
         cooldown = bool(r["ok"] is True and r["error"] and "waf cool-off" in r["error"])
         if failed:
             status = "failed"
+        elif stalled:
+            status = "stalled"
+        elif running:
+            status = "running"
         elif cooldown:
             status = "cooldown"
         elif stale:
@@ -488,12 +502,18 @@ async def lanes():
         out.append({
             "connector": r["connector"],
             "last_run": r["started_at"],
+            "finished_at": r["finished_at"],
             "ok": r["ok"],
             "age_minutes": round(age_min) if age_min is not None else None,
             "stale": stale,
             "status": status,
-            "needs_attention": failed or stale,
+            "needs_attention": failed or stale or stalled,
             "error": r["error"] if failed or cooldown else None,
+            "pages": r["pages"],
+            "items_seen": r["items_seen"],
+            "items_new": r["items_new"],
+            "items_changed": r["items_changed"],
+            "checkpoint": r["checkpoint"],
         })
     return out
 

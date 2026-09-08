@@ -9,7 +9,7 @@
 - نسخة العرض محمية ببوابة كلمة مرور بسيطة من جهة المتصفح، وهي مناسبة للمشاركة التجريبية وليست حدًا أمنيًا حقيقيًا.
 - `poller` المحلي يعمل ويحدّث منافسات اعتماد بشكل مستمر.
 - `awards_harvest` أصبح يتعامل مع `waf cool-off` كتهدئة مصدر مجدولة بدل انهيار traceback.
-- `/api/lanes` يميز الآن بين `healthy`, `failed`, `stale`, و`cooldown`.
+- `/api/lanes` يميز الآن بين `healthy`, `running`, `stalled`, `failed`, `stale`, و`cooldown`، ويعرض عدادات الصفحات/العناصر من آخر run.
 - الـ static demo يصدّر ويخدم `/api/lanes` حتى يرى المستخدم صحة خطوط الاستيعاب في النسخة العامة.
 - حلقة دقة التسعير مفعلة: كل محاكاة سعر تُقاس لاحقًا مقابل قيمة الترسية عند توفرها.
 - تمت إضافة `POST /api/pricing/seed-baselines` لبذر فرضية تسعير واحدة لكل pursuit نشط لا يملك محاكاة. آخر تشغيل محلي زرع 5 فرضيات ورفع القياسات إلى 2 مع 43 محاكاة محفوظة/مقاسة.
@@ -76,7 +76,7 @@ modal deploy deploy/modal/modal_app.py
 
 1. نشر Modal فعليًا بعد توفير secret `thaqip-runtime`، ثم مراقبة `/api/lanes` و`/api/pricing/accuracy`.
 2. جعل `awards_harvest` يسجل `cooldown` في checkpoint/metadata أيضًا إذا احتجنا تقارير تفصيلية لاحقًا.
-3. محليًا، تأكد أن خدمة `pricing-seed` تعمل عبر `docker compose ps pricing-seed` وأن `/api/lanes` تعرض `pricing.seed` بحالة healthy؛ وفي Modal راقب lane `pricing_seed` وتأكد أن active pursuits الجديدة تحصل على baseline simulation خلال 6 ساعات.
+3. محليًا، تأكد أن خدمة `pricing-seed` تعمل عبر `docker compose ps pricing-seed` وأن `/api/lanes` تعرض `pricing.seed` بحالة healthy. إذا ظهر أي lane بحالة `stalled` فافحص الحاوية/العملية المقابلة قبل تشغيل نسخة ثانية.
 4. أصلح صلاحية Netlify وأعد نشر export الأخير حتى تظهر `seed-baselines` وpricing ladder في الرابط العام.
 5. رفع corpus الترسيات والعروض تدريجيًا بدون ضغط على Etimad، مع إعطاء الأولوية للأنشطة التجارية ذات الطلب الأعلى.
 
