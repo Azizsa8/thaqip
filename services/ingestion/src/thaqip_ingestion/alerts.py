@@ -134,7 +134,11 @@ async def handle(pool: asyncpg.Pool, sender: Sender, fields: dict) -> int:
         )
         if row is None:  # already notified for this event (redelivery)
             continue
-        status, error = await sender.send(p["channel"], p["target"], title, body)
+        digest_interval = p.get("digest_interval") or "instant"
+        if digest_interval == "instant":
+            status, error = await sender.send(p["channel"], p["target"], title, body)
+        else:
+            status, error = "pending", f"queued for {digest_interval} digest"
         await pool.execute(
             """UPDATE notifications SET status=$2, error=$3,
                    sent_at = CASE WHEN $2='sent' THEN now() END WHERE id=$1""",

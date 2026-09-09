@@ -113,3 +113,4 @@ modal deploy deploy/modal/modal_app.py
 - تمت إضافة دليل لكل صف في مصفوفة الامتثال: حقل `evidence_ref`، حفظ من واجهة غرفة العمليات، وتضمينه في تصدير CSV العربي.
 - تمت إضافة drill-down لبنود BOQ: endpoint باسم `/api/boq-items/{id}/similar` وزر “مشابه” داخل جدول الكميات لعرض البنود التاريخية الأقرب.
 - تمت إضافة تحكم تسليم لكل ملف تنبيه: `digest_interval`، وتحديث `PATCH /api/profiles/{id}` لتعديل القناة والمصادر وتكرار الملخص من واجهة التنبيهات.
+- تم ربط `digest_interval` بمحرك التنبيهات فعليًا: الملفات غير الفورية تسجل التنبيهات كـ pending، و`thaqip_ingestion.digest --interval hourly|daily` يرسل الملخص المناسب ويعلّم العناصر كمرسلة.

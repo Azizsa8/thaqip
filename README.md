@@ -49,6 +49,7 @@ uv run pytest                                          # fixture-based tests
 - [x] Activity price curve — `/api/tenders/{id}/price-curve` powers a drawer chart that toggles between historical awards and offer medians for the tender activity
 - [x] Alert history drill-down — notifications API and Alerts tab filter by profile and keyword
 - [x] Alert profile delivery controls — `/api/profiles/{id}` PATCH updates channel, source filters, and per-profile digest cadence from the Alerts UI
+- [x] Digest-aware alert delivery — non-instant profiles queue event notifications and `thaqip_ingestion.digest --interval hourly|daily` sends the matching rollup without duplicate repeats
 - [x] Agency pipeline drill-down — agency profiles switch between newest tenders and upcoming deadlines
 - [x] D4 capture-rate audit harness — automated sampling vs live Etimad listing verifying >= 99% capture SLO (`audit.py`)
 
