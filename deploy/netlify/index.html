@@ -10,9 +10,9 @@
 tailwind.config = {
   theme: { extend: {
     colors: {
-      paper:  '#F6F3EC', ink: '#16211D', mut: '#68766F', line: '#E2DCD0',
-      card:   '#FFFDF8', deep: '#0B6B50', deepd: '#084F3C', tint: '#E6F1EA',
-      bronze: '#A66A12', bronzet:'#F6E9D1', won: '#108A5F', lost: '#B85B16',
+      paper:  '#F5F1E8', ink: '#101A17', mut: '#4F5F57', line: '#D8D0C1',
+      card:   '#FFFEFA', deep: '#075E46', deepd: '#064836', tint: '#DDECE4',
+      bronze: '#8F5608', bronzet:'#F4E4C5', won: '#087B55', lost: '#A84D10',
       danger: '#A84032', dangert:'#F9E7E2', teal:'#24798A', midnight:'#10251F',
     },
     fontFamily: {
@@ -28,12 +28,15 @@ tailwind.config = {
 </script>
 <style>
   :root{color-scheme:light;--safe-bottom:env(safe-area-inset-bottom,0px)}
-  html{background:radial-gradient(circle at 18% 8%,rgba(36,121,138,.10),transparent 34%),radial-gradient(circle at 88% 2%,rgba(166,106,18,.12),transparent 28%),#F6F3EC;scroll-behavior:smooth}
+  html{background:radial-gradient(circle at 18% 8%,rgba(36,121,138,.10),transparent 34%),radial-gradient(circle at 88% 2%,rgba(166,106,18,.12),transparent 28%),#F5F1E8;scroll-behavior:smooth}
   body{background:transparent;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   .num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
   .fade-up{opacity:0;transform:translateY(12px);animation:fu .55s cubic-bezier(.2,.8,.2,1) forwards}
   @keyframes fu{to{opacity:1;transform:none}}
-  .soft-card{background:linear-gradient(180deg,rgba(255,253,248,.94),rgba(255,253,248,.84));box-shadow:0 1px 2px rgba(16,37,31,.04),0 16px 42px rgba(16,37,31,.07);backdrop-filter:blur(16px)}
+  .soft-card{background:linear-gradient(180deg,rgba(255,254,250,.98),rgba(255,254,250,.92));box-shadow:0 1px 2px rgba(16,37,31,.05),0 16px 42px rgba(16,37,31,.08);backdrop-filter:blur(16px)}
+  .text-mut{color:#4F5F57!important}.text-deep{color:#075E46!important}.bg-tint{background-color:#DDECE4!important}.border-line{border-color:#D8D0C1!important}
+  .theme-dark,.theme-dark.bg-paper{background:#0D1714!important;color:#F4EFE6}.theme-dark .bg-paper{background-color:#0D1714!important}.theme-dark .bg-card,.theme-dark .soft-card{background:linear-gradient(180deg,rgba(20,34,29,.96),rgba(15,27,23,.94))!important}.theme-dark .text-ink{color:#F4EFE6!important}.theme-dark .text-mut{color:#AEBBB3!important}.theme-dark .border-line{border-color:#2A3B34!important}.theme-dark .bg-tint{background-color:#17382D!important}.theme-dark input,.theme-dark select{background:#13231E!important;color:#F4EFE6!important}
+  .density-compact #view-dash{max-width:1540px;margin-inline:auto}.density-compact #chartMonthly{height:15rem}.density-compact .dashboard-chart-card{align-self:start}
   .tap-card{touch-action:manipulation;transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s ease,background .22s ease,border-color .22s ease}
   .tap-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(16,37,31,.08),0 22px 52px rgba(16,37,31,.12)}
   .tap-card:active{transform:translateY(0) scale(.985)}
@@ -52,7 +55,7 @@ tailwind.config = {
   #tip{pointer-events:none;transition:opacity .12s}
 </style>
 </head>
-<body class="bg-paper text-ink font-sans text-[14px] leading-relaxed min-h-screen mobile-shell lg:pb-0">
+<body data-demo="1" class="bg-paper text-ink font-sans text-[14px] leading-relaxed min-h-screen mobile-shell lg:pb-0">
 
 <div class="flex min-h-screen">
 
@@ -125,9 +128,14 @@ tailwind.config = {
         <span id="freshChip" class="hidden sm:inline-flex items-center gap-2 text-[12px] text-deep bg-tint rounded-full px-3 py-1">
           <span class="w-1.5 h-1.5 rounded-full bg-deep animate-pulse"></span><span id="freshTxt">…</span></span>
         <div class="ms-auto flex items-center gap-2">
+          <div class="hidden md:flex items-center gap-1 bg-card border border-line rounded-xl p-1 shadow-card">
+            <button id="themeToggle" class="focus-ring rounded-lg px-2.5 py-1.5 text-[12px] text-deep hover:bg-tint transition">ثيم</button>
+            <button id="langToggle" class="focus-ring rounded-lg px-2.5 py-1.5 text-[12px] text-deep hover:bg-tint transition">EN</button>
+          </div>
           <input id="q" type="search" placeholder="ابحث في المنافسات…"
             class="w-40 xs:w-44 sm:w-64 bg-card border border-line rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-deep/40">
           <button id="goSearch" class="bg-deep hover:bg-deepd text-white rounded-xl px-4 py-2.5 text-[13px] font-medium transition shadow-card">بحث</button>
+          <button id="themeToggleMobile" class="md:hidden focus-ring bg-card border border-line rounded-xl px-3 py-2.5 text-[12px] text-deep shadow-card">◐</button>
         </div>
       </div>
     </header>
@@ -138,8 +146,8 @@ tailwind.config = {
 
       <div id="commandMetrics" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4"></div>
 
-      <div class="grid xl:grid-cols-3 gap-4 lg:gap-5">
-        <div class="xl:col-span-2 bg-card border border-line rounded-2xl shadow-card p-6 fade-up" style="animation-delay:.05s">
+      <div class="grid xl:grid-cols-3 gap-4 lg:gap-5 items-start">
+        <div class="dashboard-chart-card xl:col-span-2 soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up" style="animation-delay:.05s">
           <div class="flex items-baseline justify-between mb-1">
             <h2 class="font-semibold text-[15px]">العروض حسب شهر الإغلاق</h2>
             <div class="flex items-center gap-4 text-[12px] text-mut">
@@ -148,10 +156,10 @@ tailwind.config = {
             </div>
           </div>
           <p class="text-[12px] text-mut mb-4">اضغط على أي شهر لعرض المنافسات المُرسّاة في جدول الاستكشاف.</p>
-          <div id="chartMonthly" class="h-56"></div>
+          <div id="chartMonthly" class="h-56 lg:h-60 max-h-[260px]"></div>
         </div>
 
-        <div class="bg-card border border-line rounded-2xl shadow-card p-6 fade-up" style="animation-delay:.1s">
+        <div class="soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up self-start" style="animation-delay:.1s">
           <h2 class="font-semibold text-[15px] mb-1">نبض المصدر</h2>
           <p class="text-[12px] text-mut mb-5">قياسات حيّة من خط الاستيعاب</p>
           <div class="space-y-4" id="pulse"></div>
@@ -399,12 +407,30 @@ tailwind.config = {
 
 <div id="tip" class="fixed z-50 opacity-0 bg-ink text-paper text-[12px] rounded-lg px-3 py-1.5 shadow-lift num"></div>
 
+<script src="demo-shim.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const API = '';
 let offset = 0; const LIMIT = 25;
 
 const nf = new Intl.NumberFormat('en-US');
+const UI = {
+  ar:{dir:'rtl', search:'بحث', searchPh:'ابحث في المنافسات…', theme:'ثيم', lang:'EN', views:{dash:'لوحة القيادة',disc:'استكشاف المنافسات',war:'غرفة العمليات',alerts:'التنبيهات',intel:'ذكاء المنافسين',settings:'الإعدادات'}, nav:['لوحة القيادة','استكشاف المنافسات','غرفة العمليات','التنبيهات','ذكاء المنافسين','الإعدادات']},
+  en:{dir:'ltr', search:'Search', searchPh:'Search tenders…', theme:'Theme', lang:'AR', views:{dash:'Command Dashboard',disc:'Tender Discovery',war:'War Room',alerts:'Alerts',intel:'Competitor Intel',settings:'Settings'}, nav:['Dashboard','Discovery','War Room','Alerts','Competitors','Settings']}
+};
+let uiLang = localStorage.getItem('thaqip.lang') || 'ar';
+function applyChrome(){
+  const cfg = UI[uiLang]; document.documentElement.lang = uiLang; document.documentElement.dir = cfg.dir;
+  $('#goSearch').textContent = cfg.search; $('#q').placeholder = cfg.searchPh;
+  ['themeToggle'].forEach(id=>{ const el=$('#'+id); if(el) el.textContent = cfg.theme; });
+  ['langToggle'].forEach(id=>{ const el=$('#'+id); if(el) el.textContent = cfg.lang; });
+  document.querySelectorAll('#nav .navbtn span:last-child').forEach((el,i)=>{ if(cfg.nav[i]) el.textContent=cfg.nav[i]; });
+  document.querySelectorAll('#navMobile .navbtn span:last-child').forEach((el,i)=>{ const short = uiLang==='ar' ? ['القيادة','بحث','عمليات','تنبيه','منافسين','ضبط'] : ['Home','Search','Ops','Alerts','Intel','Setup']; if(short[i]) el.textContent=short[i]; });
+  const active = [...document.querySelectorAll('.navbtn')].find(b=>b.classList.contains('font-semibold'))?.dataset.view || 'dash';
+  $('#viewTitle').textContent = cfg.views[active];
+}
+function toggleTheme(){ document.body.classList.toggle('theme-dark'); localStorage.setItem('thaqip.theme', document.body.classList.contains('theme-dark')?'dark':'light'); }
+function toggleLang(){ uiLang = uiLang==='ar'?'en':'ar'; localStorage.setItem('thaqip.lang', uiLang); applyChrome(); }
 const money = v => v == null ? '—' : nf.format(Math.round(Number(v)));
 const fmtD = v => v ? new Date(v).toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'short',year:'numeric'}) : '—';
 function latencyTxt(pub, det){
@@ -426,7 +452,7 @@ function show(view){
     const on = b.dataset.view === view;
     b.classList.toggle('bg-tint', on); b.classList.toggle('text-deep', on); b.classList.toggle('font-semibold', on);
   });
-  $('#viewTitle').textContent = {dash:'لوحة القيادة', disc:'استكشاف المنافسات', war:'غرفة العمليات', alerts:'التنبيهات', intel:'ذكاء المنافسين', settings:'الإعدادات'}[view];
+  $('#viewTitle').textContent = UI[uiLang].views[view];
 }
 document.querySelectorAll('.navbtn').forEach(b => b.onclick = () => {
   show(b.dataset.view);
@@ -1767,6 +1793,11 @@ $('#overlay').onclick = closeDrawer;
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeDrawer(); });
 
 /* ---------- boot ---------- */
+if(localStorage.getItem('thaqip.theme')==='dark') document.body.classList.add('theme-dark');
+applyChrome();
+$('#themeToggle')?.addEventListener('click', toggleTheme);
+$('#themeToggleMobile')?.addEventListener('click', toggleTheme);
+$('#langToggle')?.addEventListener('click', toggleLang);
 show('dash'); loadDash(); loadFilters();
 setInterval(loadDash, 90_000);
 </script>

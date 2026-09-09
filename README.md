@@ -47,6 +47,7 @@ uv run pytest                                          # fixture-based tests
 - [x] Competitor price intelligence — `/api/tenders/{id}/competitor-prices` ranks rivals from harvested same-activity offers, exposes median/min/max/latest prices, and gives a price-to-beat median for the tender drawer.
 - [x] Interactive executive dashboard — source mix, urgency pressure, market heatmaps, and award-value bands are clickable and drive users into filtered tender tables.
 - [x] Mobile-first executive UX — phone users get a thumb-friendly bottom nav, one-column intelligence cards, safer drawer sizing, softer glass cards, tap animations, and responsive filter/table flows.
+- [x] Production UI controls — dashboard now has higher-contrast tokens, real dark theme toggle, Arabic/English chrome switch, constrained desktop chart height, and verified mobile navigation coverage.
 - [x] Tender award export — tender drawer exports offers/award details as Arabic Excel-friendly CSV
 - [x] Compliance evidence capture — War Room matrix rows now persist an evidence note/link and include it in the Arabic CSV export
 - [x] Activity price curve — `/api/tenders/{id}/price-curve` powers a drawer chart that toggles between historical awards and offer medians for the tender activity
