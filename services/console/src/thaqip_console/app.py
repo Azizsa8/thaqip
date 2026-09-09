@@ -361,17 +361,32 @@ async def pursuit_detail(pid: int):
 
 class ItemPatch(BaseModel):
     status: str  # missing | in_progress | met | n_a
+    evidence_ref: str | None = Field(default=None, max_length=500)
 
 
 @app.patch("/api/compliance/{item_id}")
 async def patch_item(item_id: int, body: ItemPatch):
     if body.status not in ("missing", "in_progress", "met", "n_a"):
         raise HTTPException(422)
-    n = await app.state.pool.execute(
-        "UPDATE compliance_items SET status=$2 WHERE id=$1", item_id, body.status)
+    evidence_ref = body.evidence_ref.strip() if body.evidence_ref is not None else None
+    if "evidence_ref" in body.model_fields_set:
+        n = await app.state.pool.execute(
+            """UPDATE compliance_items
+               SET status=$2, evidence_ref=$3
+               WHERE id=$1""",
+            item_id,
+            body.status,
+            evidence_ref,
+        )
+    else:
+        n = await app.state.pool.execute(
+            "UPDATE compliance_items SET status=$2 WHERE id=$1",
+            item_id,
+            body.status,
+        )
     if n.endswith("0"):
         raise HTTPException(404)
-    return {"ok": True}
+    return {"ok": True, "evidence_ref": evidence_ref}
 
 
 class StagePatch(BaseModel):
@@ -1658,7 +1673,7 @@ async def export_compliance(pid: int):
         raise HTTPException(404, "pursuit not found")
 
     items = await pool.fetch(
-        """SELECT sort_order, requirement, category, source_ref, status, origin, confidence
+        """SELECT sort_order, requirement, category, source_ref, evidence_ref, status, origin, confidence
            FROM compliance_items WHERE pursuit_id=$1
            ORDER BY sort_order, id""", pid)
 
@@ -1666,13 +1681,14 @@ async def export_compliance(pid: int):
     # Write UTF-8 BOM so Excel opens Arabic correctly
     stream.write("\ufeff")
     writer = csv.writer(stream)
-    writer.writerow(["م", "المتطلب", "التصنيف", "المرجع النظامي / الفني", "الحالة", "المصدر", "نسبة الثقة"])
+    writer.writerow(["م", "المتطلب", "التصنيف", "المرجع النظامي / الفني", "دليل الامتثال", "الحالة", "المصدر", "نسبة الثقة"])
     for i, it in enumerate(items, 1):
         writer.writerow([
             i,
             it["requirement"],
             it["category"],
             it["source_ref"],
+            it["evidence_ref"] or "",
             it["status"],
             it["origin"],
             f"{it['confidence'] * 100:.0f}%" if it["confidence"] is not None else "",

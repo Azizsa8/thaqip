@@ -219,7 +219,7 @@
         last_offer_date: t.last_offer_date, remaining_s: t.remaining_s, items: 9, items_done: 0 };
       db.pursuits.unshift(pur);
       db.pursuit_details[String(id)] = { ...pur, compliance: DEMO_BASELINE.map((r, i) => ({
-        id: id * 100 + i, requirement: r[0], category: r[1], source_ref: r[2],
+        id: id * 100 + i, requirement: r[0], category: r[1], source_ref: r[2], evidence_ref: '',
         status: 'missing', origin: 'rule', confidence: 1 })) };
       return json({ id, created: true });
     }
@@ -282,7 +282,7 @@
     if ((m = p.match(/^\/api\/compliance\/(\d+)$/))) {
       for (const d of Object.values(db.pursuit_details)) {
         const it = (d.compliance || []).find(c => c.id === +m[1]);
-        if (it) it.status = body.status;
+        if (it) { it.status = body.status; if (Object.prototype.hasOwnProperty.call(body, 'evidence_ref')) it.evidence_ref = body.evidence_ref || ''; }
       }
       for (const pur of db.pursuits) {
         const d = db.pursuit_details[String(pur.id)];

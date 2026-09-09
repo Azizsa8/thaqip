@@ -843,6 +843,7 @@ async function openPursuit(id){
             <th class="text-right font-medium px-3 py-2">المتطلب</th>
             <th class="text-right font-medium px-2 py-2">الفئة</th>
             <th class="text-right font-medium px-2 py-2">المصدر</th>
+            <th class="text-right font-medium px-2 py-2">الدليل</th>
             <th class="text-center font-medium px-2 py-2">الحالة</th></tr></thead>
           <tbody>${p.compliance.map(c=>`
             <tr class="border-t border-line/70">
@@ -850,6 +851,10 @@ async function openPursuit(id){
                 ${c.origin==='llm'?`<span class="text-[9.5px] text-bronze">AI ${Math.round(c.confidence*100)}%</span>`:''}</td>
               <td class="px-2 py-2.5"><span class="text-[10.5px] text-mut">${CAT_AR[c.category]??c.category}</span></td>
               <td class="px-2 py-2.5 text-[10.5px] text-mut max-w-[140px] leading-snug">${c.source_ref}</td>
+              <td class="px-2 py-2.5 min-w-[170px]">
+                <input value="${c.evidence_ref || ''}" placeholder="رابط/ملف/ملاحظة" onkeydown="if(event.key==='Enter') saveEvidence(${c.id}, this.value, '${c.status}')" onblur="saveEvidence(${c.id}, this.value, '${c.status}')"
+                  class="w-full bg-paper border border-line rounded-lg px-2.5 py-1.5 text-[11px] focus:outline-none focus:ring-2 focus:ring-deep/25">
+              </td>
               <td class="px-2 py-2.5 text-center">
                 <button onclick="cycleItem(${c.id},'${c.status}')"
                   class="text-[10.5px] font-medium rounded-full px-2.5 py-1 ${ST_CLS[c.status]}">${ST_AR[c.status]}</button></td>
@@ -1006,6 +1011,10 @@ async function cycleItem(id, cur){
   await fetch(API+'/api/compliance/'+id, {method:'PATCH', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({status: ST_NEXT[cur]})});
   openPursuit(curPursuit);
+}
+async function saveEvidence(id, evidence, status){
+  await fetch(API+'/api/compliance/'+id, {method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({status, evidence_ref: evidence || null})});
 }
 async function addToWar(tenderId){
   const r = await (await fetch(API+'/api/pursuits', {method:'POST', headers:{'Content-Type':'application/json'},
