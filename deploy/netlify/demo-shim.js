@@ -261,7 +261,14 @@
       db.profiles = db.profiles.filter(x => x.id !== +m[1]);
       return json({ deleted: true });
     }
-    if (p === '/api/notifications') return json(db.notifications);
+    if (p === '/api/notifications') {
+      let items = db.notifications.slice();
+      const profileId = u.searchParams.get('profile_id');
+      const q = (u.searchParams.get('q') || '').trim();
+      if (profileId) items = items.filter(n => String(n.profile_id || '') === profileId || (n.profile_name && db.profiles.find(p => String(p.id) === profileId && p.name === n.profile_name)));
+      if (q) items = items.filter(n => [n.title, n.body, n.profile_name].some(v => String(v || '').includes(q)));
+      return json(items.slice(0, Number(u.searchParams.get('limit') || 60)));
+    }
 
     return json({ detail: 'not in demo snapshot' }, 404);
   };

@@ -242,9 +242,16 @@ tailwind.config = {
           </div>
         </div>
         <div class="xl:col-span-3 bg-card border border-line rounded-2xl shadow-card overflow-hidden">
-          <div class="flex items-center justify-between px-6 pt-5 pb-3">
-            <h2 class="font-semibold text-[15px]">آخر التنبيهات المرسلة</h2>
+          <div class="flex items-center justify-between px-6 pt-5 pb-3 gap-3">
+            <div>
+              <h2 class="font-semibold text-[15px]">آخر التنبيهات المرسلة</h2>
+              <div id="notifFilterLabel" class="text-[11px] text-mut mt-0.5">كل ملفات التنبيه</div>
+            </div>
             <span id="notifCount" class="text-[12px] text-mut"></span>
+          </div>
+          <div class="px-6 pb-3 flex items-center gap-2">
+            <input id="notifSearch" type="search" placeholder="فلتر بالكلمة أو اسم الملف…" class="flex-1 bg-paper border border-line rounded-lg px-3.5 py-2 text-[12.5px] focus:outline-none focus:ring-2 focus:ring-deep/30">
+            <button onclick="clearNotificationFilter()" class="border border-line rounded-lg px-3 py-2 text-[12px] hover:bg-tint">الكل</button>
           </div>
           <div id="notifFeed" class="divide-y divide-line max-h-[70vh] overflow-y-auto"></div>
         </div>
@@ -1149,11 +1156,17 @@ async function saveSettings(){
 
 /* ---------- alerts ---------- */
 const CH_LABEL = {log:'سجل', telegram:'تيليجرام', email:'بريد'};
+let notifProfile = null, notifProfileName = '', alertProfiles = [];
 async function loadAlerts(){
+  const params = new URLSearchParams({limit:'60'});
+  if(notifProfile) params.set('profile_id', notifProfile);
+  const q = $('#notifSearch')?.value?.trim();
+  if(q) params.set('q', q);
   const [profiles, notifs] = await Promise.all([
     (await fetch(API+'/api/profiles')).json(),
-    (await fetch(API+'/api/notifications?limit=60')).json(),
+    (await fetch(API+'/api/notifications?'+params)).json(),
   ]);
+  alertProfiles = profiles;
   $('#profilesList').innerHTML = profiles.map(p => `
     <div class="px-6 py-3.5 border-t border-line flex items-start gap-3 ${p.active?'':'opacity-50'}">
       <div class="flex-1 min-w-0">
@@ -1163,6 +1176,7 @@ async function loadAlerts(){
           ${p.keywords.length?'كلمات: '+p.keywords.join('، ')+' · ':''}
           مصادر: ${p.sources.map(s=>s==='etimad'?'اعتماد':'فرصة').join('، ')} ·
           <span class="num">${p.sent_count}</span> تنبيه</div>
+        <button onclick="showProfileNotifications(${p.id})" class="mt-2 text-[10.5px] text-deep font-semibold hover:underline">عرض تنبيهات هذا الملف</button>
       </div>
       <button onclick="toggleProfile(${p.id})" title="تفعيل/إيقاف"
         class="text-[11.5px] border border-line rounded-lg px-2.5 py-1 hover:bg-tint">${p.active?'إيقاف':'تفعيل'}</button>
@@ -1170,6 +1184,7 @@ async function loadAlerts(){
         class="text-[11.5px] border border-line rounded-lg px-2.5 py-1 hover:bg-dangert text-danger">حذف</button>
     </div>`).join('') || '<div class="px-6 py-8 text-center text-mut border-t border-line">لا ملفات بعد — أنشئ أول ملف تنبيه</div>';
   $('#notifCount').textContent = notifs.length ? `آخر ${notifs.length}` : '';
+  $('#notifFilterLabel').textContent = notifProfile ? `فلتر: ${notifProfileName}` : 'كل ملفات التنبيه';
   $('#notifFeed').innerHTML = notifs.map(n => `
     <div class="px-6 py-3 hover:bg-tint/40 cursor-pointer" ${n.tender_id?`onclick="openDetail(${n.tender_id})"`:''}>
       <div class="flex items-center gap-2 text-[11px] text-mut mb-1">
@@ -1204,6 +1219,15 @@ $('#pCreate').onclick = async () => {
 };
 async function toggleProfile(id){ await fetch(API+`/api/profiles/${id}/toggle`, {method:'PATCH'}); loadAlerts(); }
 async function delProfile(id){ await fetch(API+`/api/profiles/${id}`, {method:'DELETE'}); loadAlerts(); }
+function showProfileNotifications(id){ const p = alertProfiles.find(x => x.id === id); notifProfile = id; notifProfileName = p ? p.name : '#'+id; loadAlerts(); }
+function clearNotificationFilter(){ notifProfile = null; notifProfileName = ''; if($('#notifSearch')) $('#notifSearch').value = ''; loadAlerts(); }
+let notifSearchTimer = null;
+document.addEventListener('input', e => {
+  if(e.target && e.target.id === 'notifSearch'){
+    clearTimeout(notifSearchTimer);
+    notifSearchTimer = setTimeout(loadAlerts, 250);
+  }
+});
 
 /* ---------- war-room drawer ---------- */
 async function openDetail(id){

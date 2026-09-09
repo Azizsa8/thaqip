@@ -41,6 +41,7 @@ uv run pytest                                          # fixture-based tests
 - [x] Settings v1 — `/api/settings` plus dashboard tab for gated-feature readiness, alert cadence, retention, and calculator defaults used by War Room pricing simulations
 - [x] Calculator modes v1 — War Room price simulator now returns and renders 8 pricing modes with ready/needs-data states
 - [x] Tender award export — tender drawer exports offers/award details as Arabic Excel-friendly CSV
+- [x] Alert history drill-down — notifications API and Alerts tab filter by profile and keyword
 - [x] D4 capture-rate audit harness — automated sampling vs live Etimad listing verifying >= 99% capture SLO (`audit.py`)
 
 Key source facts (probed 2026-09-02): listing API is public JSON (~288k tenders); detail/awarding routes need TSPD cookies (one browser bootstrap per session); components take `tenderIdStr` (raw encrypted id); awarding returns 302→/Home/Error for non-awarded tenders and 429s under fast polling — default pacing is 3s between component fetches.

@@ -1161,13 +1161,34 @@ async def delete_profile(pid: int):
 
 
 @app.get("/api/notifications")
-async def notifications(limit: int = Query(50, le=200)):
+async def notifications(
+    limit: int = Query(50, le=200),
+    profile_id: int | None = None,
+    q: str | None = Query(None, max_length=120),
+):
+    where: list[str] = []
+    args: list[object] = []
+
+    def arg(value: object) -> str:
+        args.append(value)
+        return f"${len(args)}"
+
+    if profile_id is not None:
+        where.append(f"n.profile_id = {arg(profile_id)}")
+    if q:
+        needle = f"%{q.strip()}%"
+        where.append(
+            f"(n.title ILIKE {arg(needle)} OR n.body ILIKE {arg(needle)} OR p.name ILIKE {arg(needle)})"
+        )
+    sql_where = "WHERE " + " AND ".join(where) if where else ""
+    args.append(limit)
     rows = await app.state.pool.fetch(
-        """SELECT n.id, n.event_type, n.channel, n.status, n.title, n.body, n.created_at,
-                  n.tender_id, p.name AS profile_name
+        f"""SELECT n.id, n.event_type, n.channel, n.status, n.title, n.body, n.created_at,
+                  n.tender_id, p.name AS profile_name, p.id AS profile_id
            FROM notifications n JOIN alert_profiles p ON p.id = n.profile_id
-           ORDER BY n.id DESC LIMIT $1""",
-        limit,
+           {sql_where}
+           ORDER BY n.id DESC LIMIT ${len(args)}""",
+        *args,
     )
     return [dict(r) for r in rows]
 
