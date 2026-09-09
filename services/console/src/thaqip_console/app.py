@@ -1276,13 +1276,26 @@ async def agency_detail(aid: int):
 
 class ProfileIn(BaseModel):
     name: str = Field(min_length=1, max_length=120)
-    channel: str = "log"                       # log | telegram | email
+    channel: str = Field(default="log", pattern="^(log|telegram|email)$")
     target: str = "dev-console"
     keywords: list[str] = []
     activity_ids: list[int] = []
     agency_ids: list[int] = []
     sources: list[str] = ["etimad", "forsah"]
     event_types: list[str] = ["tender.created", "tender.extended", "tender.awarded"]
+    digest_interval: str = Field(default="instant", pattern="^(instant|hourly|daily)$")
+
+
+class ProfilePatch(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    channel: str | None = Field(default=None, pattern="^(log|telegram|email)$")
+    target: str | None = None
+    keywords: list[str] | None = None
+    activity_ids: list[int] | None = None
+    agency_ids: list[int] | None = None
+    sources: list[str] | None = None
+    event_types: list[str] | None = None
+    digest_interval: str | None = Field(default=None, pattern="^(instant|hourly|daily)$")
 
 
 @app.get("/api/profiles")
@@ -1300,12 +1313,46 @@ async def profiles():
 async def create_profile(p: ProfileIn):
     row = await app.state.pool.fetchrow(
         """INSERT INTO alert_profiles (name, channel, target, keywords, activity_ids,
-                                       agency_ids, sources, event_types)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id""",
+                                       agency_ids, sources, event_types, digest_interval)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id""",
         p.name, p.channel, p.target, p.keywords, p.activity_ids,
-        p.agency_ids, p.sources, p.event_types,
+        p.agency_ids, p.sources, p.event_types, p.digest_interval,
     )
     return {"id": row["id"]}
+
+
+@app.patch("/api/profiles/{pid}")
+async def update_profile(pid: int, patch: ProfilePatch):
+    current = await app.state.pool.fetchrow("SELECT * FROM alert_profiles WHERE id=$1", pid)
+    if current is None:
+        raise HTTPException(404)
+    data = dict(current)
+    update = patch.model_dump(exclude_unset=True)
+    for key, value in update.items():
+        if value is not None:
+            data[key] = value.strip() if isinstance(value, str) else value
+    if not data["sources"] or any(src not in ("etimad", "forsah") for src in data["sources"]):
+        raise HTTPException(422, "sources must include etimad and/or forsah")
+    if not data["event_types"]:
+        raise HTTPException(422, "event_types must not be empty")
+    row = await app.state.pool.fetchrow(
+        """UPDATE alert_profiles
+           SET name=$2, channel=$3, target=$4, keywords=$5, activity_ids=$6,
+               agency_ids=$7, sources=$8, event_types=$9, digest_interval=$10
+           WHERE id=$1
+           RETURNING *""",
+        pid,
+        data["name"],
+        data["channel"],
+        data["target"],
+        data["keywords"],
+        data["activity_ids"],
+        data["agency_ids"],
+        data["sources"],
+        data["event_types"],
+        data["digest_interval"],
+    )
+    return dict(row)
 
 
 @app.patch("/api/profiles/{pid}/toggle")

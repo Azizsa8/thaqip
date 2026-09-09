@@ -225,6 +225,11 @@ tailwind.config = {
                 <input id="pTarget" placeholder="الوجهة (chat id / بريد)" value="dev-console"
                   class="flex-1 bg-paper border border-line rounded-lg px-3.5 py-2 text-[13px]">
               </div>
+              <select id="pDigest" class="w-full bg-paper border border-line rounded-lg px-3 py-2 text-[13px]">
+                <option value="instant">فوري</option>
+                <option value="hourly">ملخص كل ساعة</option>
+                <option value="daily">ملخص يومي</option>
+              </select>
               <div class="flex flex-wrap gap-3 text-[12.5px] text-mut">
                 <label class="inline-flex items-center gap-1.5"><input type="checkbox" id="pEvNew" checked class="accent-deep">جديدة</label>
                 <label class="inline-flex items-center gap-1.5"><input type="checkbox" id="pEvExt" checked class="accent-deep">تمديد</label>
@@ -1296,6 +1301,7 @@ async function saveSettings(){
 
 /* ---------- alerts ---------- */
 const CH_LABEL = {log:'سجل', telegram:'تيليجرام', email:'بريد'};
+const DIGEST_LABEL = {instant:'فوري', hourly:'كل ساعة', daily:'يومي'};
 let notifProfile = null, notifProfileName = '', alertProfiles = [];
 async function loadAlerts(){
   const params = new URLSearchParams({limit:'60'});
@@ -1308,20 +1314,33 @@ async function loadAlerts(){
   ]);
   alertProfiles = profiles;
   $('#profilesList').innerHTML = profiles.map(p => `
-    <div class="px-6 py-3.5 border-t border-line flex items-start gap-3 ${p.active?'':'opacity-50'}">
-      <div class="flex-1 min-w-0">
-        <div class="font-medium text-[13.5px]">${p.name}
-          <span class="text-[10.5px] font-normal bg-tint text-deep rounded-full px-2 py-0.5 ms-1">${CH_LABEL[p.channel]??p.channel}</span></div>
-        <div class="text-[11.5px] text-mut mt-0.5 truncate">
-          ${p.keywords.length?'كلمات: '+p.keywords.join('، ')+' · ':''}
-          مصادر: ${p.sources.map(s=>s==='etimad'?'اعتماد':'فرصة').join('، ')} ·
-          <span class="num">${p.sent_count}</span> تنبيه</div>
-        <button onclick="showProfileNotifications(${p.id})" class="mt-2 text-[10.5px] text-deep font-semibold hover:underline">عرض تنبيهات هذا الملف</button>
+    <div class="px-6 py-3.5 border-t border-line ${p.active?'':'opacity-50'}">
+      <div class="flex items-start gap-3">
+        <div class="flex-1 min-w-0">
+          <div class="font-medium text-[13.5px]">${p.name}
+            <span class="text-[10.5px] font-normal bg-tint text-deep rounded-full px-2 py-0.5 ms-1">${CH_LABEL[p.channel]??p.channel}</span>
+            <span class="text-[10.5px] font-normal bg-paper border border-line text-mut rounded-full px-2 py-0.5 ms-1">${DIGEST_LABEL[p.digest_interval || 'instant']}</span></div>
+          <div class="text-[11.5px] text-mut mt-0.5 truncate">
+            ${p.keywords.length?'كلمات: '+p.keywords.join('، ')+' · ':''}
+            مصادر: ${(p.sources||[]).map(s=>s==='etimad'?'اعتماد':'فرصة').join('، ')} ·
+            <span class="num">${p.sent_count}</span> تنبيه</div>
+          <div class="mt-2 flex flex-wrap items-center gap-1.5">
+            <button onclick="showProfileNotifications(${p.id})" class="text-[10.5px] text-deep font-semibold hover:underline">عرض التنبيهات</button>
+            <select onchange="patchProfile(${p.id},{channel:this.value})" class="bg-paper border border-line rounded-lg px-2 py-1 text-[10.5px]">
+              ${['log','telegram','email'].map(ch=>`<option value="${ch}" ${p.channel===ch?'selected':''}>${CH_LABEL[ch]}</option>`).join('')}
+            </select>
+            <select onchange="patchProfile(${p.id},{digest_interval:this.value})" class="bg-paper border border-line rounded-lg px-2 py-1 text-[10.5px]">
+              ${['instant','hourly','daily'].map(x=>`<option value="${x}" ${(p.digest_interval||'instant')===x?'selected':''}>${DIGEST_LABEL[x]}</option>`).join('')}
+            </select>
+            <label class="text-[10.5px] text-mut inline-flex items-center gap-1"><input type="checkbox" ${p.sources?.includes('etimad')?'checked':''} onchange="patchProfileSources(${p.id})" data-profile-src="${p.id}" value="etimad" class="accent-deep">اعتماد</label>
+            <label class="text-[10.5px] text-mut inline-flex items-center gap-1"><input type="checkbox" ${p.sources?.includes('forsah')?'checked':''} onchange="patchProfileSources(${p.id})" data-profile-src="${p.id}" value="forsah" class="accent-deep">فرصة</label>
+          </div>
+        </div>
+        <button onclick="toggleProfile(${p.id})" title="تفعيل/إيقاف"
+          class="text-[11.5px] border border-line rounded-lg px-2.5 py-1 hover:bg-tint">${p.active?'إيقاف':'تفعيل'}</button>
+        <button onclick="delProfile(${p.id})" title="حذف"
+          class="text-[11.5px] border border-line rounded-lg px-2.5 py-1 hover:bg-dangert text-danger">حذف</button>
       </div>
-      <button onclick="toggleProfile(${p.id})" title="تفعيل/إيقاف"
-        class="text-[11.5px] border border-line rounded-lg px-2.5 py-1 hover:bg-tint">${p.active?'إيقاف':'تفعيل'}</button>
-      <button onclick="delProfile(${p.id})" title="حذف"
-        class="text-[11.5px] border border-line rounded-lg px-2.5 py-1 hover:bg-dangert text-danger">حذف</button>
     </div>`).join('') || '<div class="px-6 py-8 text-center text-mut border-t border-line">لا ملفات بعد — أنشئ أول ملف تنبيه</div>';
   $('#notifCount').textContent = notifs.length ? `آخر ${notifs.length}` : '';
   $('#notifFilterLabel').textContent = notifProfile ? `فلتر: ${notifProfileName}` : 'كل ملفات التنبيه';
@@ -1351,12 +1370,19 @@ $('#pCreate').onclick = async () => {
     target: $('#pTarget').value.trim() || 'dev-console',
     keywords: $('#pKeywords').value.split(/[،,]/).map(s=>s.trim()).filter(Boolean),
     sources, event_types: events,
+    digest_interval: $('#pDigest').value || 'instant',
   };
   if(!body.name || !events.length || !sources.length) return;
   await fetch(API+'/api/profiles', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
   $('#pName').value = $('#pKeywords').value = '';
   loadAlerts();
 };
+async function patchProfile(id, patch){ await fetch(API+`/api/profiles/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(patch)}); loadAlerts(); }
+function patchProfileSources(id){
+  const sources = [...document.querySelectorAll(`[data-profile-src="${id}"]:checked`)].map(x=>x.value);
+  if(!sources.length) return loadAlerts();
+  patchProfile(id, {sources});
+}
 async function toggleProfile(id){ await fetch(API+`/api/profiles/${id}/toggle`, {method:'PATCH'}); loadAlerts(); }
 async function delProfile(id){ await fetch(API+`/api/profiles/${id}`, {method:'DELETE'}); loadAlerts(); }
 function showProfileNotifications(id){ const p = alertProfiles.find(x => x.id === id); notifProfile = id; notifProfileName = p ? p.name : '#'+id; loadAlerts(); }

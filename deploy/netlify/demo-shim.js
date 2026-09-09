@@ -301,11 +301,17 @@
       return json({ ok: true });
     }
 
-    if (p === '/api/profiles' && method === 'GET') return json(db.profiles);
+    if (p === '/api/profiles' && method === 'GET') return json((db.profiles || []).map(p => ({ digest_interval: 'instant', ...p })));
     if (p === '/api/profiles' && method === 'POST') {
-      const id = Math.max(0, ...db.profiles.map(x => x.id)) + 1;
-      db.profiles.unshift({ id, active: true, sent_count: 0, last_at: null, ...body });
+      const id = Math.max(0, ...(db.profiles || []).map(x => x.id)) + 1;
+      db.profiles.unshift({ id, active: true, sent_count: 0, last_at: null, digest_interval: 'instant', ...body });
       return json({ id });
+    }
+    if ((m = p.match(/^\/api\/profiles\/(\d+)$/)) && method === 'PATCH') {
+      const pr = (db.profiles || []).find(x => x.id === +m[1]);
+      if (!pr) return json({ detail: 'خارج نطاق نسخة العرض' }, 404);
+      Object.assign(pr, body || {});
+      return json({ digest_interval: 'instant', ...pr });
     }
     if ((m = p.match(/^\/api\/profiles\/(\d+)\/toggle$/))) {
       const pr = db.profiles.find(x => x.id === +m[1]);
