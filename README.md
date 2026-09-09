@@ -44,6 +44,7 @@ uv run pytest                                          # fixture-based tests
 - [x] Agency win heatmap — vendor profiles now expose `agency_matrix` and render a heatmap of wins, participation, and price gap by agency
 - [x] Calculator modes v1 — War Room price simulator now returns and renders 8 pricing modes with ready/needs-data states
 - [x] Tender award export — tender drawer exports offers/award details as Arabic Excel-friendly CSV
+- [x] Activity price curve — `/api/tenders/{id}/price-curve` powers a drawer chart that toggles between historical awards and offer medians for the tender activity
 - [x] Alert history drill-down — notifications API and Alerts tab filter by profile and keyword
 - [x] Agency pipeline drill-down — agency profiles switch between newest tenders and upcoming deadlines
 - [x] D4 capture-rate audit harness — automated sampling vs live Etimad listing verifying >= 99% capture SLO (`audit.py`)

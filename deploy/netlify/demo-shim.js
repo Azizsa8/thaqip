@@ -125,6 +125,15 @@
       return json({ total: items.length, items: items.slice(off, off + lim) });
     }
     let m;
+    if ((m = p.match(/^\/api\/tenders\/(\d+)\/price-curve$/))) {
+      const detail = (db.tender_details || {})[m[1]] || {};
+      const mode = u.searchParams.get('mode') || 'awards';
+      const awards = (detail.similar_awards || []).map(x => ({ tender_id: x.id, name: x.name, agency: x.agency, day: null, award_price: x.award_value, value: Number(x.award_value), samples: 1 })).filter(x => Number.isFinite(x.value));
+      const offers = (detail.offers || []).map((x, i) => ({ tender_id: detail.id, name: detail.name, agency: detail.agency, day: detail.published_at || null, median_price: x.offer_value, low_price: x.offer_value, value: Number(x.offer_value), samples: i + 1 })).filter(x => Number.isFinite(x.value));
+      const items = mode === 'offers' ? offers : awards;
+      const values = items.map(x => x.value);
+      return json({ activity_id: detail.activity_id || null, activity: detail.activity_name_raw || detail.activity || null, mode, count: items.length, min_value: values.length ? Math.min(...values) : null, max_value: values.length ? Math.max(...values) : null, items });
+    }
     if ((m = p.match(/^\/api\/tenders\/(\d+)\/export\/awards$/))) {
       const t = db.tender_details[m[1]];
       if (!t) return json({ detail: 'خارج نطاق نسخة العرض' }, 404);

@@ -1489,6 +1489,74 @@ async def tender_detail(tender_id: int):
     return out
 
 
+@app.get("/api/tenders/{tender_id}/price-curve")
+async def tender_price_curve(tender_id: int, mode: str = Query("awards", pattern="^(awards|offers)$")):
+    """Historical price curve for the tender activity, used by the drawer chart."""
+    pool: asyncpg.Pool = app.state.pool
+    t = await pool.fetchrow(
+        "SELECT id, activity_id, activity_name_raw FROM tenders WHERE id=$1",
+        tender_id,
+    )
+    if t is None:
+        raise HTTPException(404)
+    if mode == "offers":
+        rows = await pool.fetch(
+            """SELECT t2.id AS tender_id, left(t2.name, 70) AS name,
+                      coalesce(a.canonical_name, t2.agency_name_raw) AS agency,
+                      t2.published_at::date AS day,
+                      min(o.offer_value) FILTER (WHERE o.technical_pass) AS low_price,
+                      percentile_cont(0.5) WITHIN GROUP (ORDER BY o.offer_value)
+                        FILTER (WHERE o.offer_value IS NOT NULL) AS median_price,
+                      count(o.id) FILTER (WHERE o.offer_value IS NOT NULL) AS samples
+               FROM tenders t2
+               JOIN offers o ON o.tender_id=t2.id
+               LEFT JOIN agencies a ON a.id=t2.agency_id
+               WHERE t2.id <> $1 AND t2.activity_id IS NOT DISTINCT FROM $2
+                 AND o.offer_value IS NOT NULL
+               GROUP BY t2.id, a.canonical_name
+               ORDER BY t2.published_at NULLS LAST, t2.id
+               LIMIT 80""",
+            tender_id, t["activity_id"],
+        )
+        value_key = "median_price"
+    else:
+        rows = await pool.fetch(
+            """SELECT t2.id AS tender_id, left(t2.name, 70) AS name,
+                      coalesce(a.canonical_name, t2.agency_name_raw) AS agency,
+                      coalesce(t2.last_offer_date, t2.published_at)::date AS day,
+                      w.award_value AS award_price,
+                      1 AS samples
+               FROM awards w
+               JOIN tenders t2 ON t2.id=w.tender_id
+               LEFT JOIN agencies a ON a.id=t2.agency_id
+               WHERE t2.id <> $1 AND t2.activity_id IS NOT DISTINCT FROM $2
+                 AND w.award_value IS NOT NULL
+               ORDER BY coalesce(t2.last_offer_date, t2.published_at) NULLS LAST, w.id
+               LIMIT 80""",
+            tender_id, t["activity_id"],
+        )
+        value_key = "award_price"
+    items = []
+    for r in rows:
+        d = dict(r)
+        value = d.get(value_key)
+        if value is None:
+            continue
+        d["value"] = float(value)
+        d["day"] = d["day"].isoformat() if d.get("day") else None
+        items.append(d)
+    values = [x["value"] for x in items]
+    return {
+        "activity_id": t["activity_id"],
+        "activity": t["activity_name_raw"],
+        "mode": mode,
+        "count": len(items),
+        "min_value": min(values) if values else None,
+        "max_value": max(values) if values else None,
+        "items": items,
+    }
+
+
 @app.get("/api/tenders/{tender_id}/export/awards")
 async def export_tender_awards(tender_id: int):
     """Export tender awarding details and submitted offers as Arabic CSV."""
