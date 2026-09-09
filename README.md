@@ -45,6 +45,7 @@ uv run pytest                                          # fixture-based tests
 - [x] Agency win heatmap — vendor profiles now expose `agency_matrix` and render a heatmap of wins, participation, and price gap by agency
 - [x] Calculator modes v1 — War Room price simulator now returns and renders 8 pricing modes with ready/needs-data states
 - [x] Competitor price intelligence — `/api/tenders/{id}/competitor-prices` ranks rivals from harvested same-activity offers, exposes median/min/max/latest prices, and gives a price-to-beat median for the tender drawer.
+- [x] Interactive executive dashboard — source mix, urgency pressure, market heatmaps, and award-value bands are clickable and drive users into filtered tender tables.
 - [x] Tender award export — tender drawer exports offers/award details as Arabic Excel-friendly CSV
 - [x] Compliance evidence capture — War Room matrix rows now persist an evidence note/link and include it in the Arabic CSV export
 - [x] Activity price curve — `/api/tenders/{id}/price-curve` powers a drawer chart that toggles between historical awards and offer medians for the tender activity

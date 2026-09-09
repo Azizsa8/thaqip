@@ -111,6 +111,8 @@ tailwind.config = {
     <section id="view-dash" class="px-5 lg:px-8 py-7 space-y-6">
       <div class="grid grid-cols-2 xl:grid-cols-4 gap-4" id="kpis"></div>
 
+      <div id="commandMetrics" class="grid lg:grid-cols-4 gap-4"></div>
+
       <div class="grid xl:grid-cols-3 gap-5">
         <div class="xl:col-span-2 bg-card border border-line rounded-2xl shadow-card p-6 fade-up" style="animation-delay:.05s">
           <div class="flex items-baseline justify-between mb-1">
@@ -120,7 +122,7 @@ tailwind.config = {
               <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-lost inline-block"></span>غير فائز</span>
             </div>
           </div>
-          <p class="text-[12px] text-mut mb-4">من العروض المالية المحصودة في الأرشيف — يتوسع مع كل جولة حصاد</p>
+          <p class="text-[12px] text-mut mb-4">اضغط على أي شهر لعرض المنافسات المُرسّاة في جدول الاستكشاف.</p>
           <div id="chartMonthly" class="h-56"></div>
         </div>
 
@@ -128,6 +130,24 @@ tailwind.config = {
           <h2 class="font-semibold text-[15px] mb-1">نبض المصدر</h2>
           <p class="text-[12px] text-mut mb-5">قياسات حيّة من خط الاستيعاب</p>
           <div class="space-y-4" id="pulse"></div>
+        </div>
+      </div>
+
+      <div class="grid xl:grid-cols-3 gap-5">
+        <div class="xl:col-span-2 bg-card border border-line rounded-2xl shadow-card p-6 fade-up" style="animation-delay:.12s">
+          <div class="flex items-start justify-between gap-3 mb-4">
+            <div>
+              <h2 class="font-semibold text-[15px]">خريطة أين نلعب؟</h2>
+              <p class="text-[12px] text-mut mt-1">الجهات والأنشطة الأكثر سخونة. اضغط لتحويل الرسم إلى قائمة منافسات قابلة للتنفيذ.</p>
+            </div>
+            <span class="text-[10.5px] bg-tint text-deep rounded-full px-2.5 py-1">تفاعلية</span>
+          </div>
+          <div id="marketHeat" class="grid md:grid-cols-2 gap-4"></div>
+        </div>
+        <div class="bg-card border border-line rounded-2xl shadow-card p-6 fade-up" style="animation-delay:.14s">
+          <h2 class="font-semibold text-[15px] mb-1">أين المال؟</h2>
+          <p class="text-[12px] text-mut mb-4">شرائح قيم الترسيات المحصودة. اضغط على الشريحة لفتح الترسيات.</p>
+          <div id="awardBandsChart"></div>
         </div>
       </div>
 
@@ -423,7 +443,10 @@ async function loadDash(){
     const m = Math.round(d.fresh_p50_seconds/60);
     $('#freshTxt').textContent = 'وسيط زمن الرصد (24س): ' + (m<60 ? m+' دقيقة' : (m/60).toFixed(1)+' ساعة');
   } else { $('#freshTxt').textContent = 'الراصد يعمل — لا منشورات جديدة بعد'; }
+  renderCommandMetrics(d);
   drawMonthly(d.monthly);
+  renderMarketHeat(d);
+  renderAwardBands(d.award_bands || []);
   pulse(d);
   loadCalibration();
   loadLanes();
@@ -434,6 +457,84 @@ async function loadDash(){
       <td class="px-4 py-3">${a.winner??'—'}</td>
       <td class="px-6 py-3 text-left num font-medium text-deep">${money(a.award_value)}</td>
     </tr>`).join('') || `<tr><td colspan="4" class="px-6 py-8 text-center text-mut">لا ترسيات محصودة بعد</td></tr>`;
+}
+
+
+function goDiscovery(filters={}){
+  show('disc');
+  const apply = () => {
+    if(filters.source !== undefined) $('#fSource').value = filters.source || '';
+    if(filters.agency_id !== undefined) $('#fAgency').value = filters.agency_id || '';
+    if(filters.activity_id !== undefined) $('#fActivity').value = filters.activity_id || '';
+    if(filters.awarded !== undefined) $('#fAwarded').checked = !!filters.awarded;
+    if(filters.open_only !== undefined) $('#fOpen').checked = !!filters.open_only;
+    if(filters.q !== undefined) $('#q').value = filters.q || '';
+    offset = 0; queryDisc();
+  };
+  if($('#fAgency').options.length <= 1 || $('#fActivity').options.length <= 1){ loadFilters().then(apply); }
+  else apply();
+}
+function urgencyMap(rows){
+  const m = {h24:0,d3:0,d7:0,later:0};
+  (rows||[]).forEach(r => { const k = String(r.bucket||'').replace('24h','h24').replace('3d','d3').replace('7d','d7'); if(k in m) m[k]=Number(r.tenders||0); });
+  return m;
+}
+function renderCommandMetrics(d){
+  const u = urgencyMap(d.urgency_buckets);
+  const sourceTop = (d.source_mix||[])[0];
+  const openTotal = Number(d.open_now||0);
+  const hotNow = u.h24 + u.d3;
+  const pressure = openTotal ? Math.round(hotNow/openTotal*100) : 0;
+  const memory = Number(d.offers_count||0) + Number(d.awards_count||0);
+  const freshM = d.fresh_p50_seconds == null ? null : Math.round(Number(d.fresh_p50_seconds)/60);
+  const card = (label, value, sub, cls, onclick, micro='') => `<button onclick="${onclick}" class="text-right bg-card border border-line rounded-2xl shadow-card p-5 hover:shadow-lift hover:-translate-y-0.5 transition fade-up group">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <div class="text-[11px] text-mut mb-2">${label}</div>
+        <div class="num text-[30px] font-bold leading-none ${cls||'text-ink'}">${value}</div>
+      </div>
+      <span class="text-[10px] bg-tint text-deep rounded-full px-2 py-0.5 opacity-80 group-hover:bg-deep group-hover:text-white">افتح الجدول</span>
+    </div>
+    <div class="text-[11.5px] text-mut mt-2 leading-relaxed">${sub}</div>${micro}</button>`;
+  $('#commandMetrics').innerHTML =
+    card('ضغط آخر المواعيد', pressure+'%', `${nf.format(hotNow)} منافسة تغلق خلال 3 أيام من أصل ${nf.format(openTotal)} مفتوحة`, pressure>20?'text-danger':'text-bronze', "goDiscovery({open_only:true})", urgencyStrip(u)) +
+    card('ذاكرة السوق السعرية', nf.format(memory), `${nf.format(d.offers_count||0)} عرض + ${nf.format(d.awards_count||0)} ترسية تغذي التسعير والمنافسين`, 'text-deep', "goDiscovery({awarded:true})") +
+    card('سرعة الالتقاط', freshM==null?'—':(freshM<60?freshM+'د':(freshM/60).toFixed(1)+'س'), 'وسيط زمن رصد آخر 24 ساعة؛ كل انخفاض هنا يعني سبقًا تجاريًا أسرع.', freshM && freshM>60?'text-bronze':'text-deep', "goDiscovery({open_only:true})") +
+    card('المصدر الأقوى الآن', sourceTop ? sourceTop.source : '—', sourceTop ? `${nf.format(sourceTop.open_now||0)} مفتوحة و${nf.format(sourceTop.awarded||0)} مُرسّاة من ${nf.format(sourceTop.tenders||0)} سجل` : 'بانتظار بيانات المصدر', 'text-ink', `goDiscovery({source:'${sourceTop ? sourceTop.source : ''}'})`);
+}
+function urgencyStrip(u){
+  const total = Math.max(1, u.h24+u.d3+u.d7+u.later);
+  const seg = (v,c,t) => `<span title="${t}: ${nf.format(v)}" class="h-1.5 ${c}" style="width:${Math.max(4, v/total*100)}%"></span>`;
+  return `<div class="flex rounded-full overflow-hidden mt-3 bg-line">${seg(u.h24,'bg-danger','24 ساعة')}${seg(u.d3,'bg-bronze','3 أيام')}${seg(u.d7,'bg-[#2E7C8C]','7 أيام')}${seg(u.later,'bg-deep','لاحقًا')}</div>`;
+}
+function renderMarketHeat(d){
+  const rows = (title, items, kind) => `<div>
+    <div class="flex items-center justify-between mb-2"><h3 class="text-[12.5px] font-semibold">${title}</h3><span class="text-[10px] text-mut">حسب الفتح والقيمة</span></div>
+    <div class="space-y-2">${(items||[]).map((x,i)=>heatRow(x,i,kind)).join('') || '<div class="text-[12px] text-mut py-8 text-center">لا توجد بيانات كافية</div>'}</div>
+  </div>`;
+  $('#marketHeat').innerHTML = rows('أكثر الجهات حرارة', d.top_agencies, 'agency') + rows('أكثر الأنشطة ازدحامًا', d.top_activities, 'activity');
+}
+function heatRow(x,i,kind){
+  const maxLabel = kind==='agency' ? money(x.award_value||0)+' ر.س ترسيات' : `${nf.format(x.competitors||0)} منافس`;
+  const pct = Math.min(100, 18 + Number(x.open_now||0) * 4 + (kind==='activity'?Number(x.competitors||0):0));
+  const click = kind==='agency' ? `goDiscovery({agency_id:'${x.id || ''}', open_only:true})` : `goDiscovery({activity_id:'${x.id || ''}', open_only:true})`;
+  return `<button onclick="${click}" class="w-full rounded-xl border border-line bg-paper/60 hover:bg-tint transition p-3 text-right">
+    <div class="flex items-center justify-between gap-3"><div class="min-w-0"><div class="font-medium text-[12.5px] truncate">${x.name}</div><div class="text-[10.5px] text-mut mt-0.5">${nf.format(x.open_now||0)} مفتوحة · ${nf.format(x.tenders||0)} إجمالي · ${maxLabel}</div></div><span class="num text-[18px] font-bold ${i<3?'text-deep':'text-ink'}">${nf.format(x.open_now||0)}</span></div>
+    <div class="mt-2 h-1.5 rounded-full bg-line overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${i<3?'#0E6B4F':'#2E7C8C'}"></div></div>
+  </button>`;
+}
+function renderAwardBands(rows){
+  const order = ['<50k','50k-250k','250k-1m','1m+'];
+  const labels = {'<50k':'أقل من 50 ألف','50k-250k':'50–250 ألف','250k-1m':'250 ألف–1 مليون','1m+':'فوق مليون'};
+  const by = Object.fromEntries((rows||[]).map(r=>[r.band,r]));
+  const items = order.map(k => ({band:k, ...(by[k]||{awards:0,value:0})}));
+  const max = Math.max(1, ...items.map(x=>Number(x.value||0)));
+  $('#awardBandsChart').innerHTML = `<div class="space-y-3">${items.map((x,i)=>{
+    const pct = Number(x.value||0)/max*100;
+    return `<button onclick="goDiscovery({awarded:true})" class="w-full group text-right">
+      <div class="flex items-center justify-between text-[11.5px] mb-1"><span class="font-medium">${labels[x.band]}</span><span class="num text-mut">${nf.format(x.awards||0)} ترسية</span></div>
+      <div class="h-9 bg-paper border border-line rounded-xl overflow-hidden relative"><div class="absolute inset-y-0 right-0 group-hover:brightness-95 transition" style="width:${Math.max(3,pct)}%;background:${['#0E6B4F','#2E7C8C','#A16207','#A63D2F'][i]}"></div><div class="absolute inset-0 flex items-center justify-end px-3 text-white mix-blend-normal"><span class="num text-[12px] font-semibold">${money(x.value||0)}</span></div></div>
+    </button>`}).join('')}</div><div class="mt-4 text-[11px] text-mut leading-relaxed">الهدف: يرى المستخدم أين يوجد حجم مالي يستحق الدراسة، ثم يصل للجدول بضغطة واحدة.</div>`;
 }
 
 function pulse(d){
@@ -659,6 +760,7 @@ function drawMonthly(rows){
   s += '</svg>';
   el.innerHTML = s;
   el.querySelectorAll('g').forEach(g => {
+    g.addEventListener('click', () => goDiscovery({awarded:true}));
     g.addEventListener('mousemove', e => tipShow(e,
       `${g.dataset.m} — <span style="color:#7CD9B4">فائز ${g.dataset.w}</span> · <span style="color:#F0B27A">غير فائز ${g.dataset.l}</span>`));
     g.addEventListener('mouseleave', tipHide);

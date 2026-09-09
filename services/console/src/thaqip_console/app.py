@@ -108,11 +108,76 @@ async def dashboard():
            LEFT JOIN agencies a2 ON a2.id = t.agency_id
            ORDER BY w.id DESC LIMIT 8"""
     )
+    source_mix = await pool.fetch(
+        """SELECT source,
+                  count(*) AS tenders,
+                  count(*) FILTER (WHERE last_offer_date > now()) AS open_now,
+                  count(*) FILTER (WHERE awards_count.c > 0) AS awarded
+           FROM tenders t
+           LEFT JOIN (SELECT tender_id, count(*) c FROM awards GROUP BY tender_id) awards_count
+             ON awards_count.tender_id = t.id
+           GROUP BY source ORDER BY tenders DESC"""
+    )
+    urgency = await pool.fetch(
+        """SELECT bucket, count(*) AS tenders FROM (
+             SELECT CASE
+               WHEN last_offer_date <= now() + interval '24 hours' THEN '24h'
+               WHEN last_offer_date <= now() + interval '3 days' THEN '3d'
+               WHEN last_offer_date <= now() + interval '7 days' THEN '7d'
+               ELSE 'later'
+             END AS bucket
+             FROM tenders WHERE last_offer_date > now()
+           ) s GROUP BY bucket"""
+    )
+    top_agencies = await pool.fetch(
+        """SELECT t.agency_id AS id,
+                  left(coalesce(a.canonical_name, t.agency_name_raw, 'غير محدد'), 80) AS name,
+                  count(*) AS tenders,
+                  count(*) FILTER (WHERE t.last_offer_date > now()) AS open_now,
+                  coalesce(sum(w.award_value), 0)::numeric AS award_value
+           FROM tenders t
+           LEFT JOIN agencies a ON a.id = t.agency_id
+           LEFT JOIN awards w ON w.tender_id = t.id
+           GROUP BY t.agency_id, a.canonical_name, t.agency_name_raw
+           ORDER BY open_now DESC, award_value DESC, tenders DESC
+           LIMIT 8"""
+    )
+    top_activities = await pool.fetch(
+        """SELECT t.activity_id AS id,
+                  left(coalesce(t.activity_name_raw, 'غير محدد'), 80) AS name,
+                  count(*) AS tenders,
+                  count(*) FILTER (WHERE t.last_offer_date > now()) AS open_now,
+                  count(DISTINCT o.vendor_id) AS competitors,
+                  coalesce(percentile_cont(0.5) WITHIN GROUP (ORDER BY w.award_value), 0)::numeric AS median_award
+           FROM tenders t
+           LEFT JOIN offers o ON o.tender_id = t.id
+           LEFT JOIN awards w ON w.tender_id = t.id AND w.award_value IS NOT NULL
+           GROUP BY t.activity_id, t.activity_name_raw
+           ORDER BY competitors DESC, open_now DESC, tenders DESC
+           LIMIT 8"""
+    )
+    award_bands = await pool.fetch(
+        """SELECT band, count(*) AS awards, coalesce(sum(award_value),0)::numeric AS value FROM (
+             SELECT award_value,
+                    CASE
+                      WHEN award_value < 50000 THEN '<50k'
+                      WHEN award_value < 250000 THEN '50k-250k'
+                      WHEN award_value < 1000000 THEN '250k-1m'
+                      ELSE '1m+'
+                    END AS band
+             FROM awards WHERE award_value IS NOT NULL
+           ) s GROUP BY band"""
+    )
     return {
         **dict(kpis),
         "fresh_p50_seconds": fresh["p50"].total_seconds() if fresh and fresh["p50"] else None,
         "monthly": [dict(r) for r in reversed(monthly)],
         "latest_awards": [dict(r) for r in latest_awards],
+        "source_mix": [dict(r) for r in source_mix],
+        "urgency_buckets": [dict(r) for r in urgency],
+        "top_agencies": [dict(r) for r in top_agencies],
+        "top_activities": [dict(r) for r in top_activities],
+        "award_bands": [dict(r) for r in award_bands],
     }
 
 
