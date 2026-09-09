@@ -1519,6 +1519,23 @@ async def simulate_price(pid: int, body: PriceSimulationIn):
                  AND EXISTS (SELECT 1 FROM awards w2 WHERE w2.tender_id = t2.id)""",
             activity_id,
         )
+        boq_row = await conn.fetchrow(
+            """SELECT count(*) AS n, coalesce(sum(qty), 0)::float AS total_qty
+               FROM boq_items WHERE tender_id=$1""",
+            tender_id,
+        )
+        competitor_row = await conn.fetchrow(
+            """SELECT v.canonical_name, count(*) AS bids,
+                      percentile_cont(0.5) WITHIN GROUP (ORDER BY o.offer_value)::float AS median_bid
+               FROM offers o
+               JOIN vendors v ON v.id=o.vendor_id
+               JOIN tenders t2 ON t2.id=o.tender_id
+               WHERE t2.activity_id IS NOT DISTINCT FROM $1 AND o.offer_value IS NOT NULL
+               GROUP BY v.id, v.canonical_name
+               ORDER BY count(*) DESC, median_bid ASC NULLS LAST
+               LIMIT 1""",
+            activity_id,
+        )
         median_bidders = bidders_row["median_bidders"] if bidders_row and bidders_row["median_bidders"] else 4.0
         live_bidders = (tender.get("submitted_bids_count") or 0) + (tender.get("external_bids_count") or 0)
 
@@ -1602,6 +1619,79 @@ async def simulate_price(pid: int, body: PriceSimulationIn):
                 "note": "يحافظ على الهامش لكنه قد يخفض احتمالية الفوز إذا كان السوق حساساً للسعر.",
             },
         ]
+        boq_count = boq_row["n"] if boq_row else 0
+        boq_total_qty = boq_row["total_qty"] if boq_row else 0
+        competitor_price = competitor_row["median_bid"] if competitor_row and competitor_row["median_bid"] else None
+        price_to_beat = round(competitor_price * 0.985, 2) if competitor_price else None
+        scenario_p10 = round(max(safe_margin_floor, optimal_price * 0.93), 2)
+        scenario_p50 = optimal_price
+        scenario_p90 = round(min(p75_award or body.proposed_price * 1.12, optimal_price * 1.10), 2)
+        calculator_modes = [
+            {
+                "key": "bid_optimizer",
+                "label": "Bid Price Optimizer",
+                "status": "ready" if median_award else "needs_history",
+                "primary": optimal_price,
+                "unit": "SAR",
+                "note": f"احتمالية الفوز {win_prob_pct}% عند السعر المقترح؛ السعر الأمثل يتبع شهية المخاطرة الحالية.",
+            },
+            {
+                "key": "boq_line_pricer",
+                "label": "BOQ Line-Item Pricer",
+                "status": "ready" if boq_count else "needs_boq",
+                "primary": boq_count,
+                "unit": "items",
+                "note": "يوزع السعر على بنود BOQ المحفوظة." if boq_count else "يفتح عند توفر جدول كميات مستخرج من الكراسة أو المرفقات.",
+            },
+            {
+                "key": "markup_calculator",
+                "label": "Markup Calculator",
+                "status": "ready",
+                "primary": target_margin_pct,
+                "unit": "%",
+                "note": "يستخدم هامش الربح الافتراضي من الإعدادات ما لم يتم تمرير هامش مخصص.",
+            },
+            {
+                "key": "risk_adjusted_pricing",
+                "label": "Risk-Adjusted Pricing",
+                "status": "ready",
+                "primary": round((1.0 - risk_factor) * 100.0, 1),
+                "unit": "% buffer",
+                "note": f"شهية المخاطرة الحالية: {risk_tolerance}. كلما زادت الهجومية انخفض السعر الأمثل.",
+            },
+            {
+                "key": "competitor_price_match",
+                "label": "Competitor Price Match",
+                "status": "ready" if price_to_beat else "needs_competitor_history",
+                "primary": price_to_beat,
+                "unit": "SAR",
+                "note": f"نموذج أولي لمجاراة {competitor_row['canonical_name']} بناءً على وسيط عروضه." if price_to_beat else "يحتاج سجل عروض منافس محدد داخل نفس النشاط.",
+            },
+            {
+                "key": "agency_calibration",
+                "label": "Agency-Specific Calibration",
+                "status": "ready" if sample_count else "needs_agency_history",
+                "primary": median_award,
+                "unit": "SAR",
+                "note": "يبدأ بوسيط النشاط الحالي، ويتحول لاحقًا إلى وزن جهة حكومية عند اتساع corpus.",
+            },
+            {
+                "key": "boq_completeness",
+                "label": "BOQ Completeness Check",
+                "status": "ready" if boq_count else "needs_boq",
+                "primary": round(min(100.0, boq_count * 12.5), 1) if boq_count else 0,
+                "unit": "%",
+                "note": f"{boq_count} بند محفوظ بإجمالي كميات {boq_total_qty:g}." if boq_count else "لا توجد بنود BOQ محفوظة لهذه المنافسة بعد.",
+            },
+            {
+                "key": "scenario_simulator",
+                "label": "Scenario Simulator",
+                "status": "ready",
+                "primary": {"p10": scenario_p10, "p50": scenario_p50, "p90": scenario_p90},
+                "unit": "SAR",
+                "note": "نطاق P10/P50/P90 مبسط من السعر الأمثل وحد الأمان حتى نضيف Monte Carlo كامل.",
+            },
+        ]
 
         return {
             "proposed_price": body.proposed_price,
@@ -1618,6 +1708,7 @@ async def simulate_price(pid: int, body: PriceSimulationIn):
                 "risk_tolerance": risk_tolerance,
             },
             "pricing_ladder": pricing_ladder,
+            "calculator_modes": calculator_modes,
         }
 
 @app.get("/api/vendors/{vid}/export")

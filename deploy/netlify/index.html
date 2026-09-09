@@ -852,6 +852,7 @@ async function openPursuit(id){
             <span>⚠️ تنبيه نظامي: السعر المقترح أقل من 70% من وسيط الترسيات، مما قد يعرّضه للاستبعاد تحت معايير العرض المنخفض غير الطبيعي (المادة 68 من نظام المنافسات).</span>
           </div>
           <div id="simPricingLadder" class="grid grid-cols-1 md:grid-cols-4 gap-2"></div>
+          <div id="simModes" class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2"></div>
         </div>
       </div>
 
@@ -864,6 +865,30 @@ function debounceSim(pid){
   clearTimeout(simTimeout);
   simTimeout = setTimeout(() => runPriceSim(pid), 400);
 }
+
+function modeValue(mode){
+  if(mode.primary == null) return '—';
+  if(typeof mode.primary === 'object') return `P10 ${money(mode.primary.p10)} · P50 ${money(mode.primary.p50)} · P90 ${money(mode.primary.p90)}`;
+  if(mode.unit === 'SAR') return money(mode.primary)+' ر.س';
+  return `${mode.primary} ${mode.unit || ''}`.trim();
+}
+function renderCalculatorModes(rows){
+  const el = $('#simModes');
+  if(!el) return;
+  const statusAr = {ready:'جاهز', needs_history:'يحتاج سجل', needs_boq:'ينتظر BOQ', needs_competitor_history:'ينتظر منافس', needs_agency_history:'ينتظر سجل جهة'};
+  el.innerHTML = (rows || []).map(m => {
+    const ready = m.status === 'ready';
+    return `<div class="rounded-xl border ${ready?'border-deep/20 bg-tint/50':'border-line bg-card'} p-3">
+      <div class="flex items-start justify-between gap-2">
+        <div class="font-semibold text-[11.5px] leading-snug">${m.label}</div>
+        <span class="text-[9.5px] rounded-full px-2 py-0.5 ${ready?'bg-deep text-white':'bg-bronzet text-bronze'}">${statusAr[m.status] || m.status}</span>
+      </div>
+      <div class="num text-[13px] font-bold text-ink mt-1">${modeValue(m)}</div>
+      <div class="text-[10.5px] text-mut leading-relaxed mt-1">${m.note}</div>
+    </div>`;
+  }).join('');
+}
+
 function renderPricingLadder(rows){
   const el = $('#simPricingLadder');
   if(!el) return;
@@ -897,6 +922,7 @@ async function runPriceSim(pid){
     $('#simOptPrice').textContent = Number(res.recommendations.optimal_price).toLocaleString('en-US') + ' ر.س';
     $('#simSafeFloor').textContent = Number(res.recommendations.safe_margin_floor).toLocaleString('en-US') + ' ر.س';
     renderPricingLadder(res.pricing_ladder);
+    renderCalculatorModes(res.calculator_modes);
 
     const zoneNames = {
       aggressive: 'هجومي (أقل من p25)',

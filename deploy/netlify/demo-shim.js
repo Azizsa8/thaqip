@@ -169,6 +169,17 @@
       const floorFactor = Math.max(0.55, 1 - margin / 100);
       const optimal = Math.round(median * riskFactor * 100) / 100;
       const floor = Math.round(median * floorFactor * 100) / 100;
+      const scenario = { p10: Math.round(Math.max(floor, optimal * 0.93) * 100) / 100, p50: optimal, p90: Math.round(Math.min(p75, optimal * 1.10) * 100) / 100 };
+      const modes = [
+        { key:'bid_optimizer', label:'Bid Price Optimizer', status: median ? 'ready':'needs_history', primary: optimal, unit:'SAR', note:`احتمالية الفوز ${Math.round(win*10)/10}% عند السعر المقترح.` },
+        { key:'boq_line_pricer', label:'BOQ Line-Item Pricer', status:'needs_boq', primary:0, unit:'items', note:'يفتح عند توفر جدول كميات مستخرج من الكراسة أو المرفقات.' },
+        { key:'markup_calculator', label:'Markup Calculator', status:'ready', primary: margin, unit:'%', note:'يستخدم هامش الربح الافتراضي من الإعدادات.' },
+        { key:'risk_adjusted_pricing', label:'Risk-Adjusted Pricing', status:'ready', primary: Math.round((1-riskFactor)*1000)/10, unit:'% buffer', note:`شهية المخاطرة الحالية: ${risk}.` },
+        { key:'competitor_price_match', label:'Competitor Price Match', status:'needs_competitor_history', primary:null, unit:'SAR', note:'يحتاج سجل عروض منافس محدد داخل نفس النشاط.' },
+        { key:'agency_calibration', label:'Agency-Specific Calibration', status: market.award_samples ? 'ready':'needs_agency_history', primary: median, unit:'SAR', note:'يبدأ بوسيط النشاط الحالي حتى يتسع corpus.' },
+        { key:'boq_completeness', label:'BOQ Completeness Check', status:'needs_boq', primary:0, unit:'%', note:'لا توجد بنود BOQ محفوظة لهذه المنافسة في snapshot.' },
+        { key:'scenario_simulator', label:'Scenario Simulator', status:'ready', primary: scenario, unit:'SAR', note:'نطاق P10/P50/P90 مبسط حتى نضيف Monte Carlo كامل.' }
+      ];
       return json({
         proposed_price: proposed,
         win_probability_pct: Math.round(win * 10) / 10,
@@ -183,7 +194,8 @@
           { key: 'balanced', label: 'متوازن', price: optimal, note: 'النقطة العملية الأقرب للفوز مع بقاء مساحة ربح معقولة.' },
           { key: 'safe', label: 'آمن', price: floor, note: 'حد أدنى إرشادي لا ينبغي النزول عنه دون مبرر تكلفة موثق.' },
           { key: 'conservative', label: 'متحفظ', price: Math.round(p75 * 0.98 * 100) / 100, note: 'يحافظ على الهامش لكنه قد يخفض احتمالية الفوز إذا كان السوق حساساً للسعر.' }
-        ]
+        ],
+        calculator_modes: modes
       });
     }
     if ((m = p.match(/^\/api\/pursuits\/(\d+)\/stage$/))) {
