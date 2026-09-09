@@ -1620,6 +1620,92 @@ async def tender_price_curve(tender_id: int, mode: str = Query("awards", pattern
     }
 
 
+@app.get("/api/tenders/{tender_id}/competitor-prices")
+async def tender_competitor_prices(tender_id: int, limit: int = Query(12, ge=1, le=50)):
+    """Competitor price intelligence for a tender's activity.
+
+    Uses harvested offer history in the same activity to estimate each rival's
+    usual bid level and the price needed to narrowly beat their median offer.
+    """
+    pool: asyncpg.Pool = app.state.pool
+    tender = await pool.fetchrow(
+        """SELECT id, activity_id, activity_name_raw, agency_id, agency_name_raw
+           FROM tenders WHERE id=$1""",
+        tender_id,
+    )
+    if tender is None:
+        raise HTTPException(404)
+    rows = await pool.fetch(
+        """WITH rival_offers AS (
+             SELECT v.id AS vendor_id,
+                    v.canonical_name AS vendor,
+                    o.offer_value::numeric AS offer_value,
+                    o.is_winner,
+                    o.technical_pass,
+                    t2.id AS tender_id,
+                    t2.name AS tender_name,
+                    t2.last_offer_date,
+                    coalesce(a.canonical_name, t2.agency_name_raw) AS agency,
+                    t2.agency_id IS NOT DISTINCT FROM $3 AS same_agency
+             FROM offers o
+             JOIN vendors v ON v.id=o.vendor_id
+             JOIN tenders t2 ON t2.id=o.tender_id
+             LEFT JOIN agencies a ON a.id=t2.agency_id
+             WHERE t2.id <> $1
+               AND t2.activity_id IS NOT DISTINCT FROM $2
+               AND o.offer_value IS NOT NULL
+           ), ranked AS (
+             SELECT *, row_number() OVER (PARTITION BY vendor_id ORDER BY last_offer_date DESC NULLS LAST, tender_id DESC) AS recency_rank
+             FROM rival_offers
+           )
+           SELECT vendor_id, vendor,
+                  count(*) AS samples,
+                  count(*) FILTER (WHERE is_winner) AS wins,
+                  round(100.0*count(*) FILTER (WHERE technical_pass)/nullif(count(*),0),1) AS tech_rate,
+                  percentile_cont(0.5) WITHIN GROUP (ORDER BY offer_value)::numeric AS median_offer,
+                  min(offer_value) AS min_offer,
+                  max(offer_value) AS max_offer,
+                  avg(offer_value)::numeric AS avg_offer,
+                  max(last_offer_date) AS last_seen,
+                  bool_or(same_agency) AS seen_in_same_agency,
+                  (array_agg(tender_id ORDER BY recency_rank))[1] AS latest_tender_id,
+                  (array_agg(left(tender_name, 80) ORDER BY recency_rank))[1] AS latest_tender_name,
+                  (array_agg(agency ORDER BY recency_rank))[1] AS latest_agency,
+                  (array_agg(offer_value ORDER BY recency_rank))[1] AS latest_offer
+           FROM ranked
+           GROUP BY vendor_id, vendor
+           ORDER BY seen_in_same_agency DESC, samples DESC, median_offer ASC
+           LIMIT $4""",
+        tender_id,
+        tender["activity_id"],
+        tender["agency_id"],
+        limit,
+    )
+    items = []
+    for r in rows:
+        d = dict(r)
+        median_offer = float(d["median_offer"]) if d.get("median_offer") is not None else None
+        d["median_offer"] = median_offer
+        d["min_offer"] = float(d["min_offer"]) if d.get("min_offer") is not None else None
+        d["max_offer"] = float(d["max_offer"]) if d.get("max_offer") is not None else None
+        d["avg_offer"] = float(d["avg_offer"]) if d.get("avg_offer") is not None else None
+        d["latest_offer"] = float(d["latest_offer"]) if d.get("latest_offer") is not None else None
+        d["price_to_beat_median"] = round(median_offer * 0.985, 2) if median_offer else None
+        d["last_seen"] = d["last_seen"].isoformat() if d.get("last_seen") else None
+        items.append(d)
+    values = [x["median_offer"] for x in items if x.get("median_offer")]
+    return {
+        "tender_id": tender_id,
+        "activity_id": tender["activity_id"],
+        "activity": tender["activity_name_raw"],
+        "agency_id": tender["agency_id"],
+        "agency": tender["agency_name_raw"],
+        "count": len(items),
+        "market_median_offer": sorted(values)[len(values) // 2] if values else None,
+        "items": items,
+    }
+
+
 def _boq_search_terms(text: str) -> list[str]:
     """Pick stable terms for a lightweight BOQ similarity lookup."""
     terms: list[str] = []

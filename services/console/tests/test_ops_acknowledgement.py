@@ -1,6 +1,10 @@
 import pytest
 from pydantic import ValidationError
-from thaqip_console.app import SettingsIn, _checkpoint_has_acknowledgement, _checkpoint_json
+from thaqip_console.app import (
+    SettingsIn,
+    _checkpoint_has_acknowledgement,
+    _checkpoint_json,
+)
 
 
 def test_checkpoint_acknowledgement_requires_structured_marker():

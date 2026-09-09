@@ -1469,7 +1469,7 @@ async function openDetail(id){
         ${lat?kv('رصدناها بعد النشر بـ', lat):''}
       </div>
     </div>
-    ${competitionBlock(t)}${awards}${offers}${boq}${benchmarkBlock(t)}
+    ${competitionBlock(t)}${awards}${offers}${competitorPricesBlock(t)}${boq}${benchmarkBlock(t)}
     ${t.documents.length?`<div class="mt-6 text-[12px] text-mut">${t.documents.length} ملف في خزنة الوثائق</div>`:''}`;
   $('#drawer').classList.remove('-translate-x-full');
   $('#drawer').setAttribute('aria-hidden','false');
@@ -1521,6 +1521,47 @@ async function showSimilarBoq(itemId){
         </div>
       </div>
     </button>`).join('')}</div>`;
+}
+
+function competitorPricesBlock(t){
+  setTimeout(() => loadCompetitorPrices(t.id), 0);
+  return `<h3 class="font-semibold text-[14px] mt-7 mb-3 flex items-center gap-2">
+    <span class="w-1.5 h-4 rounded-full bg-danger inline-block"></span>أسعار المنافسين في نفس النشاط
+  </h3>
+  <div class="bg-card border border-line rounded-xl overflow-hidden">
+    <div class="px-4 py-3 border-b border-line bg-paper/50 flex items-center justify-between gap-2">
+      <div class="text-[11.5px] text-mut leading-relaxed">نستخرج السعر المعتاد لكل منافس من العروض المحصودة تاريخيًا، ونحسب سعرًا قريبًا للتفوق على وسيطه.</div>
+      <button onclick="loadCompetitorPrices(${t.id})" class="shrink-0 text-[10.5px] bg-tint text-deep rounded-lg px-2.5 py-1 hover:bg-deep hover:text-white transition">تحديث</button>
+    </div>
+    <div id="competitorPricesBox" class="p-4 text-[11.5px] text-mut">جاري تحميل أسعار المنافسين…</div>
+  </div>`;
+}
+async function loadCompetitorPrices(tenderId){
+  const box = $('#competitorPricesBox'); if(!box) return;
+  box.innerHTML = 'جاري تحميل أسعار المنافسين…';
+  const res = await (await fetch(API+`/api/tenders/${tenderId}/competitor-prices?limit=12`)).json();
+  const rows = res.items || [];
+  if(!rows.length){ box.innerHTML = 'لا توجد عروض منافسين محفوظة لهذا النشاط بعد.'; return; }
+  box.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-[12px]">
+    <thead><tr class="text-mut text-[10.5px] border-b border-line">
+      <th class="text-right font-medium px-2 py-2">المنافس</th>
+      <th class="text-center font-medium px-2 py-2">عينات</th>
+      <th class="text-left font-medium px-2 py-2">وسيطه</th>
+      <th class="text-left font-medium px-2 py-2">للتفوق عليه</th>
+      <th class="text-center font-medium px-2 py-2">فني</th>
+      <th class="text-right font-medium px-2 py-2">آخر ظهور</th>
+    </tr></thead>
+    <tbody>${rows.map(r=>`
+      <tr class="border-b border-line/70 last:border-0 hover:bg-tint/40 cursor-pointer" onclick="openVendor(${r.vendor_id});show('intel')">
+        <td class="px-2 py-2.5 leading-snug font-medium">${r.vendor}<div class="text-[10px] text-mut">${r.seen_in_same_agency?'ظهر عند نفس الجهة':'نفس النشاط'} · ${r.latest_agency || ''}</div></td>
+        <td class="px-2 py-2.5 text-center num">${r.samples}</td>
+        <td class="px-2 py-2.5 text-left num text-ink">${money(r.median_offer)}</td>
+        <td class="px-2 py-2.5 text-left num font-semibold text-danger">${money(r.price_to_beat_median)}</td>
+        <td class="px-2 py-2.5 text-center num">${r.tech_rate ?? '—'}%</td>
+        <td class="px-2 py-2.5 text-[10.5px] text-mut leading-snug">${r.latest_tender_name || ''}<div class="num">${r.last_seen ? dt(r.last_seen) : '—'} · ${money(r.latest_offer)}</div></td>
+      </tr>`).join('')}</tbody>
+  </table></div>
+  <div class="mt-3 text-[10.5px] text-mut leading-relaxed">هذه أرقام من عروض وترسيات محصودة، وليست أسعارًا مسربة. استخدمها كنطاق تفاوض وتسعير، ثم اربطها بتكلفتك وهامشك داخل غرفة العمليات.</div>`;
 }
 
 function benchmarkBlock(t){

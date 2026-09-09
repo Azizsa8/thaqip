@@ -134,6 +134,19 @@
       const items = all.filter(b => b.id !== itemId).map(b => ({ ...b, same_activity: b.activity === item.activity, match_score: terms.reduce((n, term) => n + (String(b.description || '').includes(term) ? 1 : 0), 0) })).filter(b => b.match_score > 0).sort((a,b) => Number(b.same_activity)-Number(a.same_activity) || b.match_score-a.match_score).slice(0, 12);
       return json({ item, terms, items });
     }
+    if ((m = p.match(/^\/api\/tenders\/(\d+)\/competitor-prices$/))) {
+      const detail = (db.tender_details || {})[m[1]] || {};
+      const vendors = Object.entries(db.vendor_details || {}).map(([id, v]) => {
+        const rows = (v.history || []).filter(h => h.activity === (detail.activity_name_raw || detail.activity) && h.offer_value != null);
+        if (!rows.length) return null;
+        const vals = rows.map(h => Number(h.offer_value)).sort((a,b)=>a-b);
+        const median = vals[Math.floor(vals.length/2)];
+        const latest = rows[0] || {};
+        return { vendor_id: Number(id), vendor: v.canonical_name, samples: rows.length, wins: rows.filter(h => h.is_winner).length, tech_rate: v.stats?.tech_rate ?? null, median_offer: median, min_offer: vals[0], max_offer: vals[vals.length-1], avg_offer: vals.reduce((a,b)=>a+b,0)/vals.length, latest_tender_id: latest.tender_id, latest_tender_name: latest.tender_name, latest_agency: latest.agency, latest_offer: latest.offer_value, last_seen: null, seen_in_same_agency: latest.agency === detail.agency, price_to_beat_median: Math.round(median * 0.985 * 100) / 100 };
+      }).filter(Boolean).sort((a,b)=>Number(b.seen_in_same_agency)-Number(a.seen_in_same_agency)||b.samples-a.samples||a.median_offer-b.median_offer).slice(0, +(u.searchParams.get('limit') || 12));
+      const medians = vendors.map(v => v.median_offer).sort((a,b)=>a-b);
+      return json({ tender_id: detail.id, activity_id: detail.activity_id || null, activity: detail.activity_name_raw || detail.activity || null, agency_id: detail.agency_id || null, agency: detail.agency || null, count: vendors.length, market_median_offer: medians.length ? medians[Math.floor(medians.length/2)] : null, items: vendors });
+    }
     if ((m = p.match(/^\/api\/tenders\/(\d+)\/price-curve$/))) {
       const detail = (db.tender_details || {})[m[1]] || {};
       const mode = u.searchParams.get('mode') || 'awards';
