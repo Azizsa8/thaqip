@@ -75,7 +75,7 @@ services:
 
   pricing-seed:
     build: ./services/ingestion
-    command: ["sh", "-c", "while true; do python -m thaqip_ingestion.pricing_seed --limit 100; sleep 21600; done"]
+    command: ["sh", "-c", "while true; do python -m thaqip_ingestion.pricing_seed --limit $${THAQIP_PRICING_SEED_LIMIT:-100}; sleep $${THAQIP_PRICING_SEED_INTERVAL:-21600}; done"]
     environment:
       DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
     depends_on: [postgres]
@@ -83,7 +83,7 @@ services:
 
   ops-health:
     build: ./services/ingestion
-    command: ["sh", "-c", "while true; do python -m thaqip_ingestion.ops_health --close-stalled; sleep 3600; done"]
+    command: ["sh", "-c", "while true; do python -m thaqip_ingestion.ops_health --close-stalled; sleep $${THAQIP_OPS_HEALTH_INTERVAL:-3600}; done"]
     environment:
       DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
     depends_on: [postgres]

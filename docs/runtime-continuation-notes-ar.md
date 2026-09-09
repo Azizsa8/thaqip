@@ -44,6 +44,17 @@ find .netlify -depth -type d -empty -delete 2>/dev/null || true
 curl -fsS https://thaqip-demo.netlify.app/data/db.json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(len(d.get("lanes", [])), d.get("pricing_accuracy", {}).get("status"), d.get("pricing_accuracy", {}).get("measured"))'
 ```
 
+
+### ملاحظة مهمة عن خدمات Docker المحلية
+
+إذا تغير كود `services/ingestion`، أعد بناء الخدمات الدورية قبل الحكم على صحة النبضات:
+
+```bash
+docker compose up -d --build ops-health pricing-seed poller
+```
+
+يمكن ضبط تكرار النبض محليًا بدون تعديل `docker-compose.yml` عبر `THAQIP_OPS_HEALTH_INTERVAL` و`THAQIP_PRICING_SEED_INTERVAL`، وضبط حجم بذر التسعير عبر `THAQIP_PRICING_SEED_LIMIT`.
+
 ## Modal 24/7
 
 لم يتم النشر الحقيقي على Modal بعد. الموجود الآن scaffold وفاحص جاهزية.
