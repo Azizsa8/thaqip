@@ -81,6 +81,7 @@
     const body = init && init.body ? JSON.parse(init.body) : null;
 
     if (p === '/api/dashboard') return json(db.dashboard);
+    if (p === '/api/freshness/trend') return json(db.freshness_trend || { target_seconds: 900, days: 14, latest: null, items: [] });
     if (p === '/api/filters') return json(db.filters);
     if (p === '/api/lanes') return json(db.lanes || []);
     if (p === '/api/ops/summary') return json(db.ops_summary || { verdict: 'operational', lanes_total: (db.lanes || []).length, lanes_healthy: (db.lanes || []).length, lanes_running: 0, lanes_need_attention: 0, attention: [], pricing_accuracy: db.pricing_accuracy || {}, next_actions: [] });

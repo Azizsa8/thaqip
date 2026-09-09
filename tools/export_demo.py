@@ -74,6 +74,7 @@ def main() -> None:
         "notifications": get("/api/notifications?limit=60"),
         "lanes": get("/api/lanes"),
         "ops_summary": get("/api/ops/summary"),
+        "freshness_trend": get("/api/freshness/trend?days=14"),
         "pricing_accuracy": get("/api/pricing/accuracy"),
         "settings": get("/api/settings"),
     }

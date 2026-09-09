@@ -31,6 +31,7 @@ uv run pytest                                          # fixture-based tests
 - [x] D1 outbox → Redis Streams relay (`thaqip.events`, at-least-once, consumer groups verified)
 - [x] C4 checkpointed backfill — page-walk with per-page checkpoint in ingest_runs, resume verified; full corpus is ~5,800 pages ≈ 2h at 1 req/s
 - [x] D3 freshness harness — p50/p95 detection-latency report vs published_at (best observed live: 1m35s); public board ships Phase 1
+- [x] Freshness SLO trend — `/api/freshness/trend` and dashboard SVG chart show daily p50/p95 detection latency against a 15-minute SLO
 - [x] C3 entity resolution v1 — Arabic normalization (hamza/taa-marbuta/diacritics), agency canonicalization + tender linking (165 agencies from first 480 tenders), vendor dedupe with offer/award repointing
 - [x] B5 anti-bot hardening — per-route circuit breakers (`circuit_breaker.py`), global kill switch (`THAQIP_KILL_SWITCH`), 429 Retry-After discipline, WAF cool-off backoff
 - [x] C5 reconciliation — nightly census & head-sample sweep with gap detection (`reconcile.py`)

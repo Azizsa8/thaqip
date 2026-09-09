@@ -115,6 +115,49 @@ async def dashboard():
     }
 
 
+@app.get("/api/freshness/trend")
+async def freshness_trend(days: int = Query(14, ge=3, le=60)):
+    """Daily detection-latency trend for the SLO chart."""
+    rows = await app.state.pool.fetch(
+        """WITH daily AS (
+             SELECT date_trunc('day', published_at)::date AS day,
+                    count(*) AS tenders,
+                    percentile_cont(0.5) WITHIN GROUP (ORDER BY detected_at - published_at) AS p50,
+                    percentile_cont(0.95) WITHIN GROUP (ORDER BY detected_at - published_at) AS p95
+             FROM tenders
+             WHERE detected_by = 'poller'
+               AND published_at >= now() - ($1::int || ' days')::interval
+               AND published_at IS NOT NULL
+               AND detected_at >= published_at
+             GROUP BY 1
+           )
+           SELECT day, tenders, p50, p95
+           FROM daily
+           ORDER BY day""",
+        days,
+    )
+    target_seconds = 15 * 60
+    out = []
+    for r in rows:
+        p50 = r["p50"].total_seconds() if r["p50"] is not None else None
+        p95 = r["p95"].total_seconds() if r["p95"] is not None else None
+        out.append({
+            "day": r["day"].isoformat(),
+            "tenders": r["tenders"],
+            "p50_seconds": round(p50) if p50 is not None else None,
+            "p95_seconds": round(p95) if p95 is not None else None,
+            "slo_target_seconds": target_seconds,
+            "slo_met": p95 is not None and p95 <= target_seconds,
+        })
+    latest = out[-1] if out else None
+    return {
+        "target_seconds": target_seconds,
+        "days": days,
+        "latest": latest,
+        "items": out,
+    }
+
+
 @app.get("/api/filters")
 async def filters():
     pool: asyncpg.Pool = app.state.pool
