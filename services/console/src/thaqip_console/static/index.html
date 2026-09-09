@@ -10,10 +10,10 @@
 tailwind.config = {
   theme: { extend: {
     colors: {
-      paper:  '#F7F6F2', ink: '#191F1C', mut: '#6B7770', line: '#E4E2DA',
-      card:   '#FFFFFF', deep: '#0E6B4F', deepd: '#0A5540', tint: '#E9F1EC',
-      bronze: '#A16207', bronzet:'#F5EEDC', won: '#108A5F', lost: '#B45309',
-      danger: '#A63D2F', dangert:'#F8E9E5',
+      paper:  '#F6F3EC', ink: '#16211D', mut: '#68766F', line: '#E2DCD0',
+      card:   '#FFFDF8', deep: '#0B6B50', deepd: '#084F3C', tint: '#E6F1EA',
+      bronze: '#A66A12', bronzet:'#F6E9D1', won: '#108A5F', lost: '#B85B16',
+      danger: '#A84032', dangert:'#F9E7E2', teal:'#24798A', midnight:'#10251F',
     },
     fontFamily: {
       sans: ['"IBM Plex Sans Arabic"','system-ui','sans-serif'],
@@ -27,18 +27,32 @@ tailwind.config = {
 }
 </script>
 <style>
-  html{background:#F7F6F2}
+  :root{color-scheme:light;--safe-bottom:env(safe-area-inset-bottom,0px)}
+  html{background:radial-gradient(circle at 18% 8%,rgba(36,121,138,.10),transparent 34%),radial-gradient(circle at 88% 2%,rgba(166,106,18,.12),transparent 28%),#F6F3EC;scroll-behavior:smooth}
+  body{background:transparent;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   .num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
-  .fade-up{opacity:0;transform:translateY(10px);animation:fu .5s cubic-bezier(.2,.7,.2,1) forwards}
+  .fade-up{opacity:0;transform:translateY(12px);animation:fu .55s cubic-bezier(.2,.8,.2,1) forwards}
   @keyframes fu{to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion: reduce){.fade-up{animation:none;opacity:1;transform:none}}
-  .ledger-rule{background:linear-gradient(270deg,#0E6B4F 0%,#0E6B4F 55%,#A16207 55%,#A16207 100%);height:3px}
+  .soft-card{background:linear-gradient(180deg,rgba(255,253,248,.94),rgba(255,253,248,.84));box-shadow:0 1px 2px rgba(16,37,31,.04),0 16px 42px rgba(16,37,31,.07);backdrop-filter:blur(16px)}
+  .tap-card{touch-action:manipulation;transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s ease,background .22s ease,border-color .22s ease}
+  .tap-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(16,37,31,.08),0 22px 52px rgba(16,37,31,.12)}
+  .tap-card:active{transform:translateY(0) scale(.985)}
+  .focus-ring:focus-visible,.navbtn:focus-visible,button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid rgba(11,107,80,.22);outline-offset:2px}
+  .mobile-shell{padding-bottom:calc(88px + var(--safe-bottom))}
+  .mobile-nav-shadow{box-shadow:0 -8px 28px rgba(16,37,31,.12),0 -1px 0 rgba(226,220,208,.9)}
+  @media (max-width: 640px){
+    .mobile-scroll{margin-inline:-1rem;padding-inline:1rem;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+    .mobile-scroll>*{scroll-snap-align:start}
+    #tip{display:none}
+  }
+  @media (prefers-reduced-motion: reduce){.fade-up{animation:none;opacity:1;transform:none}.tap-card,.tap-card:hover{transition:none;transform:none}html{scroll-behavior:auto}}
+  .ledger-rule{background:linear-gradient(270deg,#0B6B50 0%,#0B6B50 48%,#24798A 48%,#24798A 73%,#A66A12 73%,#A66A12 100%);height:3px}
   ::-webkit-scrollbar{height:8px;width:8px}
-  ::-webkit-scrollbar-thumb{background:#D6D3C8;border-radius:8px}
+  ::-webkit-scrollbar-thumb{background:#D0C9BB;border-radius:8px}
   #tip{pointer-events:none;transition:opacity .12s}
 </style>
 </head>
-<body class="bg-paper text-ink font-sans text-[14px] leading-relaxed min-h-screen">
+<body class="bg-paper text-ink font-sans text-[14px] leading-relaxed min-h-screen mobile-shell lg:pb-0">
 
 <div class="flex min-h-screen">
 
@@ -92,28 +106,39 @@ tailwind.config = {
     </div>
   </aside>
 
+  <nav id="navMobile" class="lg:hidden fixed bottom-0 inset-x-0 z-50 px-3 pt-2 pb-[calc(10px+var(--safe-bottom))] bg-card/92 backdrop-blur-xl border-t border-line mobile-nav-shadow">
+    <div class="grid grid-cols-6 gap-1 max-w-xl mx-auto">
+      <button data-view="dash" class="navbtn focus-ring flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">▦</span><span>القيادة</span></button>
+      <button data-view="disc" class="navbtn focus-ring flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">⌕</span><span>بحث</span></button>
+      <button data-view="war" class="navbtn focus-ring flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">◈</span><span>عمليات</span></button>
+      <button data-view="alerts" class="navbtn focus-ring flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">◌</span><span>تنبيه</span></button>
+      <button data-view="intel" class="navbtn focus-ring flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">▥</span><span>منافسين</span></button>
+      <button data-view="settings" class="navbtn focus-ring flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">⚙</span><span>ضبط</span></button>
+    </div>
+  </nav>
+
   <!-- ======================= MAIN ======================= -->
   <div class="flex-1 min-w-0">
-    <header class="sticky top-0 z-20 bg-paper/85 backdrop-blur border-b border-line">
-      <div class="flex items-center gap-4 px-5 lg:px-8 h-16">
+    <header class="sticky top-0 z-20 bg-paper/88 backdrop-blur-xl border-b border-line">
+      <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 px-4 lg:px-8 min-h-16 py-3 sm:py-0">
         <h1 id="viewTitle" class="text-[17px] font-semibold">لوحة القيادة</h1>
         <span id="freshChip" class="hidden sm:inline-flex items-center gap-2 text-[12px] text-deep bg-tint rounded-full px-3 py-1">
           <span class="w-1.5 h-1.5 rounded-full bg-deep animate-pulse"></span><span id="freshTxt">…</span></span>
         <div class="ms-auto flex items-center gap-2">
           <input id="q" type="search" placeholder="ابحث في المنافسات…"
-            class="w-44 sm:w-64 bg-card border border-line rounded-lg px-3.5 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-deep/40">
-          <button id="goSearch" class="bg-deep hover:bg-deepd text-white rounded-lg px-4 py-2 text-[13px] font-medium transition shadow-card">بحث</button>
+            class="w-40 xs:w-44 sm:w-64 bg-card border border-line rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-deep/40">
+          <button id="goSearch" class="bg-deep hover:bg-deepd text-white rounded-xl px-4 py-2.5 text-[13px] font-medium transition shadow-card">بحث</button>
         </div>
       </div>
     </header>
 
     <!-- ================= DASHBOARD ================= -->
-    <section id="view-dash" class="px-5 lg:px-8 py-7 space-y-6">
-      <div class="grid grid-cols-2 xl:grid-cols-4 gap-4" id="kpis"></div>
+    <section id="view-dash" class="px-4 lg:px-8 py-5 lg:py-7 space-y-5 lg:space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4" id="kpis"></div>
 
-      <div id="commandMetrics" class="grid lg:grid-cols-4 gap-4"></div>
+      <div id="commandMetrics" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4"></div>
 
-      <div class="grid xl:grid-cols-3 gap-5">
+      <div class="grid xl:grid-cols-3 gap-4 lg:gap-5">
         <div class="xl:col-span-2 bg-card border border-line rounded-2xl shadow-card p-6 fade-up" style="animation-delay:.05s">
           <div class="flex items-baseline justify-between mb-1">
             <h2 class="font-semibold text-[15px]">العروض حسب شهر الإغلاق</h2>
@@ -368,8 +393,8 @@ tailwind.config = {
 
 <!-- ================= WAR-ROOM DRAWER ================= -->
 <div id="overlay" class="hidden fixed inset-0 bg-ink/30 backdrop-blur-[2px] z-30"></div>
-<aside id="drawer" class="fixed top-0 left-0 h-screen w-[min(680px,96vw)] bg-paper z-40 shadow-lift overflow-y-auto transition-transform duration-200 -translate-x-full" aria-hidden="true">
-  <div id="detail" class="p-6 lg:p-8"></div>
+<aside id="drawer" class="fixed top-0 left-0 h-[100dvh] w-full sm:w-[min(720px,96vw)] bg-paper z-40 shadow-lift overflow-y-auto transition-transform duration-300 ease-out -translate-x-full" aria-hidden="true">
+  <div id="detail" class="p-4 sm:p-6 lg:p-8"></div>
 </aside>
 
 <div id="tip" class="fixed z-50 opacity-0 bg-ink text-paper text-[12px] rounded-lg px-3 py-1.5 shadow-lift num"></div>
@@ -397,7 +422,7 @@ function countdown(sec){
 /* ---------- navigation ---------- */
 function show(view){
   ['dash','disc','war','alerts','intel','settings'].forEach(v => $('#view-'+v).classList.toggle('hidden', v!==view));
-  document.querySelectorAll('#nav .navbtn').forEach(b => {
+  document.querySelectorAll('#nav .navbtn, #navMobile .navbtn').forEach(b => {
     const on = b.dataset.view === view;
     b.classList.toggle('bg-tint', on); b.classList.toggle('text-deep', on); b.classList.toggle('font-semibold', on);
   });
@@ -420,7 +445,7 @@ function tipHide(){ tip.style.opacity=0; }
 
 /* ---------- dashboard ---------- */
 function kpiCard(label, value, sub, delay, accent){
-  return `<div class="bg-card border border-line rounded-2xl shadow-card p-5 fade-up" style="animation-delay:${delay}s">
+  return `<div class="soft-card border border-line rounded-3xl p-5 fade-up tap-card" style="animation-delay:${delay}s">
     <div class="text-[12px] text-mut mb-2">${label}</div>
     <div class="num text-[26px] font-semibold ${accent||''}">${value}</div>
     ${sub?`<div class="text-[11.5px] text-mut mt-1">${sub}</div>`:''}</div>`;
@@ -487,7 +512,7 @@ function renderCommandMetrics(d){
   const pressure = openTotal ? Math.round(hotNow/openTotal*100) : 0;
   const memory = Number(d.offers_count||0) + Number(d.awards_count||0);
   const freshM = d.fresh_p50_seconds == null ? null : Math.round(Number(d.fresh_p50_seconds)/60);
-  const card = (label, value, sub, cls, onclick, micro='') => `<button onclick="${onclick}" class="text-right bg-card border border-line rounded-2xl shadow-card p-5 hover:shadow-lift hover:-translate-y-0.5 transition fade-up group">
+  const card = (label, value, sub, cls, onclick, micro='') => `<button onclick="${onclick}" class="text-right soft-card border border-line rounded-3xl p-5 fade-up tap-card group">
     <div class="flex items-start justify-between gap-3">
       <div>
         <div class="text-[11px] text-mut mb-2">${label}</div>
@@ -518,7 +543,7 @@ function heatRow(x,i,kind){
   const maxLabel = kind==='agency' ? money(x.award_value||0)+' ر.س ترسيات' : `${nf.format(x.competitors||0)} منافس`;
   const pct = Math.min(100, 18 + Number(x.open_now||0) * 4 + (kind==='activity'?Number(x.competitors||0):0));
   const click = kind==='agency' ? `goDiscovery({agency_id:'${x.id || ''}', open_only:true})` : `goDiscovery({activity_id:'${x.id || ''}', open_only:true})`;
-  return `<button onclick="${click}" class="w-full rounded-xl border border-line bg-paper/60 hover:bg-tint transition p-3 text-right">
+  return `<button onclick="${click}" class="w-full rounded-2xl border border-line bg-paper/70 hover:bg-tint transition p-3.5 text-right tap-card">
     <div class="flex items-center justify-between gap-3"><div class="min-w-0"><div class="font-medium text-[12.5px] truncate">${x.name}</div><div class="text-[10.5px] text-mut mt-0.5">${nf.format(x.open_now||0)} مفتوحة · ${nf.format(x.tenders||0)} إجمالي · ${maxLabel}</div></div><span class="num text-[18px] font-bold ${i<3?'text-deep':'text-ink'}">${nf.format(x.open_now||0)}</span></div>
     <div class="mt-2 h-1.5 rounded-full bg-line overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${i<3?'#0E6B4F':'#2E7C8C'}"></div></div>
   </button>`;
@@ -531,7 +556,7 @@ function renderAwardBands(rows){
   const max = Math.max(1, ...items.map(x=>Number(x.value||0)));
   $('#awardBandsChart').innerHTML = `<div class="space-y-3">${items.map((x,i)=>{
     const pct = Number(x.value||0)/max*100;
-    return `<button onclick="goDiscovery({awarded:true})" class="w-full group text-right">
+    return `<button onclick="goDiscovery({awarded:true})" class="w-full group text-right tap-card rounded-2xl p-1 -m-1">
       <div class="flex items-center justify-between text-[11.5px] mb-1"><span class="font-medium">${labels[x.band]}</span><span class="num text-mut">${nf.format(x.awards||0)} ترسية</span></div>
       <div class="h-9 bg-paper border border-line rounded-xl overflow-hidden relative"><div class="absolute inset-y-0 right-0 group-hover:brightness-95 transition" style="width:${Math.max(3,pct)}%;background:${['#0E6B4F','#2E7C8C','#A16207','#A63D2F'][i]}"></div><div class="absolute inset-0 flex items-center justify-end px-3 text-white mix-blend-normal"><span class="num text-[12px] font-semibold">${money(x.value||0)}</span></div></div>
     </button>`}).join('')}</div><div class="mt-4 text-[11px] text-mut leading-relaxed">الهدف: يرى المستخدم أين يوجد حجم مالي يستحق الدراسة، ثم يصل للجدول بضغطة واحدة.</div>`;
