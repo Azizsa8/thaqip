@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -1569,6 +1570,60 @@ async def tender_price_curve(tender_id: int, mode: str = Query("awards", pattern
         "min_value": min(values) if values else None,
         "max_value": max(values) if values else None,
         "items": items,
+    }
+
+
+def _boq_search_terms(text: str) -> list[str]:
+    """Pick stable terms for a lightweight BOQ similarity lookup."""
+    terms: list[str] = []
+    for raw in re.findall(r"[\w\u0600-\u06FF]{3,}", text or ""):
+        term = raw.strip().lower()
+        if term and term not in terms:
+            terms.append(term)
+    return terms[:5]
+
+
+@app.get("/api/boq-items/{item_id}/similar")
+async def similar_boq_items(item_id: int, limit: int = Query(12, ge=1, le=40)):
+    """Drill from a BOQ row into historical BOQ rows with matching wording."""
+    pool: asyncpg.Pool = app.state.pool
+    item = await pool.fetchrow(
+        """SELECT b.*, t.activity_id, t.activity_name_raw
+           FROM boq_items b JOIN tenders t ON t.id=b.tender_id
+           WHERE b.id=$1""",
+        item_id,
+    )
+    if item is None:
+        raise HTTPException(404)
+    terms = _boq_search_terms(item["description"])
+    if not terms:
+        return {"item": dict(item), "terms": [], "items": []}
+    args: list[object] = [item_id, item["activity_id"]]
+    clauses = []
+    for term in terms:
+        args.append(f"%{term}%")
+        clauses.append(f"b.description ILIKE ${len(args)}")
+    rows = await pool.fetch(
+        f"""SELECT b.id, b.tender_id, b.item_no, b.description, b.unit, b.qty, b.confidence,
+                   t.name AS tender_name,
+                   coalesce(a.canonical_name, t.agency_name_raw) AS agency,
+                   t.activity_name_raw AS activity,
+                   (t.activity_id IS NOT DISTINCT FROM $2) AS same_activity,
+                   ({'::int + '.join('(' + c + ')::int' for c in clauses)}::int) AS match_score
+            FROM boq_items b
+            JOIN tenders t ON t.id=b.tender_id
+            LEFT JOIN agencies a ON a.id=t.agency_id
+            WHERE b.id <> $1 AND ({' OR '.join(clauses)})
+            ORDER BY same_activity DESC, match_score DESC, b.confidence DESC, b.id DESC
+            LIMIT {int(limit)}""",
+        *args,
+    )
+    out_item = dict(item)
+    out_item.pop("created_at", None)
+    return {
+        "item": out_item,
+        "terms": terms,
+        "items": [dict(r) for r in rows],
     }
 
 

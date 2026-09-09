@@ -37,6 +37,7 @@ uv run pytest                                          # fixture-based tests
 - [x] C5 reconciliation — nightly census & head-sample sweep with gap detection (`reconcile.py`)
 - [x] C6 doc pipeline — MinIO content-hash storage, text extraction (PDF/DOCX/XLSX), text chunking, pgvector embedding readiness (`documents.py`)
 - [x] C7 BOQ parser — Arabic column detection (بند، بيان، وحدة، كمية) with confidence scoring & review queue routing (`boq.py`)
+- [x] BOQ history drill-down — `/api/boq-items/{id}/similar` finds historically similar BOQ rows and the tender drawer exposes a per-row drill button
 - [x] D2 continuous deployment — delta loop containerized in Docker Compose (`poller` service) with automatic client recycling watchdog
 - [x] M5 pricing calibration seeding — `pricing-seed` Compose service and `bin/pricing-seed.sh` keep active pursuits stocked with one baseline price hypothesis for later award measurement
 - [x] Settings v1 — `/api/settings` plus dashboard tab for gated-feature readiness, alert cadence, calculator defaults, and my-company comparison baseline used by competitor intelligence

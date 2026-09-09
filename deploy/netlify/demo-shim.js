@@ -125,6 +125,15 @@
       return json({ total: items.length, items: items.slice(off, off + lim) });
     }
     let m;
+    if ((m = p.match(/^\/api\/boq-items\/(\d+)\/similar$/))) {
+      const itemId = +m[1];
+      const all = Object.values(db.tender_details || {}).flatMap(t => (t.boq_items || []).map(b => ({ ...b, tender_id: t.id, tender_name: t.name, agency: t.agency, activity: t.activity_name_raw || t.activity })));
+      const item = all.find(b => b.id === itemId);
+      if (!item) return json({ detail: 'خارج نطاق نسخة العرض' }, 404);
+      const terms = String(item.description || '').match(/[\w\u0600-\u06FF]{3,}/g)?.slice(0, 5) || [];
+      const items = all.filter(b => b.id !== itemId).map(b => ({ ...b, same_activity: b.activity === item.activity, match_score: terms.reduce((n, term) => n + (String(b.description || '').includes(term) ? 1 : 0), 0) })).filter(b => b.match_score > 0).sort((a,b) => Number(b.same_activity)-Number(a.same_activity) || b.match_score-a.match_score).slice(0, 12);
+      return json({ item, terms, items });
+    }
     if ((m = p.match(/^\/api\/tenders\/(\d+)\/price-curve$/))) {
       const detail = (db.tender_details || {})[m[1]] || {};
       const mode = u.searchParams.get('mode') || 'awards';
