@@ -38,7 +38,8 @@ uv run pytest                                          # fixture-based tests
 - [x] C7 BOQ parser — Arabic column detection (بند، بيان، وحدة، كمية) with confidence scoring & review queue routing (`boq.py`)
 - [x] D2 continuous deployment — delta loop containerized in Docker Compose (`poller` service) with automatic client recycling watchdog
 - [x] M5 pricing calibration seeding — `pricing-seed` Compose service and `bin/pricing-seed.sh` keep active pursuits stocked with one baseline price hypothesis for later award measurement
-- [x] Settings v1 — `/api/settings` plus dashboard tab for gated-feature readiness, alert cadence, retention, and calculator defaults used by War Room pricing simulations
+- [x] Settings v1 — `/api/settings` plus dashboard tab for gated-feature readiness, alert cadence, calculator defaults, and my-company comparison baseline used by competitor intelligence
+- [x] Vendor comparison CTA — `/api/vendors/{id}/compare` compares each competitor with the saved company target profile and returns tactical recommendations
 - [x] Calculator modes v1 — War Room price simulator now returns and renders 8 pricing modes with ready/needs-data states
 - [x] Tender award export — tender drawer exports offers/award details as Arabic Excel-friendly CSV
 - [x] Alert history drill-down — notifications API and Alerts tab filter by profile and keyword

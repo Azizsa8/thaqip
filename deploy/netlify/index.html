@@ -318,6 +318,15 @@ tailwind.config = {
             <label class="block text-[12px] text-mut">الاحتفاظ بالبيانات / يوم
               <input id="setRetention" type="number" min="30" max="3650" step="30" class="mt-1 w-full bg-paper border border-line rounded-lg px-3.5 py-2 text-[13px] num focus:outline-none focus:ring-2 focus:ring-deep/30">
             </label>
+            <label class="block text-[12px] text-mut">اسم شركتي
+              <input id="setCompanyName" type="text" maxlength="160" class="mt-1 w-full bg-paper border border-line rounded-lg px-3.5 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-deep/30">
+            </label>
+            <label class="block text-[12px] text-mut">هدف الفوز %
+              <input id="setTargetWin" type="number" min="0" max="100" step="0.5" class="mt-1 w-full bg-paper border border-line rounded-lg px-3.5 py-2 text-[13px] num focus:outline-none focus:ring-2 focus:ring-deep/30">
+            </label>
+            <label class="block text-[12px] text-mut">ميزة التكلفة مقابل السوق %
+              <input id="setCostAdv" type="number" min="-50" max="50" step="0.5" class="mt-1 w-full bg-paper border border-line rounded-lg px-3.5 py-2 text-[13px] num focus:outline-none focus:ring-2 focus:ring-deep/30">
+            </label>
           </div>
           <button onclick="saveSettings()" class="mt-5 bg-deep hover:bg-deepd text-white rounded-lg px-5 py-2.5 text-[13.5px] font-medium transition shadow-card">حفظ الإعدادات</button>
         </div>
@@ -1004,10 +1013,13 @@ async function openVendor(id){
       <div class="px-6 pt-5 pb-4 border-b border-line">
         <div class="flex items-center justify-between gap-3">
           <h2 class="font-bold text-[16px]">${v.canonical_name}</h2>
-          <a href="${API}/api/vendors/${v.id}/export" download class="inline-flex items-center gap-1.5 bg-paper hover:bg-tint border border-line rounded-lg px-3 py-1.5 text-[12px] text-deep font-medium transition">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            <span>تصدير السجل الكامل</span>
-          </a>
+          <div class="flex items-center gap-2">
+            <button onclick="compareVendor(${v.id})" class="inline-flex items-center gap-1.5 bg-deep hover:bg-deepd text-white rounded-lg px-3 py-1.5 text-[12px] font-medium transition shadow-card">قارن مع شركتي</button>
+            <a href="${API}/api/vendors/${v.id}/export" download class="inline-flex items-center gap-1.5 bg-paper hover:bg-tint border border-line rounded-lg px-3 py-1.5 text-[12px] text-deep font-medium transition">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>تصدير السجل الكامل</span>
+            </a>
+          </div>
         </div>
         <div class="grid grid-cols-4 gap-3 mt-4">
           ${[['المشاركات', s.participations],['الفوز', s.wins],['نسبة الفوز', winRate+'%'],['المطابقة الفنية', (s.tech_rate??0)+'%']]
@@ -1019,6 +1031,7 @@ async function openVendor(id){
           <span>أدنى: <span class="num">${money(s.min_offer)}</span></span>
           <span>أعلى: <span class="num">${money(s.max_offer)}</span></span>
         </div>
+        <div id="vendorCompareBox" class="hidden mt-4"></div>
       </div>
       ${agBars?`<div class="px-6 py-4 border-b border-line"><h3 class="text-[12.5px] font-semibold mb-2.5">الجهات (فوز/مشاركة)</h3><div class="space-y-1.5">${agBars}</div></div>`:''}
       <div class="px-3 py-2">
@@ -1042,6 +1055,35 @@ async function openVendor(id){
       </div>
     </div>`;
   loadIntel();
+}
+
+async function compareVendor(id){
+  const c = await (await fetch(API+'/api/vendors/'+id+'/compare')).json();
+  const gap = c.deltas?.win_rate_gap_pct ?? 0;
+  const gapClass = gap > 0 ? 'text-danger' : gap < 0 ? 'text-deep' : 'text-ink';
+  $('#vendorCompareBox').classList.remove('hidden');
+  $('#vendorCompareBox').innerHTML = `
+    <div class="rounded-2xl border border-deep/20 bg-tint/70 p-4">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <div>
+          <div class="text-[12px] text-mut">مقارنة مع</div>
+          <div class="font-semibold text-[14px]">${c.my_company?.name || 'شركتي'}</div>
+        </div>
+        <div class="text-left">
+          <div class="text-[10.5px] text-mut">فجوة الفوز</div>
+          <div class="num font-bold ${gapClass}">${gap>0?'+':''}${gap}%</div>
+        </div>
+      </div>
+      <div class="grid md:grid-cols-4 gap-2.5 text-center">
+        ${[
+          ['فوز المورد', (c.vendor?.win_rate_pct ?? 0)+'%'],
+          ['هدف شركتي', (c.my_company?.target_win_rate_pct ?? 0)+'%'],
+          ['مطابقة المورد', (c.vendor?.tech_rate_pct ?? 0)+'%'],
+          ['سعر مستهدف', c.my_company?.target_offer_vs_vendor_avg ? money(c.my_company.target_offer_vs_vendor_avg) : '—'],
+        ].map(([k,v])=>`<div class="bg-card border border-line rounded-xl px-2.5 py-2"><div class="num text-[16px] font-semibold">${v}</div><div class="text-[10px] text-mut">${k}</div></div>`).join('')}
+      </div>
+      <ul class="mt-3 space-y-1.5 text-[11.5px] text-ink leading-relaxed">${(c.recommendations||[]).map(r=>`<li class="flex gap-2"><span class="text-deep">•</span><span>${r}</span></li>`).join('')}</ul>
+    </div>`;
 }
 
 async function loadAgencies(){
@@ -1139,6 +1181,9 @@ async function loadSettings(){
   $('#setRisk').value = s.calculator?.risk_tolerance || 'balanced';
   $('#setAlertFrequency').value = s.alerts?.frequency || 'instant';
   $('#setRetention').value = s.retention_days || 180;
+  $('#setCompanyName').value = s.my_company?.name || 'شركتي';
+  $('#setTargetWin').value = s.my_company?.target_win_rate_pct ?? 25;
+  $('#setCostAdv').value = s.my_company?.cost_advantage_pct ?? 0;
   $('#settingsSaved').textContent = s.updated_at ? 'آخر تحديث: '+dt(s.updated_at) : '';
   $('#gatedFeatures').innerHTML = Object.entries(GATED_LABELS).map(([k, v]) => {
     const on = !!(s.gated_features || {})[k];
@@ -1158,6 +1203,9 @@ async function saveSettings(){
     default_agency_id: null,
     alert_frequency: $('#setAlertFrequency').value || 'instant',
     retention_days: Number($('#setRetention').value || 180),
+    my_company_name: ($('#setCompanyName').value || 'شركتي').trim(),
+    target_win_rate_pct: Number($('#setTargetWin').value || 25),
+    cost_advantage_pct: Number($('#setCostAdv').value || 0),
   };
   const s = await (await fetch(API+'/api/settings', {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})).json();
   $('#settingsSaved').textContent = 'حُفظ الآن · '+dt(s.updated_at);

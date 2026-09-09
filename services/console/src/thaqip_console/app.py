@@ -363,6 +363,9 @@ class SettingsIn(BaseModel):
     default_agency_id: int | None = None
     alert_frequency: str = Field(pattern="^(instant|hourly|daily)$")
     retention_days: int = Field(ge=30, le=3650)
+    my_company_name: str = Field(default="شركتي", min_length=1, max_length=160)
+    target_win_rate_pct: float = Field(default=25.0, ge=0, le=100)
+    cost_advantage_pct: float = Field(default=0.0, ge=-50, le=50)
 
 
 def _checkpoint_json(checkpoint: object) -> dict:
@@ -650,6 +653,11 @@ async def settings():
             "default_agency_id": row["default_agency_id"],
         },
         "alerts": {"frequency": row["alert_frequency"]},
+        "my_company": {
+            "name": row["my_company_name"],
+            "target_win_rate_pct": float(row["target_win_rate_pct"]),
+            "cost_advantage_pct": float(row["cost_advantage_pct"]),
+        },
         "retention_days": row["retention_days"],
         "updated_at": row["updated_at"],
     }
@@ -661,20 +669,27 @@ async def update_settings(body: SettingsIn):
     pool: asyncpg.Pool = app.state.pool
     await pool.execute(
         """INSERT INTO user_calculator_prefs
-             (id, default_markup_pct, risk_tolerance, default_agency_id, alert_frequency, retention_days, updated_at)
-           VALUES (1, $1, $2, $3, $4, $5, now())
+             (id, default_markup_pct, risk_tolerance, default_agency_id, alert_frequency, retention_days,
+              my_company_name, target_win_rate_pct, cost_advantage_pct, updated_at)
+           VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, now())
            ON CONFLICT (id) DO UPDATE SET
              default_markup_pct=EXCLUDED.default_markup_pct,
              risk_tolerance=EXCLUDED.risk_tolerance,
              default_agency_id=EXCLUDED.default_agency_id,
              alert_frequency=EXCLUDED.alert_frequency,
              retention_days=EXCLUDED.retention_days,
+             my_company_name=EXCLUDED.my_company_name,
+             target_win_rate_pct=EXCLUDED.target_win_rate_pct,
+             cost_advantage_pct=EXCLUDED.cost_advantage_pct,
              updated_at=now()""",
         body.default_markup_pct,
         body.risk_tolerance,
         body.default_agency_id,
         body.alert_frequency,
         body.retention_days,
+        body.my_company_name.strip(),
+        body.target_win_rate_pct,
+        body.cost_advantage_pct,
     )
     return await settings()
 
@@ -981,6 +996,64 @@ async def vendor_detail(vid: int):
     out["history"] = [dict(r) for r in history]
     out["agencies"] = [dict(r) for r in agencies]
     return out
+
+
+@app.get("/api/vendors/{vid}/compare")
+async def vendor_compare(vid: int):
+    """Compare a competitor profile against the operator's company target profile."""
+    pool: asyncpg.Pool = app.state.pool
+    detail = await vendor_detail(vid)
+    prefs = await pool.fetchrow("SELECT * FROM user_calculator_prefs WHERE id=1")
+    if prefs is None:
+        await pool.execute("INSERT INTO user_calculator_prefs (id) VALUES (1) ON CONFLICT DO NOTHING")
+        prefs = await pool.fetchrow("SELECT * FROM user_calculator_prefs WHERE id=1")
+    assert prefs is not None
+    stats = detail["stats"]
+    participations = int(stats.get("participations") or 0)
+    wins = int(stats.get("wins") or 0)
+    vendor_win_rate = round(100 * wins / participations, 1) if participations else 0.0
+    vendor_tech_rate = float(stats.get("tech_rate") or 0)
+    avg_offer = float(stats["avg_offer"]) if stats.get("avg_offer") is not None else None
+    target_win_rate = float(prefs["target_win_rate_pct"] or 0)
+    cost_advantage = float(prefs["cost_advantage_pct"] or 0)
+    target_offer = round(avg_offer * (1 - cost_advantage / 100), 2) if avg_offer is not None else None
+    win_gap = round(vendor_win_rate - target_win_rate, 1)
+    recommendations = []
+    if win_gap > 10:
+        recommendations.append("المورد يملك معدل فوز أعلى من هدفك؛ راقب جهاته المتكررة وافتح فرصًا بسعر أشرس أو عرض فني أقوى عند مواجهته.")
+    elif win_gap < -10:
+        recommendations.append("هدف شركتك أعلى من أداء هذا المورد؛ يمكنك مهاجمته بثقة في الفرص المشابهة مع الحفاظ على هامش صحي.")
+    else:
+        recommendations.append("الفجوة قريبة؛ القرار يجب أن يعتمد على الجهة، وزن التقييم الفني، وعدد المنافسين المتوقع.")
+    if vendor_tech_rate >= 80:
+        recommendations.append("المطابقة الفنية لديه مرتفعة؛ لا تجعل السعر وحده سلاحك، بل اربط العرض بإثباتات امتثال واضحة.")
+    elif vendor_tech_rate and vendor_tech_rate < 60:
+        recommendations.append("لديه ضعف فني ظاهر؛ ركّز على اكتمال المتطلبات وتوثيق الخبرات قبل خصم السعر.")
+    if cost_advantage > 0 and target_offer is not None:
+        recommendations.append(f"ميزة التكلفة المحفوظة تعني أن سعرًا حول {target_offer:,.0f} ر.س يعادل متوسط عروضه بعد الخصم.")
+    return {
+        "vendor": {
+            "id": detail["id"],
+            "name": detail["canonical_name"],
+            "participations": participations,
+            "wins": wins,
+            "win_rate_pct": vendor_win_rate,
+            "tech_rate_pct": vendor_tech_rate,
+            "avg_offer": avg_offer,
+        },
+        "my_company": {
+            "name": prefs["my_company_name"],
+            "target_win_rate_pct": target_win_rate,
+            "cost_advantage_pct": cost_advantage,
+            "target_offer_vs_vendor_avg": target_offer,
+        },
+        "deltas": {
+            "win_rate_gap_pct": win_gap,
+            "technical_gap_pct": round(vendor_tech_rate - 75.0, 1),
+            "cost_advantage_pct": cost_advantage,
+        },
+        "recommendations": recommendations,
+    }
 
 
 TYPESENSE_URL = os.environ.get("TYPESENSE_URL", "http://localhost:8108")

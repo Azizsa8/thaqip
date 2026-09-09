@@ -94,10 +94,10 @@
       return json({ acknowledged: true, connector, run_id: null });
     }
     if (p === '/api/settings' && method === 'PATCH') {
-      db.settings = { ...(db.settings || {}), calculator: { default_markup_pct: Number(body.default_markup_pct), risk_tolerance: body.risk_tolerance, default_agency_id: body.default_agency_id || null }, alerts: { frequency: body.alert_frequency }, retention_days: Number(body.retention_days), updated_at: new Date().toISOString(), gated_features: (db.settings || {}).gated_features || { etimad_supplier_credentials: false, llm_compliance_extraction: false, telegram_alerts: false, ksa_staging: false } };
+      db.settings = { ...(db.settings || {}), calculator: { default_markup_pct: Number(body.default_markup_pct), risk_tolerance: body.risk_tolerance, default_agency_id: body.default_agency_id || null }, alerts: { frequency: body.alert_frequency }, my_company: { name: (body.my_company_name || 'شركتي').trim(), target_win_rate_pct: Number(body.target_win_rate_pct ?? 25), cost_advantage_pct: Number(body.cost_advantage_pct ?? 0) }, retention_days: Number(body.retention_days), updated_at: new Date().toISOString(), gated_features: (db.settings || {}).gated_features || { etimad_supplier_credentials: false, llm_compliance_extraction: false, telegram_alerts: false, ksa_staging: false } };
       return json(db.settings);
     }
-    if (p === '/api/settings') return json(db.settings || { gated_features: { etimad_supplier_credentials: false, llm_compliance_extraction: false, telegram_alerts: false, ksa_staging: false }, calculator: { default_markup_pct: 12, risk_tolerance: 'balanced', default_agency_id: null }, alerts: { frequency: 'instant' }, retention_days: 180 });
+    if (p === '/api/settings') return json(db.settings || { gated_features: { etimad_supplier_credentials: false, llm_compliance_extraction: false, telegram_alerts: false, ksa_staging: false }, calculator: { default_markup_pct: 12, risk_tolerance: 'balanced', default_agency_id: null }, alerts: { frequency: 'instant' }, my_company: { name: 'شركتي', target_win_rate_pct: 25, cost_advantage_pct: 0 }, retention_days: 180 });
     if (p === '/api/pricing/accuracy') return json(db.pricing_accuracy || {
       measured: 0, status: 'awaiting_awards', confidence: 'low', recent: [],
       mape_all: null, mape_30d: null, mape_90d: null,
@@ -159,6 +159,29 @@
       const q = u.searchParams.get('q');
       if (q) vs = vs.filter(v => v.canonical_name.includes(q));
       return json(vs);
+    }
+    if ((m = p.match(/^\/api\/vendors\/(\d+)\/compare$/))) {
+      const detail = (db.vendor_details || {})[m[1]];
+      if (!detail) return json({ detail: 'خارج نطاق نسخة العرض' }, 404);
+      const stats = detail.stats || {};
+      const participations = Number(stats.participations || 0);
+      const wins = Number(stats.wins || 0);
+      const vendorWinRate = participations ? Math.round((1000 * wins) / participations) / 10 : 0;
+      const vendorTechRate = Number(stats.tech_rate || 0);
+      const avgOffer = stats.avg_offer == null ? null : Number(stats.avg_offer);
+      const cfg = (db.settings && db.settings.my_company) || { name: 'شركتي', target_win_rate_pct: 25, cost_advantage_pct: 0 };
+      const targetWin = Number(cfg.target_win_rate_pct ?? 25);
+      const costAdv = Number(cfg.cost_advantage_pct ?? 0);
+      const targetOffer = avgOffer == null ? null : Math.round(avgOffer * (1 - costAdv / 100) * 100) / 100;
+      const gap = Math.round((vendorWinRate - targetWin) * 10) / 10;
+      const recommendations = [];
+      if (gap > 10) recommendations.push('المورد يملك معدل فوز أعلى من هدفك؛ راقب جهاته المتكررة وافتح فرصًا بسعر أشرس أو عرض فني أقوى عند مواجهته.');
+      else if (gap < -10) recommendations.push('هدف شركتك أعلى من أداء هذا المورد؛ يمكنك مهاجمته بثقة في الفرص المشابهة مع الحفاظ على هامش صحي.');
+      else recommendations.push('الفجوة قريبة؛ القرار يجب أن يعتمد على الجهة، وزن التقييم الفني، وعدد المنافسين المتوقع.');
+      if (vendorTechRate >= 80) recommendations.push('المطابقة الفنية لديه مرتفعة؛ لا تجعل السعر وحده سلاحك، بل اربط العرض بإثباتات امتثال واضحة.');
+      else if (vendorTechRate && vendorTechRate < 60) recommendations.push('لديه ضعف فني ظاهر؛ ركّز على اكتمال المتطلبات وتوثيق الخبرات قبل خصم السعر.');
+      if (costAdv > 0 && targetOffer != null) recommendations.push(`ميزة التكلفة المحفوظة تعني أن سعرًا حول ${targetOffer.toLocaleString('ar-SA')} ر.س يعادل متوسط عروضه بعد الخصم.`);
+      return json({ vendor: { id: detail.id, name: detail.canonical_name, participations, wins, win_rate_pct: vendorWinRate, tech_rate_pct: vendorTechRate, avg_offer: avgOffer }, my_company: { name: cfg.name || 'شركتي', target_win_rate_pct: targetWin, cost_advantage_pct: costAdv, target_offer_vs_vendor_avg: targetOffer }, deltas: { win_rate_gap_pct: gap, technical_gap_pct: Math.round((vendorTechRate - 75) * 10) / 10, cost_advantage_pct: costAdv }, recommendations });
     }
     if ((m = p.match(/^\/api\/vendors\/(\d+)$/)))
       return db.vendor_details[m[1]] ? json(db.vendor_details[m[1]])

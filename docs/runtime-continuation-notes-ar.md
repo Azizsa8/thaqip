@@ -105,3 +105,5 @@ modal deploy deploy/modal/modal_app.py
 - `var/*.lock`
 - `.netlify/`
 - `agent-fleet/`
+
+- تمت إضافة مقارنة المورد مع شركتي: إعدادات الشركة المستهدفة، endpoint باسم `/api/vendors/{id}/compare`، وزر داخل ملف المورد يعرض الفجوات والتوصيات العملية.
