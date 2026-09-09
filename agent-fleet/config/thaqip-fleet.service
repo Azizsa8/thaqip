@@ -1,0 +1,30 @@
+[Unit]
+Description=Thaqip Agent Fleet Manager
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=ais04
+WorkingDirectory=/home/ais04/thaqip/agent-fleet
+Environment=PATH=/home/ais04/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=HERMES_HOME=/home/ais04/.hermes
+Environment=DATABASE_URL=postgres://thaqip:thaqip_dev@localhost:5433/thaqip
+Environment=TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+Environment=TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+Environment=FLEET_WEBHOOK_URL=${FLEET_WEBHOOK_URL}
+Environment=FLEET_WEBHOOK_SECRET=${FLEET_WEBHOOK_SECRET}
+Environment=THAQIP_ANTHROPIC_API_KEY=${THAQIP_ANTHROPIC_API_KEY}
+Environment=OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+ExecStart=/home/ais04/.local/bin/uv run python -m api.fleet_manager
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/ais04/thaqip/agent-fleet/var/fleet-daemon.log
+StandardError=append:/home/ais04/thaqip/agent-fleet/var/fleet-daemon.log
+
+# Resource limits
+MemoryMax=4G
+CPUQuota=200%
+
+[Install]
+WantedBy=multi-user.target

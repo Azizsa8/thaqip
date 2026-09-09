@@ -1,0 +1,195 @@
+2026-09-08 18:32:39,211 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 18:32:39,216 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 18:32:39,224 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 18:32:39,421 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 18:32:39,423 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 18:32:39,424 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 18:32:39,425 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 18:32:39,426 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 18:32:39,428 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 18:32:39,430 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 18:32:39,430 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 18:32:39,432 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 18:32:39,437 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 18:32:39,438 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 18:32:39,439 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 18:32:39,442 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 18:32:39,444 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 18:32:39,446 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 18:32:39,450 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 18:32:39,452 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 18:32:39,454 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 18:32:39,456 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 18:32:39,458 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 18:32:39,460 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 18:32:39,462 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 18:32:39,487 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 18:32:41,448 INFO run_agent: Loaded environment variables from /home/ais04/thaqip/agent-fleet/profiles/research-lead/.env
+2026-09-08 18:32:42,189 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-09-08 18:32:42,847 INFO run_agent: OpenAI client created (agent_init, shared=True) thread=MainThread:129828422858560 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:32:42,855 WARNING tools.registry: check_fn check_browser_back_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,857 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,859 WARNING tools.registry: check_fn check_browser_click_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,860 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,862 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,877 WARNING tools.registry: check_fn check_browser_navigate_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,879 WARNING tools.registry: check_fn check_browser_press_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,880 WARNING tools.registry: check_fn check_browser_scroll_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,882 WARNING tools.registry: check_fn check_browser_snapshot_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,884 WARNING tools.registry: check_fn check_browser_type_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,885 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,887 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,891 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,893 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:42,894 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:32:43,043 INFO tools.tool_search: tool_search activated (tier 1): 17 core/visible tools kept, 4 deferred (~3013 tokens), listing full (budget ~4000 tokens)
+2026-09-08 18:32:43,199 INFO [20260908_183240_c50e09] agent.turn_context: conversation turn: session=20260908_183240_c50e09 model=nvidia/nemotron-3-ultra-550b-a55b provider=nvidia platform=cli history=0 msg='Say hello'
+2026-09-08 18:32:43,794 INFO agent.auxiliary_client: Auxiliary auto-detect: using main provider nvidia (nvidia/nemotron-3-ultra-550b-a55b)
+2026-09-08 18:32:43,795 INFO agent.auxiliary_client: Auxiliary title_generation: using nvidia (nvidia/nemotron-3-ultra-550b-a55b) at https://integrate.api.nvidia.com/v1/
+2026-09-08 18:32:43,864 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-4 (<lambda>):129828371244736 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:33:14,394 INFO agent.auxiliary_client: Auxiliary title_generation: transient transport error (attempt 1/2); retrying same provider after 1.0s before fallback: Request timed out.
+2026-09-08 18:33:15,577 ERROR agent.chat_completion_helpers: Streaming failed before delivery: Service temporarily overloaded
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2771, in _call_chat_completions
+    for chunk in _iter_provider_stream_chunks(stream, response=lambda: self._attempt_stream_response):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 244, in _iter_provider_stream_chunks
+    yield from stream
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 432, in __next__
+    chunk = next(self._stream, self)  # self: exhausted sentinel
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_streaming.py", line 49, in __iter__
+    for item in self._iterator:
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_streaming.py", line 95, in __stream__
+    raise APIError(
+openai.APIError: Service temporarily overloaded
+2026-09-08 18:33:15,578 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-4 (<lambda>):129828371244736 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:33:15,584 WARNING [20260908_183240_c50e09] agent.conversation_loop: API call failed (attempt 1/3) error_type=APIError thread=MainThread:129828422858560 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b summary=Service temporarily overloaded
+2026-09-08 18:33:15,585 WARNING [20260908_183240_c50e09] agent.conversation_loop: Retrying API call in 2.2239148666077506s (attempt 1/3) thread=MainThread:129828422858560 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b policy=default error=Service temporarily overloaded
+2026-09-08 18:33:17,991 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-5 (<lambda>):129828371244736 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:33:45,974 ERROR agent.chat_completion_helpers: Streaming failed before delivery: Service temporarily overloaded
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2771, in _call_chat_completions
+    for chunk in _iter_provider_stream_chunks(stream, response=lambda: self._attempt_stream_response):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 244, in _iter_provider_stream_chunks
+    yield from stream
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 432, in __next__
+    chunk = next(self._stream, self)  # self: exhausted sentinel
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_streaming.py", line 49, in __iter__
+    for item in self._iterator:
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_streaming.py", line 95, in __stream__
+    raise APIError(
+openai.APIError: Service temporarily overloaded
+2026-09-08 18:33:45,975 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-5 (<lambda>):129828371244736 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:33:46,075 WARNING [20260908_183240_c50e09] agent.conversation_loop: API call failed (attempt 2/3) error_type=APIError thread=MainThread:129828422858560 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b summary=Service temporarily overloaded
+2026-09-08 18:33:46,075 WARNING [20260908_183240_c50e09] agent.conversation_loop: Retrying API call in 4.234189178638714s (attempt 2/3) thread=MainThread:129828422858560 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b policy=default error=Service temporarily overloaded
+2026-09-08 18:33:50,487 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-6 (<lambda>):129828371244736 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:34:46,286 INFO [20260908_183240_c50e09] agent.conversation_loop: API call #1: model=nvidia/nemotron-3-ultra-550b-a55b provider=nvidia in=12344 out=93 total=12437 latency=122.4s id=chatcmpl-a75a8217-a5ca-456c-ac15-bd32c2909bf2
+2026-09-08 18:34:46,552 INFO [20260908_183240_c50e09] agent.conversation_loop: Turn ended: reason=text_response(finish_reason=stop) model=nvidia/nemotron-3-ultra-550b-a55b api_calls=1/1 budget=1/1 tool_turns=0 last_msg_role=assistant response_len=280 session=20260908_183240_c50e09
+2026-09-08 18:34:46,578 INFO [20260908_183240_c50e09] cli: CLI cleanup calling memory shutdown for session 20260908_183240_c50e09 with 2 message(s)
+2026-09-08 18:36:07,552 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 18:36:07,555 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 18:36:07,560 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 18:36:07,741 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 18:36:07,742 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 18:36:07,744 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 18:36:07,745 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 18:36:07,749 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 18:36:07,751 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 18:36:07,753 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 18:36:07,754 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 18:36:07,758 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 18:36:07,892 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 18:36:08,047 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 18:36:08,051 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 18:36:08,065 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 18:36:08,074 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 18:36:08,079 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 18:36:08,086 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 18:36:08,089 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 18:36:08,093 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 18:36:08,097 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 18:36:08,099 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 18:36:08,103 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 18:36:08,105 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 18:36:08,131 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 18:36:08,405 INFO run_agent: Loaded environment variables from /home/ais04/thaqip/agent-fleet/profiles/research-lead/.env
+2026-09-08 18:36:08,642 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-09-08 18:36:09,293 INFO run_agent: OpenAI client created (agent_init, shared=True) thread=MainThread:123850200614720 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:36:09,300 WARNING tools.registry: check_fn check_browser_back_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,302 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,304 WARNING tools.registry: check_fn check_browser_click_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,305 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,307 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,322 WARNING tools.registry: check_fn check_browser_navigate_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,324 WARNING tools.registry: check_fn check_browser_press_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,326 WARNING tools.registry: check_fn check_browser_scroll_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,327 WARNING tools.registry: check_fn check_browser_snapshot_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,329 WARNING tools.registry: check_fn check_browser_type_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,330 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,332 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,337 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,338 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,340 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:36:09,482 INFO tools.tool_search: tool_search activated (tier 1): 17 core/visible tools kept, 4 deferred (~3013 tokens), listing full (budget ~4000 tokens)
+2026-09-08 18:36:09,756 INFO [20260908_183608_8c5eff] agent.turn_context: conversation turn: session=20260908_183608_8c5eff model=nvidia/nemotron-3-ultra-550b-a55b provider=nvidia platform=cli history=0 msg='Say hello'
+2026-09-08 18:36:10,249 INFO agent.auxiliary_client: Auxiliary auto-detect: using main provider nvidia (nvidia/nemotron-3-ultra-550b-a55b)
+2026-09-08 18:36:10,254 INFO agent.auxiliary_client: Auxiliary title_generation: using nvidia (nvidia/nemotron-3-ultra-550b-a55b) at https://integrate.api.nvidia.com/v1/
+2026-09-08 18:36:10,297 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-4 (<lambda>):123849945380544 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:36:26,913 ERROR agent.chat_completion_helpers: Streaming failed before delivery: Service temporarily overloaded
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2771, in _call_chat_completions
+    for chunk in _iter_provider_stream_chunks(stream, response=lambda: self._attempt_stream_response):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 244, in _iter_provider_stream_chunks
+    yield from stream
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 432, in __next__
+    chunk = next(self._stream, self)  # self: exhausted sentinel
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_streaming.py", line 49, in __iter__
+    for item in self._iterator:
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_streaming.py", line 95, in __stream__
+    raise APIError(
+openai.APIError: Service temporarily overloaded
+2026-09-08 18:36:26,914 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-4 (<lambda>):123849945380544 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:36:26,917 WARNING [20260908_183608_8c5eff] agent.conversation_loop: API call failed (attempt 1/3) error_type=APIError thread=MainThread:123850200614720 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b summary=Service temporarily overloaded
+2026-09-08 18:36:26,917 WARNING [20260908_183608_8c5eff] agent.conversation_loop: Retrying API call in 2.5982882332520583s (attempt 1/3) thread=MainThread:123850200614720 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b policy=default error=Service temporarily overloaded
+2026-09-08 18:36:29,528 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-5 (<lambda>):123849945380544 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:36:52,218 INFO [20260908_183608_8c5eff] agent.conversation_loop: API call #1: model=nvidia/nemotron-3-ultra-550b-a55b provider=nvidia in=12344 out=92 total=12436 latency=41.8s id=chatcmpl-58d8bd58-923e-45de-8abc-c6bbae28ad48
+2026-09-08 18:36:52,247 INFO [20260908_183608_8c5eff] agent.conversation_loop: Turn ended: reason=text_response(finish_reason=stop) model=nvidia/nemotron-3-ultra-550b-a55b api_calls=1/1 budget=1/1 tool_turns=0 last_msg_role=assistant response_len=292 session=20260908_183608_8c5eff
+2026-09-08 18:36:52,281 INFO [20260908_183608_8c5eff] cli: CLI cleanup calling memory shutdown for session 20260908_183608_8c5eff with 2 message(s)

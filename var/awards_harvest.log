@@ -414,3 +414,1305 @@ Traceback (most recent call last):
   File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/etimad/client.py", line 96, in fetch_listing_page
     raise httpx.HTTPStatusError("waf cool-off", request=resp.request, response=resp)
 httpx.HTTPStatusError: waf cool-off
+2026-09-04T06:15:01+03:00 cron harvest session starting
+2026-09-04 06:15:02,406 thaqip.awards INFO awards harvest resuming at listing page 10
+2026-09-04 06:15:02,796 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 06:15:02,797 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 90s (attempt 1)
+2026-09-04 06:16:32,887 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=1 failed (waf cool-off); retrying in 1.4s
+2026-09-04 06:16:34,828 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 06:16:34,829 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 180s (attempt 2)
+2026-09-04 06:19:34,929 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=2 failed (waf cool-off); retrying in 2.3s
+2026-09-04 06:19:37,862 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 06:19:37,863 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 270s (attempt 3)
+2026-09-04 06:24:07,964 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=3 failed (waf cool-off); retrying in 4.0s
+2026-09-04 06:24:12,331 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 06:24:12,331 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 360s (attempt 4)
+2026-09-04 06:30:12,431 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=4 failed (waf cool-off); retrying in 9.8s
+2026-09-04 06:30:22,773 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 06:30:22,774 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 450s (attempt 5)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 211, in main
+    stats = await harvester.run(pages=args.pages, page_size=args.page_size)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 132, in run
+    listing = await self._fetch_awarded_page(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        client, page, page_size, dict(AWARDED_CATEGORY_PARAM)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 195, in _fetch_awarded_page
+    listing = await client.fetch_listing_page(page, page_size, extra_params=extra)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/etimad/client.py", line 96, in fetch_listing_page
+    raise httpx.HTTPStatusError("waf cool-off", request=resp.request, response=resp)
+httpx.HTTPStatusError: waf cool-off
+2026-09-04T12:15:01+03:00 cron harvest session starting
+2026-09-04 12:15:01,559 thaqip.awards INFO awards harvest resuming at listing page 10
+2026-09-04 12:15:01,945 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 12:15:01,946 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 90s (attempt 1)
+2026-09-04 12:16:32,036 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=1 failed (waf cool-off); retrying in 1.2s
+2026-09-04 12:16:33,676 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 12:16:33,677 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 180s (attempt 2)
+2026-09-04 12:19:33,778 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=2 failed (waf cool-off); retrying in 2.7s
+2026-09-04 12:19:36,969 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 12:19:36,970 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 270s (attempt 3)
+2026-09-04 12:24:07,071 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=3 failed (waf cool-off); retrying in 4.5s
+2026-09-04 12:24:12,053 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 12:24:12,054 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 360s (attempt 4)
+2026-09-04 12:30:12,155 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=4 failed (waf cool-off); retrying in 8.8s
+2026-09-04 12:30:21,396 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 12:30:21,397 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 450s (attempt 5)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 211, in main
+    stats = await harvester.run(pages=args.pages, page_size=args.page_size)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 132, in run
+    listing = await self._fetch_awarded_page(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        client, page, page_size, dict(AWARDED_CATEGORY_PARAM)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 195, in _fetch_awarded_page
+    listing = await client.fetch_listing_page(page, page_size, extra_params=extra)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/etimad/client.py", line 96, in fetch_listing_page
+    raise httpx.HTTPStatusError("waf cool-off", request=resp.request, response=resp)
+httpx.HTTPStatusError: waf cool-off
+2026-09-04T18:15:01+03:00 cron harvest session starting
+2026-09-04 18:15:02,180 thaqip.awards INFO awards harvest resuming at listing page 10
+2026-09-04 18:15:02,677 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 18:15:02,678 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 90s (attempt 1)
+2026-09-04 18:16:32,766 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=1 failed (waf cool-off); retrying in 1.1s
+2026-09-04 18:16:34,497 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 18:16:34,498 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 180s (attempt 2)
+2026-09-04 18:19:34,598 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=2 failed (waf cool-off); retrying in 2.9s
+2026-09-04 18:19:38,082 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 18:19:38,083 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 270s (attempt 3)
+2026-09-04 18:24:08,184 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=3 failed (waf cool-off); retrying in 5.7s
+2026-09-04 18:24:15,684 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 18:24:15,685 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 360s (attempt 4)
+2026-09-04 18:30:15,783 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=4 failed (waf cool-off); retrying in 10.5s
+2026-09-04 18:30:26,739 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-04 18:30:26,739 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 450s (attempt 5)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 211, in main
+    stats = await harvester.run(pages=args.pages, page_size=args.page_size)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 132, in run
+    listing = await self._fetch_awarded_page(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        client, page, page_size, dict(AWARDED_CATEGORY_PARAM)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 195, in _fetch_awarded_page
+    listing = await client.fetch_listing_page(page, page_size, extra_params=extra)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/etimad/client.py", line 96, in fetch_listing_page
+    raise httpx.HTTPStatusError("waf cool-off", request=resp.request, response=resp)
+httpx.HTTPStatusError: waf cool-off
+2026-09-05T00:15:01+03:00 cron harvest session starting
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 208, in main
+    pool = await db.connect(os.environ["DATABASE_URL"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/db.py", line 72, in connect
+    return await asyncpg.create_pool(dsn, min_size=1, max_size=4)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 439, in _async__init__
+    await self._initialize()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 466, in _initialize
+    await first_ch.connect()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 153, in connect
+    self._con = await self._pool._get_new_connection()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 538, in _get_new_connection
+    con = await self._connect(
+          ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1172, in create_connection
+    raise exceptions[0]
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1147, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1046, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 643, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 683, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
+2026-09-05T06:15:01+03:00 cron harvest session starting
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 208, in main
+    pool = await db.connect(os.environ["DATABASE_URL"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/db.py", line 72, in connect
+    return await asyncpg.create_pool(dsn, min_size=1, max_size=4)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 439, in _async__init__
+    await self._initialize()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 466, in _initialize
+    await first_ch.connect()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 153, in connect
+    self._con = await self._pool._get_new_connection()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 538, in _get_new_connection
+    con = await self._connect(
+          ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1172, in create_connection
+    raise exceptions[0]
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1147, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1046, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 643, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 683, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
+2026-09-05T12:15:01+03:00 cron harvest session starting
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 208, in main
+    pool = await db.connect(os.environ["DATABASE_URL"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/db.py", line 72, in connect
+    return await asyncpg.create_pool(dsn, min_size=1, max_size=4)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 439, in _async__init__
+    await self._initialize()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 466, in _initialize
+    await first_ch.connect()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 153, in connect
+    self._con = await self._pool._get_new_connection()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 538, in _get_new_connection
+    con = await self._connect(
+          ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1172, in create_connection
+    raise exceptions[0]
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1147, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1046, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 643, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 683, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
+2026-09-05T18:15:01+03:00 cron harvest session starting
+2026-09-05 18:15:02,377 thaqip.awards INFO awards harvest resuming at listing page 10
+2026-09-05 18:15:03,173 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-05 18:15:03,174 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 90s (attempt 1)
+2026-09-05 18:16:33,264 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=1 failed (waf cool-off); retrying in 1.5s
+2026-09-05 18:16:35,131 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-05 18:16:35,136 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 180s (attempt 2)
+2026-09-05 18:19:35,238 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=2 failed (waf cool-off); retrying in 2.5s
+2026-09-05 18:19:37,982 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-05 18:19:37,983 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 270s (attempt 3)
+2026-09-05 18:24:08,083 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=3 failed (waf cool-off); retrying in 5.4s
+2026-09-05 18:24:14,010 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-05 18:24:14,011 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 360s (attempt 4)
+2026-09-05 18:30:14,111 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=4 failed (waf cool-off); retrying in 11.4s
+2026-09-05 18:30:26,057 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-05 18:30:26,058 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 450s (attempt 5)
+2026-09-05 18:37:56,158 thaqip.resilience WARNING route /Tender/AllSupplierTendersForVisitorAsync recorded failure 1/4 (waf cool-off)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 211, in main
+    stats = await harvester.run(pages=args.pages, page_size=args.page_size)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 132, in run
+    listing = await self._fetch_awarded_page(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        client, page, page_size, dict(AWARDED_CATEGORY_PARAM)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 195, in _fetch_awarded_page
+    listing = await client.fetch_listing_page(page, page_size, extra_params=extra)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/etimad/client.py", line 99, in fetch_listing_page
+    raise httpx.HTTPStatusError("waf cool-off", request=resp.request, response=resp)
+httpx.HTTPStatusError: waf cool-off
+2026-09-06T06:15:01+03:00 cron harvest session starting
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 208, in main
+    pool = await db.connect(os.environ["DATABASE_URL"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/db.py", line 72, in connect
+    return await asyncpg.create_pool(dsn, min_size=1, max_size=4)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 439, in _async__init__
+    await self._initialize()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 466, in _initialize
+    await first_ch.connect()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 153, in connect
+    self._con = await self._pool._get_new_connection()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 538, in _get_new_connection
+    con = await self._connect(
+          ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1172, in create_connection
+    raise exceptions[0]
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1147, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1046, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 643, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 683, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
+2026-09-06T12:15:01+03:00 cron harvest session starting
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 208, in main
+    pool = await db.connect(os.environ["DATABASE_URL"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/db.py", line 72, in connect
+    return await asyncpg.create_pool(dsn, min_size=1, max_size=4)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 439, in _async__init__
+    await self._initialize()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 466, in _initialize
+    await first_ch.connect()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 153, in connect
+    self._con = await self._pool._get_new_connection()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 538, in _get_new_connection
+    con = await self._connect(
+          ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1172, in create_connection
+    raise exceptions[0]
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1147, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1046, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 643, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 683, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
+2026-09-06T18:15:01+03:00 cron harvest session starting
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 208, in main
+    pool = await db.connect(os.environ["DATABASE_URL"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/db.py", line 72, in connect
+    return await asyncpg.create_pool(dsn, min_size=1, max_size=4)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 439, in _async__init__
+    await self._initialize()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 466, in _initialize
+    await first_ch.connect()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 153, in connect
+    self._con = await self._pool._get_new_connection()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 538, in _get_new_connection
+    con = await self._connect(
+          ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1172, in create_connection
+    raise exceptions[0]
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1147, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1046, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 643, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 683, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
+2026-09-07T00:15:01+03:00 cron harvest session starting
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 208, in main
+    pool = await db.connect(os.environ["DATABASE_URL"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/db.py", line 72, in connect
+    return await asyncpg.create_pool(dsn, min_size=1, max_size=4)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 439, in _async__init__
+    await self._initialize()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 466, in _initialize
+    await first_ch.connect()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 153, in connect
+    self._con = await self._pool._get_new_connection()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 538, in _get_new_connection
+    con = await self._connect(
+          ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1172, in create_connection
+    raise exceptions[0]
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1147, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1046, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 643, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 683, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
+2026-09-07T06:15:01+03:00 cron harvest session starting
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 208, in main
+    pool = await db.connect(os.environ["DATABASE_URL"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/db.py", line 72, in connect
+    return await asyncpg.create_pool(dsn, min_size=1, max_size=4)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 439, in _async__init__
+    await self._initialize()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 466, in _initialize
+    await first_ch.connect()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 153, in connect
+    self._con = await self._pool._get_new_connection()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 538, in _get_new_connection
+    con = await self._connect(
+          ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1172, in create_connection
+    raise exceptions[0]
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1147, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1046, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 643, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 683, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
+2026-09-07T12:15:01+03:00 cron harvest session starting
+2026-09-07 12:15:02,456 thaqip.awards INFO awards harvest resuming at listing page 10
+2026-09-07 12:15:02,861 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-07 12:15:02,861 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 90s (attempt 1)
+2026-09-07 12:16:32,951 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=1 failed (waf cool-off); retrying in 1.3s
+2026-09-07 12:16:34,609 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-07 12:16:34,611 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 180s (attempt 2)
+2026-09-07 12:19:34,711 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=2 failed (waf cool-off); retrying in 3.0s
+2026-09-07 12:19:38,547 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-07 12:19:38,548 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 270s (attempt 3)
+2026-09-07 12:24:08,649 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=3 failed (waf cool-off); retrying in 4.1s
+2026-09-07 12:24:13,226 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-07 12:24:13,227 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 360s (attempt 4)
+2026-09-07 12:30:13,327 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=4 failed (waf cool-off); retrying in 10.1s
+2026-09-07 12:30:23,882 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-07 12:30:23,884 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 450s (attempt 5)
+2026-09-07 12:37:53,984 thaqip.resilience WARNING route /Tender/AllSupplierTendersForVisitorAsync recorded failure 1/4 (waf cool-off)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 211, in main
+    stats = await harvester.run(pages=args.pages, page_size=args.page_size)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 132, in run
+    listing = await self._fetch_awarded_page(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        client, page, page_size, dict(AWARDED_CATEGORY_PARAM)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 195, in _fetch_awarded_page
+    listing = await client.fetch_listing_page(page, page_size, extra_params=extra)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/etimad/client.py", line 99, in fetch_listing_page
+    raise httpx.HTTPStatusError("waf cool-off", request=resp.request, response=resp)
+httpx.HTTPStatusError: waf cool-off
+2026-09-07T18:15:01+03:00 cron harvest session starting
+2026-09-07 18:15:01,926 thaqip.awards INFO awards harvest resuming at listing page 10
+2026-09-07 18:15:02,280 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-07 18:15:02,281 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 90s (attempt 1)
+2026-09-07 18:16:32,370 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=1 failed (waf cool-off); retrying in 1.1s
+2026-09-07 18:16:33,847 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-07 18:16:33,849 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 180s (attempt 2)
+2026-09-07 18:19:33,949 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=2 failed (waf cool-off); retrying in 2.1s
+2026-09-07 18:19:36,525 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-07 18:19:36,526 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 270s (attempt 3)
+2026-09-07 18:24:06,627 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=3 failed (waf cool-off); retrying in 5.0s
+2026-09-07 18:24:12,185 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-07 18:24:12,187 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 360s (attempt 4)
+2026-09-07 18:30:12,287 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=4 failed (waf cool-off); retrying in 8.3s
+2026-09-07 18:30:21,064 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-07 18:30:21,066 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 450s (attempt 5)
+2026-09-07 18:37:51,165 thaqip.resilience WARNING route /Tender/AllSupplierTendersForVisitorAsync recorded failure 1/4 (waf cool-off)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 211, in main
+    stats = await harvester.run(pages=args.pages, page_size=args.page_size)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 132, in run
+    listing = await self._fetch_awarded_page(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        client, page, page_size, dict(AWARDED_CATEGORY_PARAM)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 195, in _fetch_awarded_page
+    listing = await client.fetch_listing_page(page, page_size, extra_params=extra)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/etimad/client.py", line 99, in fetch_listing_page
+    raise httpx.HTTPStatusError("waf cool-off", request=resp.request, response=resp)
+httpx.HTTPStatusError: waf cool-off
+2026-09-08T00:15:01+03:00 cron harvest session starting
+2026-09-08 00:15:01,702 thaqip.awards INFO awards harvest resuming at listing page 10
+2026-09-08 00:15:02,268 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 00:15:02,269 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 90s (attempt 1)
+2026-09-08 00:16:32,359 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=1 failed (waf cool-off); retrying in 1.1s
+2026-09-08 00:16:34,093 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 00:16:34,094 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 180s (attempt 2)
+2026-09-08 00:19:34,193 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=2 failed (waf cool-off); retrying in 2.0s
+2026-09-08 00:19:36,802 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 00:19:36,803 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 270s (attempt 3)
+2026-09-08 00:24:06,903 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=3 failed (waf cool-off); retrying in 4.9s
+2026-09-08 00:24:12,457 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 00:24:12,457 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 360s (attempt 4)
+2026-09-08 00:30:12,557 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=4 failed (waf cool-off); retrying in 8.5s
+2026-09-08 00:30:21,808 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 00:30:21,809 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 450s (attempt 5)
+2026-09-08 00:37:51,909 thaqip.resilience WARNING route /Tender/AllSupplierTendersForVisitorAsync recorded failure 1/4 (waf cool-off)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 211, in main
+    stats = await harvester.run(pages=args.pages, page_size=args.page_size)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 132, in run
+    listing = await self._fetch_awarded_page(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        client, page, page_size, dict(AWARDED_CATEGORY_PARAM)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 195, in _fetch_awarded_page
+    listing = await client.fetch_listing_page(page, page_size, extra_params=extra)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/etimad/client.py", line 99, in fetch_listing_page
+    raise httpx.HTTPStatusError("waf cool-off", request=resp.request, response=resp)
+httpx.HTTPStatusError: waf cool-off
+2026-09-08T06:15:01+03:00 cron harvest session starting
+2026-09-08 06:15:02,463 thaqip.awards INFO awards harvest resuming at listing page 10
+2026-09-08 06:15:02,847 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 06:15:02,848 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 90s (attempt 1)
+2026-09-08 06:16:32,938 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=1 failed (waf cool-off); retrying in 1.5s
+2026-09-08 06:16:34,854 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 06:16:34,855 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 180s (attempt 2)
+2026-09-08 06:19:34,955 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=2 failed (waf cool-off); retrying in 2.6s
+2026-09-08 06:19:37,916 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 06:19:37,916 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 270s (attempt 3)
+2026-09-08 06:24:08,017 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=3 failed (waf cool-off); retrying in 5.5s
+2026-09-08 06:24:14,027 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 06:24:14,028 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 360s (attempt 4)
+2026-09-08 06:30:14,128 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=4 failed (waf cool-off); retrying in 10.6s
+2026-09-08 06:30:25,104 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 06:30:25,105 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 450s (attempt 5)
+2026-09-08 06:37:55,205 thaqip.resilience WARNING route /Tender/AllSupplierTendersForVisitorAsync recorded failure 1/4 (waf cool-off)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 211, in main
+    stats = await harvester.run(pages=args.pages, page_size=args.page_size)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 132, in run
+    listing = await self._fetch_awarded_page(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        client, page, page_size, dict(AWARDED_CATEGORY_PARAM)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 195, in _fetch_awarded_page
+    listing = await client.fetch_listing_page(page, page_size, extra_params=extra)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/etimad/client.py", line 99, in fetch_listing_page
+    raise httpx.HTTPStatusError("waf cool-off", request=resp.request, response=resp)
+httpx.HTTPStatusError: waf cool-off
+2026-09-08T12:15:01+03:00 cron harvest session starting
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 208, in main
+    pool = await db.connect(os.environ["DATABASE_URL"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/db.py", line 72, in connect
+    return await asyncpg.create_pool(dsn, min_size=1, max_size=4)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 439, in _async__init__
+    await self._initialize()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 466, in _initialize
+    await first_ch.connect()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 153, in connect
+    self._con = await self._pool._get_new_connection()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 538, in _get_new_connection
+    con = await self._connect(
+          ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1172, in create_connection
+    raise exceptions[0]
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1147, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1046, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 643, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 683, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
+2026-09-08T18:15:01+03:00 cron harvest session starting
+2026-09-08 18:15:02,180 thaqip.awards INFO awards harvest resuming at listing page 10
+2026-09-08 18:15:02,867 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 18:15:02,868 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 90s (attempt 1)
+2026-09-08 18:16:32,959 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=1 failed (waf cool-off); retrying in 1.4s
+2026-09-08 18:16:34,944 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 18:16:34,945 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 180s (attempt 2)
+2026-09-08 18:19:35,045 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=2 failed (waf cool-off); retrying in 2.9s
+2026-09-08 18:19:38,429 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 18:19:38,431 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 270s (attempt 3)
+2026-09-08 18:24:08,532 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=3 failed (waf cool-off); retrying in 4.8s
+2026-09-08 18:24:13,752 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 18:24:13,753 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 360s (attempt 4)
+2026-09-08 18:30:13,853 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=4 failed (waf cool-off); retrying in 9.2s
+2026-09-08 18:30:23,726 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-08 18:30:23,727 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 450s (attempt 5)
+2026-09-08 18:37:53,827 thaqip.resilience WARNING route /Tender/AllSupplierTendersForVisitorAsync recorded failure 1/4 (waf cool-off)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 219, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 211, in main
+    stats = await harvester.run(pages=args.pages, page_size=args.page_size)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 132, in run
+    listing = await self._fetch_awarded_page(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        client, page, page_size, dict(AWARDED_CATEGORY_PARAM)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/awards_harvest.py", line 195, in _fetch_awarded_page
+    listing = await client.fetch_listing_page(page, page_size, extra_params=extra)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/etimad/client.py", line 99, in fetch_listing_page
+    raise httpx.HTTPStatusError("waf cool-off", request=resp.request, response=resp)
+httpx.HTTPStatusError: waf cool-off
+2026-09-09T00:15:01+03:00 cron harvest session starting
+2026-09-09 00:15:01,651 thaqip.awards INFO awards harvest resuming at listing page 10
+2026-09-09 00:15:02,241 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-09 00:15:02,242 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 90s (attempt 1)
+2026-09-09 00:16:32,333 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=1 failed (waf cool-off); retrying in 1.4s
+2026-09-09 00:16:34,106 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-09 00:16:34,106 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 180s (attempt 2)
+2026-09-09 00:19:34,206 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=2 failed (waf cool-off); retrying in 2.7s
+2026-09-09 00:19:37,320 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-09 00:19:37,320 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 270s (attempt 3)
+2026-09-09 00:24:07,421 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=3 failed (waf cool-off); retrying in 5.0s
+2026-09-09 00:24:12,844 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-09 00:24:12,846 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 360s (attempt 4)
+2026-09-09 00:30:12,945 thaqip_ingestion.etimad.client WARNING etimad listing page=10 attempt=4 failed (waf cool-off); retrying in 10.3s
+2026-09-09 00:30:23,725 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=10&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-09 00:30:23,727 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 450s (attempt 5)
+2026-09-09 00:37:53,828 thaqip.resilience WARNING route /Tender/AllSupplierTendersForVisitorAsync recorded failure 1/4 (waf cool-off)
+2026-09-09 00:37:53,828 thaqip.awards WARNING awards harvest paused by Etimad WAF cool-off; next schedule will retry
+2026-09-09 00:37:53,888 thaqip.awards INFO harvest complete: {'pages': 0, 'tenders': 0, 'skipped': 0, 'announced': 0, 'offers': 0, 'awards': 0, 'events': 0, 'cooldown': True}
+2026-09-09T06:15:01+03:00 cron harvest session starting
+2026-09-09 06:15:01,955 thaqip.awards INFO awards harvest resuming at listing page 1
+2026-09-09 06:15:03,120 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=1&TenderCategory=6 "HTTP/1.1 200 OK"
+2026-09-09 06:15:03,177 thaqip_ingestion.etimad.session INFO bootstrapping Etimad session via headless browser
+2026-09-09 06:15:11,100 thaqip_ingestion.etimad.session INFO bootstrap complete: 14 cookies (10 TSPD)
+2026-09-09 06:15:11,308 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=ef9a9AFdJVYX+Q+Ytj2xag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:15:14,408 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=zagprJ7xJ+BaFvqZjkpcag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:15:17,501 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=%2A%40%40%2A%2AtVT4YuV8KxE%2A%40%40%2A%2Ai45evxlzg%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:15:20,590 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=cMGYLYBKBSaN+ya+j%2A%40%40%2A%2ADPFw%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:15:23,768 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=kCeYz+lnxDODMnPfWO40VA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:15:26,988 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=2oes+iCtqF51BHcPi1BsFA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:15:30,096 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=qfNbh%2A%40%40%2A%2ATMbUUyrQbNKy3mdw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:15:33,422 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=TOo3eYAL40KHVC5SgHXVAQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:15:36,634 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mrkGx4G42y+%2A%40%40%2A%2AGNLCzodqFA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:15:39,823 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=2yRkmqINijRqgfjDqoIajw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:15:43,037 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=bfKaMukKwIbNKr7115te3g%3D%3D "HTTP/1.1 429 Too Many Requests"
+2026-09-09 06:15:43,038 thaqip.awards WARNING 429 on awarding component; sleeping 33s
+2026-09-09 06:16:16,389 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=bfKaMukKwIbNKr7115te3g%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:16:19,509 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=ae%2A%40%40%2A%2AtMIMeakP4V6QHedkrzA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:16:22,830 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=cIJRO%2A%40%40%2A%2AcpgGul+gRmTJtETQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:16:26,009 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=YncYXRmnSUb8%2A%40%40%2A%2Akz8epvpSA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:16:29,197 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=XbwpAmbGDs3hkKV%2A%40%40%2A%2AO7TO4w%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:16:32,477 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=4i9Uh%2A%40%40%2A%2AzpiM+l5hPNt4SlMw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:16:35,732 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=0Rqm1jLF3d8et9MxyeKcKQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:16:38,986 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=h+fliSolHZmp4tgoCUwsKA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:16:42,144 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=zt8X4SG60FR5WHAw3scHUA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:16:45,420 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=oAibyvqwQiBFMLF6ETM4yg%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:16:48,617 thaqip.awards INFO page 1 done: {'pages': 1, 'tenders': 20, 'skipped': 0, 'announced': 15, 'offers': 44, 'awards': 15, 'events': 15, 'cooldown': False}
+2026-09-09 06:16:49,613 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=2&TenderCategory=6 "HTTP/1.1 200 OK"
+2026-09-09 06:16:49,635 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=ef9a9AFdJVYX+Q+Ytj2xag%3D%3D "HTTP/1.1 429 Too Many Requests"
+2026-09-09 06:16:49,636 thaqip.awards WARNING 429 on awarding component; sleeping 32s
+2026-09-09 06:17:21,770 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=ef9a9AFdJVYX+Q+Ytj2xag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:17:24,860 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=zagprJ7xJ+BaFvqZjkpcag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:17:27,947 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=%2A%40%40%2A%2AtVT4YuV8KxE%2A%40%40%2A%2Ai45evxlzg%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:17:31,054 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=cMGYLYBKBSaN+ya+j%2A%40%40%2A%2ADPFw%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:17:34,144 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mrkGx4G42y+%2A%40%40%2A%2AGNLCzodqFA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:17:37,315 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=yTb5rcoYzag8EJeqC0GIJg%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:17:40,596 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=OgmxhVEj2KSOrEj4MkjvXw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:17:43,868 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=DlXbynjgZ1dZulKO5PCovw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:17:47,074 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=2ZhGKctOE5rnQwYh4TXt9A%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:17:50,344 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=t20Agkzu2PCp9hipIWzd0w%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:17:53,475 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=bB6i9YQzLzuZkm79s04NtA%3D%3D "HTTP/1.1 429 Too Many Requests"
+2026-09-09 06:17:53,476 thaqip.awards WARNING 429 on awarding component; sleeping 33s
+2026-09-09 06:18:26,691 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=bB6i9YQzLzuZkm79s04NtA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:18:29,956 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=9Ger+33z0yzj%2A%40%40%2A%2A7IgD0lIDA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:18:33,151 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=AV44iItVXFg13kg7pC8ZlA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:18:36,310 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=MJMJWRdei0QdxsoXDQr6+Q%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:18:39,491 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=l1t56tUxvVRzizMz52GGhw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:18:42,686 thaqip.awards INFO page 2 done: {'pages': 2, 'tenders': 40, 'skipped': 5, 'announced': 24, 'offers': 68, 'awards': 24, 'events': 24, 'cooldown': False}
+2026-09-09 06:18:43,503 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=3&TenderCategory=6 "HTTP/1.1 200 OK"
+2026-09-09 06:18:43,567 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=ef9a9AFdJVYX+Q+Ytj2xag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:18:46,621 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=zagprJ7xJ+BaFvqZjkpcag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:18:49,721 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=%2A%40%40%2A%2AtVT4YuV8KxE%2A%40%40%2A%2Ai45evxlzg%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:18:52,817 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=cMGYLYBKBSaN+ya+j%2A%40%40%2A%2ADPFw%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:18:55,879 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mrkGx4G42y+%2A%40%40%2A%2AGNLCzodqFA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:18:58,903 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=AV44iItVXFg13kg7pC8ZlA%3D%3D "HTTP/1.1 429 Too Many Requests"
+2026-09-09 06:18:58,904 thaqip.awards WARNING 429 on awarding component; sleeping 33s
+2026-09-09 06:19:32,115 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=AV44iItVXFg13kg7pC8ZlA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:19:35,279 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=QfT%2A%40%40%2A%2ATKdIfmjSGCRgKrPAvg%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:19:38,447 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=pLiw0Q0glzYgbdaA9k16Ng%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:19:41,718 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=zkZY6ruAhH%2A%40%40%2A%2AaDt39FAPZOw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:19:44,956 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=AKpDEm6YP9mxMqj5sESHFA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:19:48,250 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=6yC2JM4MpiWyPSPs+HHsOQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:19:51,386 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=tmEMdMg3GNCLbo6sMA9sgw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:19:54,537 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=s+qRHpphxc4DKKhTMJolEQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:19:57,794 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=86u8gOzhHXxx+cnreoV8rA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:20:00,840 thaqip.awards INFO page 3 done: {'pages': 3, 'tenders': 60, 'skipped': 11, 'announced': 31, 'offers': 116, 'awards': 31, 'events': 31, 'cooldown': False}
+2026-09-09 06:20:02,133 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=4&TenderCategory=6 "HTTP/1.1 200 OK"
+2026-09-09 06:20:02,224 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=ef9a9AFdJVYX+Q+Ytj2xag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:20:05,248 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=zagprJ7xJ+BaFvqZjkpcag%3D%3D "HTTP/1.1 429 Too Many Requests"
+2026-09-09 06:20:05,250 thaqip.awards WARNING 429 on awarding component; sleeping 32s
+2026-09-09 06:20:37,441 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=zagprJ7xJ+BaFvqZjkpcag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:20:40,555 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=%2A%40%40%2A%2AtVT4YuV8KxE%2A%40%40%2A%2Ai45evxlzg%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:20:43,662 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=cMGYLYBKBSaN+ya+j%2A%40%40%2A%2ADPFw%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:20:46,756 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mrkGx4G42y+%2A%40%40%2A%2AGNLCzodqFA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:20:49,847 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=AV44iItVXFg13kg7pC8ZlA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:20:52,953 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=QfT%2A%40%40%2A%2ATKdIfmjSGCRgKrPAvg%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:20:56,083 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=jZSW7ep4FdFG3A94X27FsA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:20:59,170 thaqip.awards INFO page 4 done: {'pages': 4, 'tenders': 80, 'skipped': 23, 'announced': 32, 'offers': 120, 'awards': 32, 'events': 32, 'cooldown': False}
+2026-09-09 06:21:00,179 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=5&TenderCategory=6 "HTTP/1.1 200 OK"
+2026-09-09 06:21:00,270 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=ef9a9AFdJVYX+Q+Ytj2xag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:21:03,358 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=zagprJ7xJ+BaFvqZjkpcag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:21:06,444 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=%2A%40%40%2A%2AtVT4YuV8KxE%2A%40%40%2A%2Ai45evxlzg%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:21:09,465 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=cMGYLYBKBSaN+ya+j%2A%40%40%2A%2ADPFw%3D%3D "HTTP/1.1 429 Too Many Requests"
+2026-09-09 06:21:09,465 thaqip.awards WARNING 429 on awarding component; sleeping 33s
+2026-09-09 06:21:42,604 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=cMGYLYBKBSaN+ya+j%2A%40%40%2A%2ADPFw%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:21:45,668 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mrkGx4G42y+%2A%40%40%2A%2AGNLCzodqFA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:21:48,724 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=AV44iItVXFg13kg7pC8ZlA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:21:51,789 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=QfT%2A%40%40%2A%2ATKdIfmjSGCRgKrPAvg%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:21:54,859 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=kfGNYjNGbtTXKThjpvMQXA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:21:57,991 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=7x5r9mGv63jpytdaoH2CXw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:22:01,109 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=fM83epoR22NEvN3MPhz6kg%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:22:04,279 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=yIdmtJoafpUy1AUy1Nt5Ig%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:22:07,368 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=2ePLnKWKKQ6aSOSKWrWdSw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:22:10,489 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=Rk5GnbvfeVkuRK8Jl4Wxhg%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:22:13,582 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=EGTRuMD6l6l9VstNZhN+fw%3D%3D "HTTP/1.1 429 Too Many Requests"
+2026-09-09 06:22:13,583 thaqip.awards WARNING 429 on awarding component; sleeping 34s
+2026-09-09 06:22:47,900 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=EGTRuMD6l6l9VstNZhN+fw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:22:50,985 thaqip.awards INFO page 5 done: {'pages': 5, 'tenders': 100, 'skipped': 29, 'announced': 38, 'offers': 147, 'awards': 38, 'events': 38, 'cooldown': False}
+2026-09-09 06:22:52,162 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=6&TenderCategory=6 "HTTP/1.1 200 OK"
+2026-09-09 06:22:52,228 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=ef9a9AFdJVYX+Q+Ytj2xag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:22:55,293 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=zagprJ7xJ+BaFvqZjkpcag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:22:58,388 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=%2A%40%40%2A%2AtVT4YuV8KxE%2A%40%40%2A%2Ai45evxlzg%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:23:01,499 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=cMGYLYBKBSaN+ya+j%2A%40%40%2A%2ADPFw%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:23:04,584 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mrkGx4G42y+%2A%40%40%2A%2AGNLCzodqFA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:23:07,674 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=AV44iItVXFg13kg7pC8ZlA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:23:10,760 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=QfT%2A%40%40%2A%2ATKdIfmjSGCRgKrPAvg%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:23:13,855 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=kfGNYjNGbtTXKThjpvMQXA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:23:16,942 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=5+shIyx683tH%2A%40%40%2A%2ANsYx7%2A%40%40%2A%2ARDA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:23:20,039 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=yp1Eq3ZQ8FHaxsAamjslkQ%3D%3D "HTTP/1.1 429 Too Many Requests"
+2026-09-09 06:23:20,040 thaqip.awards WARNING 429 on awarding component; sleeping 33s
+2026-09-09 06:23:53,169 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=yp1Eq3ZQ8FHaxsAamjslkQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:23:56,329 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=bvQ5TOKnBfY%2A%40%40%2A%2ARix3KgXTKw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:23:59,540 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=CjsrbBx0lE5tMbkT0AqOhQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:24:02,695 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=VDH7iaZvUh4jRADoUzW7Zw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:24:05,857 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=27C5fcF0w5N7u1J2mDwUAg%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:24:09,081 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=yxdbTIDhSpv90LFl7Lo8XQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:24:12,250 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=LT50rcHeVGyq+89ndULyUw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:24:15,407 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=YI5uMLQu2lrmE%2A%40%40%2A%2AFxH+j5ng%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:24:18,567 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=%2A%40%40%2A%2ARoYGbgWUcU0BhhmC4cA%2A%40%40%2A%2Aw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:24:21,585 thaqip.awards INFO page 6 done: {'pages': 6, 'tenders': 120, 'skipped': 31, 'announced': 47, 'offers': 191, 'awards': 47, 'events': 47, 'cooldown': False}
+2026-09-09 06:24:22,372 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=7&TenderCategory=6 "HTTP/1.1 200 OK"
+2026-09-09 06:24:22,462 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=ef9a9AFdJVYX+Q+Ytj2xag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:24:25,487 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=zagprJ7xJ+BaFvqZjkpcag%3D%3D "HTTP/1.1 429 Too Many Requests"
+2026-09-09 06:24:25,488 thaqip.awards WARNING 429 on awarding component; sleeping 33s
+2026-09-09 06:24:58,670 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=zagprJ7xJ+BaFvqZjkpcag%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:25:01,772 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=%2A%40%40%2A%2AtVT4YuV8KxE%2A%40%40%2A%2Ai45evxlzg%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:25:04,861 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=cMGYLYBKBSaN+ya+j%2A%40%40%2A%2ADPFw%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:25:07,958 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mrkGx4G42y+%2A%40%40%2A%2AGNLCzodqFA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:25:11,041 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=AV44iItVXFg13kg7pC8ZlA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:25:14,125 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=QfT%2A%40%40%2A%2ATKdIfmjSGCRgKrPAvg%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:25:17,237 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=kfGNYjNGbtTXKThjpvMQXA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:25:20,335 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=5+shIyx683tH%2A%40%40%2A%2ANsYx7%2A%40%40%2A%2ARDA%3D%3D "HTTP/1.1 302 Found"
+2026-09-09 06:25:23,451 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=uj7fQw3eEn7lpAAcNwb6fg%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:25:26,609 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=tspX5pLrlWX9yHLRzwFhpA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:25:29,751 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=fschm7DBBizF8J5put3rvw%3D%3D "HTTP/1.1 429 Too Many Requests"
+2026-09-09 06:25:29,753 thaqip.awards WARNING 429 on awarding component; sleeping 34s
+2026-09-09 06:26:03,936 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=fschm7DBBizF8J5put3rvw%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:26:07,122 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=HjRbxONKK1aU9sE3oOKcwA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:26:10,292 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mY1L8F%2A%40%40%2A%2AIugiaJ94uj1F3bA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:26:13,380 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=1I2+Zv3ktH7YQpYXdA5A1A%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:26:16,570 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=2oPHbs1tHJio+AhZQO2QKg%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:26:19,639 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=3r6yC3wtDJarOopnjuJaug%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:26:22,805 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=Gz+KGOSSoly0YiKeL4ipIg%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:26:25,886 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=KM%2A%40%40%2A%2A9UvxOdloi7QheybJoWA%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:26:28,991 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=cwu77EeqsRIlLY+hlB0Sig%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 06:26:32,138 thaqip.awards INFO page 7 done: {'pages': 7, 'tenders': 140, 'skipped': 31, 'announced': 58, 'offers': 228, 'awards': 58, 'events': 58, 'cooldown': False}
+2026-09-09 06:26:32,563 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=8&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-09 06:26:32,564 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 90s (attempt 1)
+2026-09-09 06:28:02,576 thaqip_ingestion.etimad.client WARNING etimad listing page=8 attempt=1 failed (waf cool-off); retrying in 1.0s
+2026-09-09 06:28:04,044 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/AllSupplierTendersForVisitorAsync?PageSize=20&PageNumber=8&TenderCategory=6 "HTTP/1.1 400 Bad Request"
+2026-09-09 06:28:04,044 thaqip_ingestion.etimad.client WARNING 400 (likely WAF cool-off); sleeping 180s (attempt 2)

@@ -1,0 +1,28 @@
+model:
+  provider: nvidia
+  default: nvidia/nemotron-3-ultra-550b-a55b
+  model: nvidia/nemotron-3-ultra-550b-a55b
+toolsets:
+  - terminal
+  - files
+  - skills
+  - web
+skills:
+  enabled:
+    - pdf
+    - docx
+    - xlsx
+    - grounded-citations
+    - baoyu-infographic
+mcp:
+  servers: []
+agent:
+  system_prompt_additions: 'You are a Tender Analyst for Thaqip. Analyze Saudi tender
+    documents (Etimad/Forsah): extract BOQs, compliance matrices, qualification requirements,
+    evaluation criteria, award decisions. Know GTPL regulations. Output structured
+    analysis ready for bid preparation.
+
+    '
+plugins:
+  enabled: []
+_config_version: 41

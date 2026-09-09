@@ -1,0 +1,1604 @@
+2026-09-08 16:52:43,757 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 16:52:43,760 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 16:52:43,763 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 16:52:43,978 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 16:52:43,980 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 16:52:43,981 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 16:52:43,983 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 16:52:43,985 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 16:52:43,990 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 16:52:44,003 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 16:52:44,003 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 16:52:44,008 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 16:52:44,033 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 16:52:44,035 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 16:52:44,037 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 16:52:44,043 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 16:52:44,047 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 16:52:44,049 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 16:52:44,058 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 16:52:44,060 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 16:52:44,063 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 16:52:44,066 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 16:52:44,069 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 16:52:44,073 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 16:52:44,077 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 16:52:44,215 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 16:53:15,042 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 16:53:15,043 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 16:53:15,045 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 16:53:15,162 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 16:53:15,163 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 16:53:15,164 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 16:53:15,165 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 16:53:15,166 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 16:53:15,168 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 16:53:15,170 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 16:53:15,170 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 16:53:15,172 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 16:53:15,187 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 16:53:15,188 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 16:53:15,190 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 16:53:15,192 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 16:53:15,194 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 16:53:15,195 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 16:53:15,199 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 16:53:15,201 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 16:53:15,203 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 16:53:15,205 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 16:53:15,207 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 16:53:15,208 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 16:53:15,212 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 16:53:15,294 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 16:56:40,289 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 16:56:40,291 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 16:56:40,293 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 16:56:40,429 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 16:56:40,431 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 16:56:40,433 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 16:56:40,435 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 16:56:40,436 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 16:56:40,442 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 16:56:40,445 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 16:56:40,445 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 16:56:40,448 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 16:56:40,469 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 16:56:40,470 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 16:56:40,474 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 16:56:40,493 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 16:56:40,499 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 16:56:40,501 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 16:56:40,509 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 16:56:40,511 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 16:56:40,515 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 16:56:40,517 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 16:56:40,519 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 16:56:40,521 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 16:56:40,524 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 16:56:40,619 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 16:57:11,494 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 16:57:11,496 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 16:57:11,498 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 16:57:11,621 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 16:57:11,622 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 16:57:11,623 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 16:57:11,625 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 16:57:11,625 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 16:57:11,628 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 16:57:11,629 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 16:57:11,630 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 16:57:11,632 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 16:57:11,649 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 16:57:11,651 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 16:57:11,653 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 16:57:11,655 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 16:57:11,657 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 16:57:11,659 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 16:57:11,663 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 16:57:11,665 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 16:57:11,666 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 16:57:11,668 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 16:57:11,669 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 16:57:11,670 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 16:57:11,673 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 16:57:11,763 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:03:19,202 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:03:19,205 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:03:19,207 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:03:19,393 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:03:19,395 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:03:19,397 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:03:19,398 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:03:19,400 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:03:19,401 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:03:19,403 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:03:19,403 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:03:19,405 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:03:19,412 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:03:19,414 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:03:19,415 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:03:19,418 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:03:19,420 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:03:19,422 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:03:19,427 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:03:19,429 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:03:19,431 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:03:19,433 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:03:19,435 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:03:19,437 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:03:19,441 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:03:19,484 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:03:54,193 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:03:54,201 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:03:54,206 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:03:54,555 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:03:54,557 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:03:54,570 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:03:54,576 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:03:54,582 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:03:54,584 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:03:54,611 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:03:54,614 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:03:54,788 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:03:54,985 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:03:54,993 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:03:55,009 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:03:55,023 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:03:55,026 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:03:55,028 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:03:55,031 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:03:55,034 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:03:55,036 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:03:55,037 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:03:55,042 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:03:55,044 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:03:55,046 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:03:55,081 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:06:17,593 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:06:17,597 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:06:17,600 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:06:17,805 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:06:17,815 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:06:17,819 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:06:17,954 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:06:17,957 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:06:18,058 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:06:18,063 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:06:18,063 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:06:18,117 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:06:18,127 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:06:18,129 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:06:18,131 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:06:18,134 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:06:18,138 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:06:18,140 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:06:18,144 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:06:18,147 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:06:18,149 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:06:18,151 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:06:18,153 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:06:18,154 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:06:18,156 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:06:18,183 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:07:05,239 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:07:05,247 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:07:05,261 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:07:05,487 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:07:05,496 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:07:05,506 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:07:05,512 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:07:05,516 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:07:05,517 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:07:05,525 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:07:05,525 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:07:05,529 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:07:05,550 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:07:05,552 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:07:05,688 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:07:05,859 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:07:05,872 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:07:05,874 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:07:05,877 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:07:05,879 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:07:05,881 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:07:05,885 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:07:05,888 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:07:05,891 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:07:05,893 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:07:05,925 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:07:06,596 WARNING agent.credential_pool: Ingested OPENROUTER_API_KEY from environment into the openrouter credential pool — this enables OpenRouter spend. Remove the key or run hermes auth remove openrouter <n> to suppress.
+2026-09-08 17:07:06,706 INFO run_agent: No .env file found. Using system environment variables.
+2026-09-08 17:07:07,993 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-09-08 17:07:08,986 INFO run_agent: OpenAI client created (agent_init, shared=True) thread=MainThread:139910737647424 provider=openrouter base_url=https://openrouter.ai/api/v1 model=anthropic/claude-sonnet-4
+2026-09-08 17:07:08,999 WARNING tools.registry: check_fn check_browser_back_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,001 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,003 WARNING tools.registry: check_fn check_browser_click_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,004 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,006 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,031 WARNING tools.registry: check_fn check_browser_navigate_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,032 WARNING tools.registry: check_fn check_browser_press_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,034 WARNING tools.registry: check_fn check_browser_scroll_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,035 WARNING tools.registry: check_fn check_browser_snapshot_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,036 WARNING tools.registry: check_fn check_browser_type_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,038 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,040 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,046 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,048 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,051 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 17:07:09,349 WARNING agent.auxiliary_client: Auxiliary client: PAID lane engaged for auxiliary task — OpenRouter fallback model 'anthropic/claude-sonnet-4' is not a :free SKU and may incur real spend. Set auxiliary.free_only: true to restrict auxiliary fallbacks to free models, or auxiliary.openrouter_model to a :free model.
+2026-09-08 17:07:09,352 INFO agent.auxiliary_client: Vision auto-detect: using main provider openrouter (anthropic/claude-sonnet-4)
+2026-09-08 17:07:09,444 INFO tools.tool_search: tool_search activated (tier 1): 17 core/visible tools kept, 4 deferred (~3013 tokens), listing full (budget ~4000 tokens)
+2026-09-08 17:07:09,735 INFO [20260908_170706_8d5765] agent.turn_context: conversation turn: session=20260908_170706_8d5765 model=anthropic/claude-sonnet-4 provider=openrouter platform=cli history=0 msg='Hello'
+2026-09-08 17:07:10,668 INFO agent.auxiliary_client: Auxiliary auto-detect: using main provider openrouter (anthropic/claude-sonnet-4)
+2026-09-08 17:07:10,671 INFO agent.auxiliary_client: Auxiliary title_generation: using openrouter (anthropic/claude-sonnet-4)
+2026-09-08 17:07:10,722 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-4 (<lambda>):139910685849280 provider=openrouter base_url=https://openrouter.ai/api/v1 model=anthropic/claude-sonnet-4
+2026-09-08 17:07:11,475 INFO agent.credential_pool: credential pool: marking OPENROUTER_API_KEY exhausted (status=401), rotating
+2026-09-08 17:07:11,476 INFO agent.credential_pool: credential pool: no available entries (all exhausted or empty)
+2026-09-08 17:07:11,476 INFO agent.auxiliary_client: Auxiliary title_generation: auth error on auto (Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}), trying fallback
+2026-09-08 17:07:11,483 INFO agent.credential_pool: credential pool: no available entries (all exhausted or empty)
+2026-09-08 17:07:11,485 INFO agent.auxiliary_client: Auxiliary title_generation: auth error on auto — falling back to openrouter (nvidia/nemotron-3-ultra-550b-a55b:free)
+2026-09-08 17:07:11,528 ERROR agent.chat_completion_helpers: Streaming failed before delivery: Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}
+2026-09-08 17:07:11,529 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-4 (<lambda>):139910685849280 provider=openrouter base_url=https://openrouter.ai/api/v1 model=anthropic/claude-sonnet-4
+2026-09-08 17:07:11,560 INFO [20260908_170706_8d5765] agent.credential_pool: credential pool: marking OPENROUTER_API_KEY exhausted (status=401), rotating
+2026-09-08 17:07:11,560 INFO [20260908_170706_8d5765] agent.credential_pool: credential pool: no available entries (all exhausted or empty)
+2026-09-08 17:07:11,561 WARNING [20260908_170706_8d5765] agent.conversation_loop: API call failed (attempt 1/3) error_type=AuthenticationError thread=MainThread:139910737647424 provider=openrouter base_url=https://openrouter.ai/api/v1 model=anthropic/claude-sonnet-4 summary=HTTP 401: Missing Authentication header
+2026-09-08 17:07:11,604 WARNING agent.auxiliary_client: Auxiliary: marking openrouter unhealthy for 600s (payment / credit error). Subsequent auxiliary calls will skip it until 17:17:11.
+2026-09-08 17:07:11,605 WARNING agent.auxiliary_client: Auxiliary title_generation: fallback candidate openrouter has a stale/unrefreshable credential (Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}) — skipping to next fallback
+2026-09-08 17:07:11,605 INFO agent.auxiliary_client: Auxiliary title_generation: skipping openrouter (recently returned payment error, retry in 599s)
+2026-09-08 17:07:11,614 WARNING agent.auxiliary_client: Auxiliary Nous client unavailable: no Nous authentication found (run: hermes auth).
+2026-09-08 17:07:11,614 WARNING agent.auxiliary_client: Auxiliary: marking nous unhealthy for 60s (payment / credit error). Subsequent auxiliary calls will skip it until 17:08:11.
+2026-09-08 17:07:11,619 ERROR [20260908_170706_8d5765] agent.conversation_loop: Non-retryable client error: Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}
+2026-09-08 17:07:11,675 INFO [20260908_170706_8d5765] cli: CLI cleanup calling memory shutdown for session 20260908_170706_8d5765 with 1 message(s)
+2026-09-08 17:14:46,665 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:14:46,670 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:14:46,672 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:14:46,917 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:14:46,922 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:14:46,924 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:14:46,927 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:14:46,928 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:14:46,936 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:14:46,944 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:14:46,944 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:14:46,947 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:14:46,957 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:14:46,959 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:14:46,960 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:14:46,963 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:14:46,977 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:14:47,106 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:14:47,286 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:14:47,298 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:14:47,302 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:14:47,304 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:14:47,306 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:14:47,308 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:14:47,312 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:14:47,342 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:14:48,165 INFO agent.credential_pool: credential pool: no available entries (all exhausted or empty)
+2026-09-08 17:15:19,429 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:15:19,433 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:15:19,437 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:15:19,671 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:15:19,674 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:15:19,677 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:15:19,682 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:15:19,685 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:15:19,687 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:15:19,701 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:15:19,703 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:15:19,704 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:15:19,980 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:15:19,984 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:15:19,990 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:15:19,993 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:15:19,995 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:15:19,998 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:15:20,004 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:15:20,006 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:15:20,008 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:15:20,010 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:15:20,013 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:15:20,016 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:15:20,017 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:15:20,043 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:15:20,716 INFO agent.credential_pool: credential pool: no available entries (all exhausted or empty)
+2026-09-08 17:17:59,132 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:17:59,141 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:17:59,148 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:17:59,344 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:17:59,346 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:17:59,347 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:17:59,350 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:17:59,351 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:17:59,354 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:17:59,360 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:17:59,360 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:17:59,362 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:17:59,656 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:17:59,664 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:17:59,670 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:17:59,684 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:17:59,694 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:17:59,697 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:17:59,704 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:17:59,708 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:17:59,713 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:17:59,715 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:17:59,716 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:17:59,718 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:17:59,721 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:17:59,748 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:18:05,517 INFO run_agent: No .env file found. Using system environment variables.
+2026-09-08 17:18:05,781 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-09-08 17:18:06,571 INFO run_agent: OpenAI client created (agent_init, shared=True) thread=MainThread:128215926429504 provider=openrouter base_url=https://openrouter.ai/api/v1 model=anthropic/claude-sonnet-4
+2026-09-08 17:18:06,579 WARNING tools.registry: check_fn check_browser_back_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,581 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,582 WARNING tools.registry: check_fn check_browser_click_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,584 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,585 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,604 WARNING tools.registry: check_fn check_browser_navigate_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,606 WARNING tools.registry: check_fn check_browser_press_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,608 WARNING tools.registry: check_fn check_browser_scroll_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,609 WARNING tools.registry: check_fn check_browser_snapshot_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,611 WARNING tools.registry: check_fn check_browser_type_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,612 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,613 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,619 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,620 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,622 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 17:18:06,725 WARNING agent.auxiliary_client: Auxiliary client: PAID lane engaged for auxiliary task — OpenRouter fallback model 'anthropic/claude-sonnet-4' is not a :free SKU and may incur real spend. Set auxiliary.free_only: true to restrict auxiliary fallbacks to free models, or auxiliary.openrouter_model to a :free model.
+2026-09-08 17:18:06,728 INFO agent.auxiliary_client: Vision auto-detect: using main provider openrouter (anthropic/claude-sonnet-4)
+2026-09-08 17:18:06,805 INFO tools.tool_search: tool_search activated (tier 1): 17 core/visible tools kept, 4 deferred (~3013 tokens), listing full (budget ~4000 tokens)
+2026-09-08 17:18:07,143 INFO [20260908_171805_858331] agent.turn_context: conversation turn: session=20260908_171805_858331 model=anthropic/claude-sonnet-4 provider=openrouter platform=cli history=0 msg='test query'
+2026-09-08 17:18:07,640 INFO agent.auxiliary_client: Auxiliary auto-detect: using main provider openrouter (anthropic/claude-sonnet-4)
+2026-09-08 17:18:07,643 INFO agent.auxiliary_client: Auxiliary title_generation: using openrouter (anthropic/claude-sonnet-4)
+2026-09-08 17:18:07,704 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-4 (<lambda>):128215877097152 provider=openrouter base_url=https://openrouter.ai/api/v1 model=anthropic/claude-sonnet-4
+2026-09-08 17:18:08,269 INFO agent.credential_pool: credential pool: marking OPENROUTER_API_KEY exhausted (status=401), rotating
+2026-09-08 17:18:08,269 INFO agent.credential_pool: credential pool: no available entries (all exhausted or empty)
+2026-09-08 17:18:08,270 INFO agent.auxiliary_client: Auxiliary title_generation: auth error on auto (Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}), trying fallback
+2026-09-08 17:18:08,277 INFO agent.credential_pool: credential pool: no available entries (all exhausted or empty)
+2026-09-08 17:18:08,280 INFO agent.auxiliary_client: Auxiliary title_generation: auth error on auto — falling back to openrouter (nvidia/nemotron-3-ultra-550b-a55b:free)
+2026-09-08 17:18:08,304 ERROR agent.chat_completion_helpers: Streaming failed before delivery: Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}
+2026-09-08 17:18:08,304 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-4 (<lambda>):128215877097152 provider=openrouter base_url=https://openrouter.ai/api/v1 model=anthropic/claude-sonnet-4
+2026-09-08 17:18:08,345 INFO [20260908_171805_858331] agent.credential_pool: credential pool: marking OPENROUTER_API_KEY exhausted (status=401), rotating
+2026-09-08 17:18:08,345 INFO [20260908_171805_858331] agent.credential_pool: credential pool: no available entries (all exhausted or empty)
+2026-09-08 17:18:08,345 WARNING [20260908_171805_858331] agent.conversation_loop: API call failed (attempt 1/3) error_type=AuthenticationError thread=MainThread:128215926429504 provider=openrouter base_url=https://openrouter.ai/api/v1 model=anthropic/claude-sonnet-4 summary=HTTP 401: Missing Authentication header
+2026-09-08 17:18:08,411 WARNING agent.auxiliary_client: Auxiliary: marking openrouter unhealthy for 600s (payment / credit error). Subsequent auxiliary calls will skip it until 17:28:08.
+2026-09-08 17:18:08,414 WARNING agent.auxiliary_client: Auxiliary title_generation: fallback candidate openrouter has a stale/unrefreshable credential (Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}) — skipping to next fallback
+2026-09-08 17:18:08,417 INFO agent.auxiliary_client: Auxiliary title_generation: skipping openrouter (recently returned payment error, retry in 599s)
+2026-09-08 17:18:08,425 WARNING agent.auxiliary_client: Auxiliary Nous client unavailable: no Nous authentication found (run: hermes auth).
+2026-09-08 17:18:08,426 WARNING agent.auxiliary_client: Auxiliary: marking nous unhealthy for 60s (payment / credit error). Subsequent auxiliary calls will skip it until 17:19:08.
+2026-09-08 17:18:08,525 ERROR [20260908_171805_858331] agent.conversation_loop: Non-retryable client error: Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}
+2026-09-08 17:18:08,555 INFO [20260908_171805_858331] cli: CLI cleanup calling memory shutdown for session 20260908_171805_858331 with 1 message(s)
+2026-09-08 17:24:11,300 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:24:11,306 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:24:11,315 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:24:11,506 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:24:11,509 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:24:11,512 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:24:11,514 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:24:11,517 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:24:11,518 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:24:11,520 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:24:11,520 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:24:11,526 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:24:11,552 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:24:11,553 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:24:11,561 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:24:11,695 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:24:11,846 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:24:11,856 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:24:11,862 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:24:11,865 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:24:11,868 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:24:11,869 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:24:11,871 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:24:11,873 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:24:11,876 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:24:11,900 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:24:12,596 INFO agent.credential_pool: credential pool: no available entries (all exhausted or empty)
+2026-09-08 17:24:43,556 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:24:43,567 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:24:43,575 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:24:43,799 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:24:43,802 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:24:43,817 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:24:43,829 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:24:43,834 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:24:43,838 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:24:43,844 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:24:43,844 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:24:44,071 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:24:44,251 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:24:44,254 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:24:44,259 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:24:44,268 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:24:44,274 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:24:44,276 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:24:44,280 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:24:44,282 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:24:44,284 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:24:44,286 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:24:44,289 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:24:44,291 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:24:44,304 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:24:44,350 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:24:45,001 INFO agent.credential_pool: credential pool: no available entries (all exhausted or empty)
+2026-09-08 17:32:19,299 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:32:19,311 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:32:19,322 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:32:19,524 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:32:19,525 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:32:19,538 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:32:19,541 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:32:19,543 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:32:19,546 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:32:19,548 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:32:19,549 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:32:19,552 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:32:19,570 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:32:19,572 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:32:19,692 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:32:19,843 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:32:19,847 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:32:19,851 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:32:19,862 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:32:19,871 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:32:19,875 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:32:19,880 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:32:19,884 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:32:19,886 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:32:19,889 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:32:19,935 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:32:51,018 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:32:51,025 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:32:51,032 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:32:51,218 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:32:51,219 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:32:51,225 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:32:51,235 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:32:51,236 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:32:51,358 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:32:51,362 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:32:51,507 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:32:51,513 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:32:51,530 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:32:51,537 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:32:51,539 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:32:51,547 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:32:51,550 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:32:51,554 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:32:51,559 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:32:51,564 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:32:51,568 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:32:51,570 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:32:51,572 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:32:51,574 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:32:51,576 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:32:51,603 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:35:22,098 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:35:22,102 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:35:22,104 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:35:22,316 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:35:22,319 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:35:22,321 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:35:22,322 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:35:22,324 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:35:22,325 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:35:22,327 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:35:22,327 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:35:22,331 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:35:22,351 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:35:22,352 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:35:22,471 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:35:22,619 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:35:22,625 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:35:22,632 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:35:22,641 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:35:22,649 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:35:22,654 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:35:22,660 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:35:22,664 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:35:22,667 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:35:22,672 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:35:22,709 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:37:15,062 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:37:15,069 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:37:15,074 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:37:15,270 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:37:15,273 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:37:15,275 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:37:15,279 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:37:15,280 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:37:15,282 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:37:15,289 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:37:15,289 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:37:15,290 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:37:15,420 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:37:15,424 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:37:15,567 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:37:15,576 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:37:15,582 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:37:15,592 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:37:15,607 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:37:15,612 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:37:15,619 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:37:15,625 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:37:15,628 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:37:15,633 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:37:15,636 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:37:15,675 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:41:23,905 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:41:23,909 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:41:23,912 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:41:24,146 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:41:24,148 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:41:24,151 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:41:24,153 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:41:24,155 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:41:24,158 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:41:24,164 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:41:24,165 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:41:24,174 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:41:24,303 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:41:24,305 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:41:24,450 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:41:24,467 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:41:24,478 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:41:24,485 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:41:24,491 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:41:24,496 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:41:24,506 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:41:24,509 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:41:24,511 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:41:24,513 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:41:24,516 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:41:24,547 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:44:34,945 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:44:34,949 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:44:34,952 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:44:35,350 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:44:35,351 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:44:35,354 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:44:35,400 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:44:35,402 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:44:35,410 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:44:35,412 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:44:35,412 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:44:35,414 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:44:35,458 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:44:35,470 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:44:35,473 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:44:35,478 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:44:35,486 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:44:35,492 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:44:35,499 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:44:35,504 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:44:35,508 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:44:35,510 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:44:35,511 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:44:35,513 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:44:35,515 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:44:35,545 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:49:07,093 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:49:07,098 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:49:07,102 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:49:07,473 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:49:07,478 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:49:07,481 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:49:07,483 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:49:07,529 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:49:07,535 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:49:07,538 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:49:07,538 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:49:07,540 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:49:07,556 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:49:07,561 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:49:07,562 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:49:07,570 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:49:07,575 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:49:07,580 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:49:07,584 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:49:07,586 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:49:07,588 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:49:07,590 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:49:07,592 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:49:07,594 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:49:07,596 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:49:07,626 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 17:58:03,284 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 17:58:03,291 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 17:58:03,294 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 17:58:03,525 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 17:58:03,527 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 17:58:03,531 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 17:58:03,536 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 17:58:03,538 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 17:58:03,540 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 17:58:03,547 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 17:58:03,548 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 17:58:03,560 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 17:58:03,846 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 17:58:03,848 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 17:58:03,851 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 17:58:03,871 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 17:58:03,876 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 17:58:03,884 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 17:58:03,899 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 17:58:03,910 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 17:58:03,913 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 17:58:03,914 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 17:58:03,916 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 17:58:03,918 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 17:58:03,920 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 17:58:03,949 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 18:13:26,399 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 18:13:26,410 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 18:13:26,419 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 18:13:26,660 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 18:13:26,661 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 18:13:26,663 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 18:13:26,667 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 18:13:26,673 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 18:13:26,682 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 18:13:26,684 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 18:13:26,691 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 18:13:26,805 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 18:13:26,970 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 18:13:26,973 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 18:13:26,978 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 18:13:26,993 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 18:13:26,998 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 18:13:27,002 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 18:13:27,011 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 18:13:27,016 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 18:13:27,018 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 18:13:27,019 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 18:13:27,021 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 18:13:27,023 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 18:13:27,024 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 18:13:27,050 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 18:13:27,142 INFO agent.credential_pool: credential pool: no available entries (all exhausted or empty)
+2026-09-08 18:17:07,996 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 18:17:08,008 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 18:17:08,012 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 18:17:08,200 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 18:17:08,204 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 18:17:08,213 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 18:17:08,217 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 18:17:08,218 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 18:17:08,340 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 18:17:08,344 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 18:17:08,478 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 18:17:08,487 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 18:17:08,502 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 18:17:08,510 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 18:17:08,515 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 18:17:08,526 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 18:17:08,530 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 18:17:08,531 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 18:17:08,545 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 18:17:08,553 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 18:17:08,564 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 18:17:08,566 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 18:17:08,571 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 18:17:08,572 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 18:17:08,577 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 18:17:08,605 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 18:17:08,729 INFO agent.credential_pool: credential pool: no available entries (all exhausted or empty)
+2026-09-08 18:20:37,602 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 18:20:37,608 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 18:20:37,611 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 18:20:37,823 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 18:20:37,830 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 18:20:37,834 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 18:20:37,837 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 18:20:37,840 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 18:20:37,843 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 18:20:37,845 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 18:20:37,846 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 18:20:37,849 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 18:20:38,138 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 18:20:38,143 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 18:20:38,146 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 18:20:38,157 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 18:20:38,165 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 18:20:38,176 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 18:20:38,182 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 18:20:38,186 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 18:20:38,189 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 18:20:38,192 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 18:20:38,197 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 18:20:38,200 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 18:20:38,202 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 18:20:38,227 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 18:20:38,351 INFO run_agent: Loaded environment variables from /home/ais04/thaqip/agent-fleet/profiles/tender-analyst/.env
+2026-09-08 18:20:38,620 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-09-08 18:20:39,259 INFO run_agent: OpenAI client created (agent_init, shared=True) thread=MainThread:138417223853888 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:20:39,266 WARNING tools.registry: check_fn check_browser_back_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,268 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,269 WARNING tools.registry: check_fn check_browser_click_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,271 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,273 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,288 WARNING tools.registry: check_fn check_browser_navigate_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,289 WARNING tools.registry: check_fn check_browser_press_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,291 WARNING tools.registry: check_fn check_browser_scroll_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,292 WARNING tools.registry: check_fn check_browser_snapshot_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,293 WARNING tools.registry: check_fn check_browser_type_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,295 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,296 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,302 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,303 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,305 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:20:39,395 INFO agent.auxiliary_client: Vision auto-detect: using main provider nvidia (nvidia/nemotron-3-ultra)
+2026-09-08 18:20:39,449 INFO tools.tool_search: tool_search activated (tier 1): 17 core/visible tools kept, 4 deferred (~3013 tokens), listing full (budget ~4000 tokens)
+2026-09-08 18:20:39,692 INFO [20260908_182038_dcca39] agent.turn_context: conversation turn: session=20260908_182038_dcca39 model=nvidia/nemotron-3-ultra provider=nvidia platform=cli history=0 msg='test query'
+2026-09-08 18:20:40,267 INFO agent.auxiliary_client: Auxiliary auto-detect: using main provider nvidia (nvidia/nemotron-3-ultra)
+2026-09-08 18:20:40,268 INFO agent.auxiliary_client: Auxiliary title_generation: using nvidia (nvidia/nemotron-3-ultra) at https://integrate.api.nvidia.com/v1/
+2026-09-08 18:20:40,318 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-4 (<lambda>):138417172207296 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:20:40,667 WARNING agent.title_generator: Title generation failed: 404 page not found
+2026-09-08 18:20:40,701 ERROR agent.chat_completion_helpers: Streaming failed before delivery: 404 page not found
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.NotFoundError: 404 page not found
+2026-09-08 18:20:40,702 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-4 (<lambda>):138417172207296 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:20:40,705 WARNING [20260908_182038_dcca39] agent.conversation_loop: API call failed (attempt 1/3) error_type=NotFoundError thread=MainThread:138417223853888 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra summary=HTTP 404: 404 page not found
+2026-09-08 18:20:40,705 WARNING [20260908_182038_dcca39] agent.conversation_loop: Retrying API call in 2.939166690910013s (attempt 1/3) thread=MainThread:138417223853888 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra policy=default error=404 page not found
+2026-09-08 18:20:43,716 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-5 (<lambda>):138417163814592 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:20:43,801 ERROR agent.chat_completion_helpers: Streaming failed before delivery: 404 page not found
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.NotFoundError: 404 page not found
+2026-09-08 18:20:43,801 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-5 (<lambda>):138417163814592 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:20:43,816 WARNING [20260908_182038_dcca39] agent.conversation_loop: API call failed (attempt 2/3) error_type=NotFoundError thread=MainThread:138417223853888 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra summary=HTTP 404: 404 page not found
+2026-09-08 18:20:43,816 WARNING [20260908_182038_dcca39] agent.conversation_loop: Retrying API call in 4.419653020973941s (attempt 2/3) thread=MainThread:138417223853888 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra policy=default error=404 page not found
+2026-09-08 18:20:48,424 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-6 (<lambda>):138417163814592 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:20:48,510 ERROR agent.chat_completion_helpers: Streaming failed before delivery: 404 page not found
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.NotFoundError: 404 page not found
+2026-09-08 18:20:48,510 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-6 (<lambda>):138417163814592 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:20:48,517 WARNING [20260908_182038_dcca39] agent.conversation_loop: API call failed (attempt 3/3) error_type=NotFoundError thread=MainThread:138417223853888 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra summary=HTTP 404: 404 page not found
+2026-09-08 18:20:48,523 ERROR [20260908_182038_dcca39] agent.conversation_loop: API call failed after 3 retries. HTTP 404: 404 page not found | provider=nvidia model=nvidia/nemotron-3-ultra msgs=2 tokens=~3,298
+2026-09-08 18:20:48,644 INFO [20260908_182038_dcca39] cli: CLI cleanup calling memory shutdown for session 20260908_182038_dcca39 with 1 message(s)
+2026-09-08 18:23:59,303 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 18:23:59,312 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 18:23:59,320 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 18:23:59,501 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 18:23:59,502 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 18:23:59,503 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 18:23:59,505 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 18:23:59,507 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 18:23:59,512 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 18:23:59,522 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 18:23:59,522 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 18:23:59,641 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 18:23:59,797 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 18:23:59,801 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 18:23:59,803 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 18:23:59,819 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 18:23:59,827 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 18:23:59,831 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 18:23:59,837 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 18:23:59,844 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 18:23:59,849 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 18:23:59,854 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 18:23:59,860 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 18:23:59,862 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 18:23:59,865 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 18:23:59,891 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 18:24:00,191 INFO run_agent: Loaded environment variables from /home/ais04/thaqip/agent-fleet/profiles/tender-analyst/.env
+2026-09-08 18:24:00,433 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-09-08 18:24:01,074 INFO run_agent: OpenAI client created (agent_init, shared=True) thread=MainThread:135512379070272 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:24:01,081 WARNING tools.registry: check_fn check_browser_back_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,083 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,084 WARNING tools.registry: check_fn check_browser_click_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,086 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,087 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,102 WARNING tools.registry: check_fn check_browser_navigate_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,103 WARNING tools.registry: check_fn check_browser_press_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,105 WARNING tools.registry: check_fn check_browser_scroll_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,107 WARNING tools.registry: check_fn check_browser_snapshot_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,108 WARNING tools.registry: check_fn check_browser_type_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,110 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,111 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,117 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,119 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,120 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:24:01,261 INFO tools.tool_search: tool_search activated (tier 1): 17 core/visible tools kept, 4 deferred (~3013 tokens), listing full (budget ~4000 tokens)
+2026-09-08 18:24:01,503 INFO [20260908_182359_b4de52] agent.turn_context: conversation turn: session=20260908_182359_b4de52 model=nvidia/nemotron-3-ultra-550b-a55b provider=nvidia platform=cli history=0 msg='test query'
+2026-09-08 18:24:02,020 INFO agent.auxiliary_client: Auxiliary auto-detect: using main provider nvidia (nvidia/nemotron-3-ultra-550b-a55b)
+2026-09-08 18:24:02,024 INFO agent.auxiliary_client: Auxiliary title_generation: using nvidia (nvidia/nemotron-3-ultra-550b-a55b) at https://integrate.api.nvidia.com/v1/
+2026-09-08 18:24:02,088 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-4 (<lambda>):135512123766464 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:24:29,715 INFO [20260908_182359_b4de52] agent.conversation_loop: API call #1: model=nvidia/nemotron-3-ultra-550b-a55b provider=nvidia in=12344 out=41 total=12385 latency=27.7s id=chatcmpl-45df1881-3054-4163-a79f-3e367692d980
+2026-09-08 18:24:29,918 INFO [20260908_182359_b4de52] agent.conversation_loop: Turn ended: reason=text_response(finish_reason=stop) model=nvidia/nemotron-3-ultra-550b-a55b api_calls=1/1 budget=1/1 tool_turns=0 last_msg_role=assistant response_len=41 session=20260908_182359_b4de52
+2026-09-08 18:24:29,943 INFO [20260908_182359_b4de52] cli: CLI cleanup calling memory shutdown for session 20260908_182359_b4de52 with 2 message(s)
+2026-09-08 18:39:18,204 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 18:39:18,210 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 18:39:18,216 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 18:39:18,597 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 18:39:18,607 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 18:39:18,654 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 18:39:18,658 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 18:39:18,661 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 18:39:18,666 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 18:39:18,667 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 18:39:18,668 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 18:39:18,672 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 18:39:18,687 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 18:39:18,692 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 18:39:18,699 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 18:39:18,708 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 18:39:18,713 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 18:39:18,716 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 18:39:18,720 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 18:39:18,722 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 18:39:18,724 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 18:39:18,726 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 18:39:18,728 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 18:39:18,730 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 18:39:18,733 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 18:39:18,763 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 18:39:18,977 INFO run_agent: Loaded environment variables from /home/ais04/thaqip/agent-fleet/profiles/tender-analyst/.env
+2026-09-08 18:39:19,215 INFO tools.tirith_security: tirith not found — downloading latest release for x86_64-unknown-linux-gnu...
+2026-09-08 18:39:19,231 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-09-08 18:39:19,884 INFO run_agent: OpenAI client created (agent_init, shared=True) thread=MainThread:132570390959936 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:39:19,891 WARNING tools.registry: check_fn check_browser_back_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,893 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,894 WARNING tools.registry: check_fn check_browser_click_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,896 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,897 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,914 WARNING tools.registry: check_fn check_browser_navigate_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,916 WARNING tools.registry: check_fn check_browser_press_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,917 WARNING tools.registry: check_fn check_browser_scroll_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,919 WARNING tools.registry: check_fn check_browser_snapshot_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,920 WARNING tools.registry: check_fn check_browser_type_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,922 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,924 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,929 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,930 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:19,931 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:39:20,027 INFO agent.auxiliary_client: Vision auto-detect: using main provider nvidia (nvidia/nemotron-3-ultra)
+2026-09-08 18:39:20,085 INFO tools.tool_search: tool_search activated (tier 1): 17 core/visible tools kept, 4 deferred (~3013 tokens), listing full (budget ~4000 tokens)
+2026-09-08 18:39:20,466 INFO [20260908_183918_71f328] agent.turn_context: conversation turn: session=20260908_183918_71f328 model=nvidia/nemotron-3-ultra provider=nvidia platform=cli history=0 msg='Analyze tender TEST-12345 completely: 1. Fetch all documents from Etimad/Forsah ...'
+2026-09-08 18:39:21,014 INFO agent.auxiliary_client: Auxiliary auto-detect: using main provider nvidia (nvidia/nemotron-3-ultra)
+2026-09-08 18:39:21,018 INFO agent.auxiliary_client: Auxiliary title_generation: using nvidia (nvidia/nemotron-3-ultra) at https://integrate.api.nvidia.com/v1/
+2026-09-08 18:39:21,087 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-5 (<lambda>):132570272495296 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:39:21,221 INFO tools.tirith_security: cosign not on PATH — installing tirith with SHA-256 verification only (install cosign for full supply chain verification)
+2026-09-08 18:39:21,471 WARNING agent.title_generator: Title generation failed: 404 page not found
+2026-09-08 18:39:21,496 ERROR agent.chat_completion_helpers: Streaming failed before delivery: 404 page not found
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.NotFoundError: 404 page not found
+2026-09-08 18:39:21,497 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-5 (<lambda>):132570272495296 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:39:21,499 WARNING [20260908_183918_71f328] agent.conversation_loop: API call failed (attempt 1/3) error_type=NotFoundError thread=MainThread:132570390959936 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra summary=HTTP 404: 404 page not found
+2026-09-08 18:39:21,499 WARNING [20260908_183918_71f328] agent.conversation_loop: Retrying API call in 2.251529257049248s (attempt 1/3) thread=MainThread:132570390959936 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra policy=default error=404 page not found
+2026-09-08 18:39:21,953 INFO tools.tirith_security: tirith installed to /home/ais04/thaqip/agent-fleet/profiles/tender-analyst/bin/tirith (SHA-256 only)
+2026-09-08 18:39:23,910 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-6 (<lambda>):132570255709888 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:39:23,996 ERROR agent.chat_completion_helpers: Streaming failed before delivery: 404 page not found
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.NotFoundError: 404 page not found
+2026-09-08 18:39:23,997 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-6 (<lambda>):132570255709888 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:39:24,001 WARNING [20260908_183918_71f328] agent.conversation_loop: API call failed (attempt 2/3) error_type=NotFoundError thread=MainThread:132570390959936 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra summary=HTTP 404: 404 page not found
+2026-09-08 18:39:24,007 WARNING [20260908_183918_71f328] agent.conversation_loop: Retrying API call in 4.502029009865358s (attempt 2/3) thread=MainThread:132570390959936 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra policy=default error=404 page not found
+2026-09-08 18:39:28,620 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-7 (<lambda>):132570255709888 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:39:28,707 ERROR agent.chat_completion_helpers: Streaming failed before delivery: 404 page not found
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.NotFoundError: 404 page not found
+2026-09-08 18:39:28,707 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-7 (<lambda>):132570255709888 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:39:28,722 WARNING [20260908_183918_71f328] agent.conversation_loop: API call failed (attempt 3/3) error_type=NotFoundError thread=MainThread:132570390959936 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra summary=HTTP 404: 404 page not found
+2026-09-08 18:39:28,723 ERROR [20260908_183918_71f328] agent.conversation_loop: API call failed after 3 retries. HTTP 404: 404 page not found | provider=nvidia model=nvidia/nemotron-3-ultra msgs=2 tokens=~3,389
+2026-09-08 18:39:28,838 INFO [20260908_183918_71f328] cli: CLI cleanup calling memory shutdown for session 20260908_183918_71f328 with 1 message(s)
+2026-09-08 18:39:59,892 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 18:39:59,897 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 18:39:59,899 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 18:40:00,073 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 18:40:00,075 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 18:40:00,082 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 18:40:00,090 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 18:40:00,096 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 18:40:00,099 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 18:40:00,220 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 18:40:00,221 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 18:40:00,369 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 18:40:00,384 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 18:40:00,388 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 18:40:00,395 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 18:40:00,406 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 18:40:00,412 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 18:40:00,415 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 18:40:00,421 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 18:40:00,424 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 18:40:00,428 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 18:40:00,432 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 18:40:00,433 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 18:40:00,435 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 18:40:00,437 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 18:40:00,464 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 18:40:00,698 INFO run_agent: Loaded environment variables from /home/ais04/thaqip/agent-fleet/profiles/tender-analyst/.env
+2026-09-08 18:40:00,934 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-09-08 18:40:01,582 INFO run_agent: OpenAI client created (agent_init, shared=True) thread=MainThread:136946202437440 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:40:01,589 WARNING tools.registry: check_fn check_browser_back_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,590 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,592 WARNING tools.registry: check_fn check_browser_click_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,594 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,596 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,610 WARNING tools.registry: check_fn check_browser_navigate_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,611 WARNING tools.registry: check_fn check_browser_press_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,613 WARNING tools.registry: check_fn check_browser_scroll_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,614 WARNING tools.registry: check_fn check_browser_snapshot_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,615 WARNING tools.registry: check_fn check_browser_type_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,617 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,619 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,624 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,625 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,626 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:40:01,715 INFO agent.auxiliary_client: Vision auto-detect: using main provider nvidia (nvidia/nemotron-3-ultra)
+2026-09-08 18:40:01,769 INFO tools.tool_search: tool_search activated (tier 1): 17 core/visible tools kept, 4 deferred (~3013 tokens), listing full (budget ~4000 tokens)
+2026-09-08 18:40:02,067 INFO [20260908_184000_11d695] agent.turn_context: conversation turn: session=20260908_184000_11d695 model=nvidia/nemotron-3-ultra provider=nvidia platform=cli history=0 msg='Analyze tender TEST-12345 completely: 1. Fetch all documents from Etimad/Forsah ...'
+2026-09-08 18:40:02,548 INFO agent.auxiliary_client: Auxiliary auto-detect: using main provider nvidia (nvidia/nemotron-3-ultra)
+2026-09-08 18:40:02,552 INFO agent.auxiliary_client: Auxiliary title_generation: using nvidia (nvidia/nemotron-3-ultra) at https://integrate.api.nvidia.com/v1/
+2026-09-08 18:40:02,615 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-4 (<lambda>):136946150733504 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:40:02,955 WARNING agent.title_generator: Title generation failed: 404 page not found
+2026-09-08 18:40:02,987 ERROR agent.chat_completion_helpers: Streaming failed before delivery: 404 page not found
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.NotFoundError: 404 page not found
+2026-09-08 18:40:02,987 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-4 (<lambda>):136946150733504 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:40:02,993 WARNING [20260908_184000_11d695] agent.conversation_loop: API call failed (attempt 1/3) error_type=NotFoundError thread=MainThread:136946202437440 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra summary=HTTP 404: 404 page not found
+2026-09-08 18:40:02,994 WARNING [20260908_184000_11d695] agent.conversation_loop: Retrying API call in 2.4960237128289897s (attempt 1/3) thread=MainThread:136946202437440 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra policy=default error=404 page not found
+2026-09-08 18:40:05,605 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-5 (<lambda>):136946142340800 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:40:05,689 ERROR agent.chat_completion_helpers: Streaming failed before delivery: 404 page not found
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.NotFoundError: 404 page not found
+2026-09-08 18:40:05,689 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-5 (<lambda>):136946142340800 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:40:05,702 WARNING [20260908_184000_11d695] agent.conversation_loop: API call failed (attempt 2/3) error_type=NotFoundError thread=MainThread:136946202437440 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra summary=HTTP 404: 404 page not found
+2026-09-08 18:40:05,702 WARNING [20260908_184000_11d695] agent.conversation_loop: Retrying API call in 4.7556367709304865s (attempt 2/3) thread=MainThread:136946202437440 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra policy=default error=404 page not found
+2026-09-08 18:40:10,514 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-6 (<lambda>):136946142340800 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:40:10,598 ERROR agent.chat_completion_helpers: Streaming failed before delivery: 404 page not found
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.NotFoundError: 404 page not found
+2026-09-08 18:40:10,599 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-6 (<lambda>):136946142340800 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:40:10,611 WARNING [20260908_184000_11d695] agent.conversation_loop: API call failed (attempt 3/3) error_type=NotFoundError thread=MainThread:136946202437440 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra summary=HTTP 404: 404 page not found
+2026-09-08 18:40:10,614 ERROR [20260908_184000_11d695] agent.conversation_loop: API call failed after 3 retries. HTTP 404: 404 page not found | provider=nvidia model=nvidia/nemotron-3-ultra msgs=2 tokens=~3,389
+2026-09-08 18:40:10,761 INFO [20260908_184000_11d695] cli: CLI cleanup calling memory shutdown for session 20260908_184000_11d695 with 1 message(s)
+2026-09-08 18:44:52,826 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 18:44:52,834 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 18:44:52,840 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 18:44:53,018 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 18:44:53,021 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 18:44:53,023 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 18:44:53,026 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 18:44:53,032 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 18:44:53,041 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 18:44:53,043 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 18:44:53,043 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 18:44:53,164 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 18:44:53,316 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 18:44:53,321 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 18:44:53,325 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 18:44:53,334 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 18:44:53,346 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 18:44:53,353 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 18:44:53,359 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 18:44:53,364 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 18:44:53,368 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 18:44:53,372 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 18:44:53,376 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 18:44:53,378 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 18:44:53,381 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 18:44:53,405 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 18:44:53,704 INFO run_agent: Loaded environment variables from /home/ais04/thaqip/agent-fleet/profiles/tender-analyst/.env
+2026-09-08 18:44:53,962 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-09-08 18:44:54,594 INFO run_agent: OpenAI client created (agent_init, shared=True) thread=MainThread:135923864610624 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:44:54,601 WARNING tools.registry: check_fn check_browser_back_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,602 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,604 WARNING tools.registry: check_fn check_browser_click_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,606 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,607 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,622 WARNING tools.registry: check_fn check_browser_navigate_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,624 WARNING tools.registry: check_fn check_browser_press_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,625 WARNING tools.registry: check_fn check_browser_scroll_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,627 WARNING tools.registry: check_fn check_browser_snapshot_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,628 WARNING tools.registry: check_fn check_browser_type_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,630 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,631 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,636 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,638 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,639 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:44:54,733 INFO agent.auxiliary_client: Vision auto-detect: using main provider nvidia (nvidia/nemotron-3-ultra)
+2026-09-08 18:44:54,786 INFO tools.tool_search: tool_search activated (tier 1): 17 core/visible tools kept, 4 deferred (~3013 tokens), listing full (budget ~4000 tokens)
+2026-09-08 18:44:55,035 INFO [20260908_184453_0cd221] agent.turn_context: conversation turn: session=20260908_184453_0cd221 model=nvidia/nemotron-3-ultra provider=nvidia platform=cli history=0 msg='Analyze this: test'
+2026-09-08 18:44:55,607 INFO agent.auxiliary_client: Auxiliary auto-detect: using main provider nvidia (nvidia/nemotron-3-ultra)
+2026-09-08 18:44:55,610 INFO agent.auxiliary_client: Auxiliary title_generation: using nvidia (nvidia/nemotron-3-ultra) at https://integrate.api.nvidia.com/v1/
+2026-09-08 18:44:55,640 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-4 (<lambda>):135923812873920 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:44:55,995 WARNING agent.title_generator: Title generation failed: 404 page not found
+2026-09-08 18:44:56,022 ERROR agent.chat_completion_helpers: Streaming failed before delivery: 404 page not found
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.NotFoundError: 404 page not found
+2026-09-08 18:44:56,023 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-4 (<lambda>):135923812873920 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:44:56,030 WARNING [20260908_184453_0cd221] agent.conversation_loop: API call failed (attempt 1/3) error_type=NotFoundError thread=MainThread:135923864610624 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra summary=HTTP 404: 404 page not found
+2026-09-08 18:44:56,031 WARNING [20260908_184453_0cd221] agent.conversation_loop: Retrying API call in 2.774667249601238s (attempt 1/3) thread=MainThread:135923864610624 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra policy=default error=404 page not found
+2026-09-08 18:44:58,839 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-5 (<lambda>):135923812873920 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:44:58,924 ERROR agent.chat_completion_helpers: Streaming failed before delivery: 404 page not found
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.NotFoundError: 404 page not found
+2026-09-08 18:44:58,924 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-5 (<lambda>):135923812873920 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:44:58,932 WARNING [20260908_184453_0cd221] agent.conversation_loop: API call failed (attempt 2/3) error_type=NotFoundError thread=MainThread:135923864610624 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra summary=HTTP 404: 404 page not found
+2026-09-08 18:44:58,933 WARNING [20260908_184453_0cd221] agent.conversation_loop: Retrying API call in 5.271863327550629s (attempt 2/3) thread=MainThread:135923864610624 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra policy=default error=404 page not found
+2026-09-08 18:45:04,347 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-6 (<lambda>):135923812873920 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:45:04,437 ERROR agent.chat_completion_helpers: Streaming failed before delivery: 404 page not found
+Traceback (most recent call last):
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3151, in _call
+    self.result["response"] = _with_stream_emitters(
+                              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2251, in _with_stream_emitters
+    response = run()
+               ^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3152, in <lambda>
+    self.agent, lambda: self._call_wire(stream_attempt_id))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 3134, in _call_wire
+    return self._call_chat_completions(stream_attempt_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2761, in _call_chat_completions
+    stream = self._set_managed_stream(relay_llm.stream(self.api_kwargs, _open_stream,
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 297, in __init__
+    self._start_unmanaged(request)
+  File "/usr/local/lib/hermes-agent/agent/relay_llm.py", line 303, in _start_unmanaged
+    raw_stream = self._stream_factory(request)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2752, in _open_stream
+    return self._open_chat_stream({**next_api_kwargs, "stream": True, "timeout": timeout})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/agent/chat_completion_helpers.py", line 2690, in _open_chat_stream
+    return request_client.chat.completions.create(**stream_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1204, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/hermes-agent/venv/lib/python3.11/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.NotFoundError: 404 page not found
+2026-09-08 18:45:04,437 INFO run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-6 (<lambda>):135923812873920 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra
+2026-09-08 18:45:04,438 WARNING [20260908_184453_0cd221] agent.conversation_loop: API call failed (attempt 3/3) error_type=NotFoundError thread=MainThread:135923864610624 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra summary=HTTP 404: 404 page not found
+2026-09-08 18:45:04,445 ERROR [20260908_184453_0cd221] agent.conversation_loop: API call failed after 3 retries. HTTP 404: 404 page not found | provider=nvidia model=nvidia/nemotron-3-ultra msgs=2 tokens=~3,300
+2026-09-08 18:45:04,545 INFO [20260908_184453_0cd221] cli: CLI cleanup calling memory shutdown for session 20260908_184453_0cd221 with 1 message(s)
+2026-09-08 18:52:17,351 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-09-08 18:52:17,358 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-09-08 18:52:17,360 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-09-08 18:52:17,544 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-09-08 18:52:17,551 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-09-08 18:52:17,561 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-09-08 18:52:17,563 INFO hermes_cli.plugins: Plugin 'meta-ai-image-gen' registered image_gen provider: meta-ai
+2026-09-08 18:52:17,715 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-09-08 18:52:17,718 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-09-08 18:52:17,860 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-09-08 18:52:17,864 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-09-08 18:52:17,867 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-09-08 18:52:17,884 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-09-08 18:52:17,887 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-09-08 18:52:17,889 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-09-08 18:52:17,906 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-09-08 18:52:17,911 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-09-08 18:52:17,916 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-09-08 18:52:17,923 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-09-08 18:52:17,928 INFO hermes_cli.plugins: Plugin 'web-keenable' registered web provider: keenable
+2026-09-08 18:52:17,931 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-09-08 18:52:17,933 INFO hermes_cli.plugins: Plugin 'web-perplexity' registered web provider: perplexity
+2026-09-08 18:52:17,935 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-09-08 18:52:17,936 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-09-08 18:52:17,939 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-09-08 18:52:17,966 INFO hermes_cli.plugins: Plugin discovery complete: 57 found, 51 enabled
+2026-09-08 18:52:18,112 INFO run_agent: Loaded environment variables from /home/ais04/thaqip/agent-fleet/profiles/tender-analyst/.env
+2026-09-08 18:52:18,401 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-09-08 18:52:19,052 INFO run_agent: OpenAI client created (agent_init, shared=True) thread=MainThread:138162414790464 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:52:19,059 WARNING tools.registry: check_fn check_browser_back_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,061 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,063 WARNING tools.registry: check_fn check_browser_click_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,064 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,066 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,080 WARNING tools.registry: check_fn check_browser_navigate_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,082 WARNING tools.registry: check_fn check_browser_press_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,083 WARNING tools.registry: check_fn check_browser_scroll_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,085 WARNING tools.registry: check_fn check_browser_snapshot_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,086 WARNING tools.registry: check_fn check_browser_type_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,088 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,089 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,095 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,096 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,097 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-09-08 18:52:19,246 INFO tools.tool_search: tool_search activated (tier 1): 17 core/visible tools kept, 4 deferred (~3013 tokens), listing full (budget ~4000 tokens)
+2026-09-08 18:52:19,552 INFO [20260908_185217_d6bfcf] agent.turn_context: conversation turn: session=20260908_185217_d6bfcf model=nvidia/nemotron-3-ultra-550b-a55b provider=nvidia platform=cli history=0 msg='test'
+2026-09-08 18:52:20,092 INFO agent.auxiliary_client: Auxiliary auto-detect: using main provider nvidia (nvidia/nemotron-3-ultra-550b-a55b)
+2026-09-08 18:52:20,100 INFO agent.auxiliary_client: Auxiliary title_generation: using nvidia (nvidia/nemotron-3-ultra-550b-a55b) at https://integrate.api.nvidia.com/v1/
+2026-09-08 18:52:20,148 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-4 (<lambda>):138162363115200 provider=nvidia base_url=https://integrate.api.nvidia.com/v1 model=nvidia/nemotron-3-ultra-550b-a55b
+2026-09-08 18:52:50,510 INFO agent.auxiliary_client: Auxiliary title_generation: transient transport error (attempt 1/2); retrying same provider after 1.0s before fallback: Request timed out.
