@@ -84,6 +84,11 @@
       if (db.ops_summary) { db.ops_summary.verdict = 'operational'; db.ops_summary.lanes_need_attention = 0; db.ops_summary.attention = []; db.ops_summary.next_actions = []; }
       return json({ acknowledged: true, connector, run_id: null });
     }
+    if (p === '/api/settings' && method === 'PATCH') {
+      db.settings = { ...(db.settings || {}), calculator: { default_markup_pct: Number(body.default_markup_pct), risk_tolerance: body.risk_tolerance, default_agency_id: body.default_agency_id || null }, alerts: { frequency: body.alert_frequency }, retention_days: Number(body.retention_days), updated_at: new Date().toISOString(), gated_features: (db.settings || {}).gated_features || { etimad_supplier_credentials: false, llm_compliance_extraction: false, telegram_alerts: false, ksa_staging: false } };
+      return json(db.settings);
+    }
+    if (p === '/api/settings') return json(db.settings || { gated_features: { etimad_supplier_credentials: false, llm_compliance_extraction: false, telegram_alerts: false, ksa_staging: false }, calculator: { default_markup_pct: 12, risk_tolerance: 'balanced', default_agency_id: null }, alerts: { frequency: 'instant' }, retention_days: 180 });
     if (p === '/api/pricing/accuracy') return json(db.pricing_accuracy || {
       measured: 0, status: 'awaiting_awards', confidence: 'low', recent: [],
       mape_all: null, mape_30d: null, mape_90d: null,
@@ -157,8 +162,13 @@
       const p75 = market.p75_award || median * 1.15;
       const ratio = proposed / median;
       const win = Math.max(2, Math.min(95, 100 / (1 + Math.exp(4 * (ratio - 0.95)))));
-      const optimal = Math.round(median * 0.92 * 100) / 100;
-      const floor = Math.round(median * 0.72 * 100) / 100;
+      const settings = db.settings || { calculator: { default_markup_pct: 12, risk_tolerance: 'balanced' } };
+      const risk = (body && body.risk_tolerance) || settings.calculator.risk_tolerance || 'balanced';
+      const margin = Number((body && body.target_margin_pct) ?? settings.calculator.default_markup_pct ?? 12);
+      const riskFactor = ({low: 0.96, balanced: 0.92, high: 0.86})[risk] || 0.92;
+      const floorFactor = Math.max(0.55, 1 - margin / 100);
+      const optimal = Math.round(median * riskFactor * 100) / 100;
+      const floor = Math.round(median * floorFactor * 100) / 100;
       return json({
         proposed_price: proposed,
         win_probability_pct: Math.round(win * 10) / 10,
@@ -166,8 +176,8 @@
         competitive_zone: proposed < p25 ? 'aggressive' : proposed <= median ? 'sweet_spot' : proposed <= p75 ? 'conservative' : 'uncompetitive',
         gtpl_abnormally_low_flag: proposed < median * 0.70,
         basis: market.award_samples ? 'activity_history' : 'demo_fallback',
-        benchmarks: { sample_count: market.award_samples || 0, median_award: median, p25_award: p25, p75_award: p75 },
-        recommendations: { optimal_price: optimal, safe_margin_floor: floor },
+        benchmarks: { sample_count: market.award_samples || 0, median_award: median, p25_award: p25, p75_award: p75, target_margin_pct: margin, risk_tolerance: risk },
+        recommendations: { optimal_price: optimal, safe_margin_floor: floor, target_margin_pct: margin, risk_tolerance: risk },
         pricing_ladder: [
           { key: 'aggressive', label: 'هجومي', price: Math.round(median * 0.82 * 100) / 100, note: 'يضغط المنافسين ويرفع احتمالية الفوز، راقب هامش الربح وخطر العرض المنخفض.' },
           { key: 'balanced', label: 'متوازن', price: optimal, note: 'النقطة العملية الأقرب للفوز مع بقاء مساحة ربح معقولة.' },

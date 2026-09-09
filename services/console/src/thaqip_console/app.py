@@ -357,6 +357,14 @@ class OpsAckIn(BaseModel):
     note: str | None = None
 
 
+class SettingsIn(BaseModel):
+    default_markup_pct: float = Field(ge=0, le=100)
+    risk_tolerance: str = Field(pattern="^(low|balanced|high)$")
+    default_agency_id: int | None = None
+    alert_frequency: str = Field(pattern="^(instant|hourly|daily)$")
+    retention_days: int = Field(ge=30, le=3650)
+
+
 def _checkpoint_json(checkpoint: object) -> dict:
     """Decode an ingest checkpoint into a dict when it is structured JSON."""
     if checkpoint is None:
@@ -617,6 +625,58 @@ async def acknowledge_ops_incident(body: OpsAckIn):
         row["id"], body.note or "acknowledged by operator",
     )
     return {"acknowledged": True, "connector": body.connector, "run_id": row["id"]}
+
+
+@app.get("/api/settings")
+async def settings():
+    """Operator settings for gated features and calculator defaults."""
+    pool: asyncpg.Pool = app.state.pool
+    row = await pool.fetchrow("SELECT * FROM user_calculator_prefs WHERE id=1")
+    if row is None:
+        await pool.execute("INSERT INTO user_calculator_prefs (id) VALUES (1) ON CONFLICT DO NOTHING")
+        row = await pool.fetchrow("SELECT * FROM user_calculator_prefs WHERE id=1")
+    assert row is not None
+    return {
+        "gated_features": {
+            "etimad_supplier_credentials": bool(os.environ.get("THAQIP_ETIMAD_USERNAME"))
+            and bool(os.environ.get("THAQIP_ETIMAD_PASSWORD")),
+            "llm_compliance_extraction": bool(os.environ.get("THAQIP_ANTHROPIC_API_KEY")),
+            "telegram_alerts": bool(os.environ.get("TELEGRAM_BOT_TOKEN")),
+            "ksa_staging": bool(os.environ.get("THAQIP_STAGING_URL")),
+        },
+        "calculator": {
+            "default_markup_pct": float(row["default_markup_pct"]),
+            "risk_tolerance": row["risk_tolerance"],
+            "default_agency_id": row["default_agency_id"],
+        },
+        "alerts": {"frequency": row["alert_frequency"]},
+        "retention_days": row["retention_days"],
+        "updated_at": row["updated_at"],
+    }
+
+
+@app.patch("/api/settings")
+async def update_settings(body: SettingsIn):
+    """Persist Settings tab defaults for the current single-operator demo."""
+    pool: asyncpg.Pool = app.state.pool
+    await pool.execute(
+        """INSERT INTO user_calculator_prefs
+             (id, default_markup_pct, risk_tolerance, default_agency_id, alert_frequency, retention_days, updated_at)
+           VALUES (1, $1, $2, $3, $4, $5, now())
+           ON CONFLICT (id) DO UPDATE SET
+             default_markup_pct=EXCLUDED.default_markup_pct,
+             risk_tolerance=EXCLUDED.risk_tolerance,
+             default_agency_id=EXCLUDED.default_agency_id,
+             alert_frequency=EXCLUDED.alert_frequency,
+             retention_days=EXCLUDED.retention_days,
+             updated_at=now()""",
+        body.default_markup_pct,
+        body.risk_tolerance,
+        body.default_agency_id,
+        body.alert_frequency,
+        body.retention_days,
+    )
+    return await settings()
 
 
 @app.get("/api/market/price-position")
@@ -1304,6 +1364,7 @@ async def export_compliance(pid: int):
 class PriceSimulationIn(BaseModel):
     proposed_price: float
     target_margin_pct: float | None = None
+    risk_tolerance: str | None = Field(default=None, pattern="^(low|balanced|high)$")
 
 
 def _score_band(score: int) -> str:
@@ -1423,6 +1484,12 @@ async def simulate_price(pid: int, body: PriceSimulationIn):
     tender_id = tender.get("id")
 
     async with pool.acquire() as conn:
+        prefs = await conn.fetchrow("SELECT default_markup_pct, risk_tolerance FROM user_calculator_prefs WHERE id=1")
+        default_margin_pct = float(prefs["default_markup_pct"]) if prefs else 12.0
+        target_margin_pct = body.target_margin_pct if body.target_margin_pct is not None else default_margin_pct
+        risk_tolerance = body.risk_tolerance or (prefs["risk_tolerance"] if prefs else "balanced")
+        risk_factor = {"low": 0.96, "balanced": 0.92, "high": 0.86}.get(risk_tolerance, 0.92)
+        floor_factor = max(0.55, 1.0 - (target_margin_pct / 100.0))
         bench_row = await conn.fetchrow(
             """SELECT count(*) AS n,
                       min(w.award_value)::float AS min_val,
@@ -1495,6 +1562,8 @@ async def simulate_price(pid: int, body: PriceSimulationIn):
             "p75_award": p75_award,
             "max_award": max_award,
             "median_bidders": median_bidders,
+            "target_margin_pct": target_margin_pct,
+            "risk_tolerance": risk_tolerance,
         }
 
         # Snapshot into pursuit_simulations
@@ -1505,13 +1574,13 @@ async def simulate_price(pid: int, body: PriceSimulationIn):
             pid, body.proposed_price, win_prob_pct, expected_value, basis, json.dumps(benchmarks)
         )
 
-        optimal_price = round(median_award * 0.92, 2) if median_award else round(body.proposed_price * 0.95, 2)
-        safe_margin_floor = round(median_award * 0.72, 2) if median_award else round(body.proposed_price * 0.75, 2)
+        optimal_price = round(median_award * risk_factor, 2) if median_award else round(body.proposed_price * risk_factor, 2)
+        safe_margin_floor = round(median_award * floor_factor, 2) if median_award else round(body.proposed_price * floor_factor, 2)
         pricing_ladder = [
             {
                 "key": "aggressive",
                 "label": "هجومي",
-                "price": round(median_award * 0.82, 2) if median_award else round(body.proposed_price * 0.88, 2),
+                "price": round(median_award * min(risk_factor, 0.82), 2) if median_award else round(body.proposed_price * min(risk_factor, 0.88), 2),
                 "note": "يضغط المنافسين ويرفع احتمالية الفوز، راقب هامش الربح وخطر العرض المنخفض.",
             },
             {
@@ -1545,6 +1614,8 @@ async def simulate_price(pid: int, body: PriceSimulationIn):
             "recommendations": {
                 "optimal_price": optimal_price,
                 "safe_margin_floor": safe_margin_floor,
+                "target_margin_pct": target_margin_pct,
+                "risk_tolerance": risk_tolerance,
             },
             "pricing_ladder": pricing_ladder,
         }

@@ -75,6 +75,7 @@ def main() -> None:
         "lanes": get("/api/lanes"),
         "ops_summary": get("/api/ops/summary"),
         "pricing_accuracy": get("/api/pricing/accuracy"),
+        "settings": get("/api/settings"),
     }
     (OUT / "data" / "db.json").write_text(json.dumps(db, ensure_ascii=False, default=str))
 

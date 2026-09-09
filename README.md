@@ -38,6 +38,7 @@ uv run pytest                                          # fixture-based tests
 - [x] C7 BOQ parser — Arabic column detection (بند، بيان، وحدة، كمية) with confidence scoring & review queue routing (`boq.py`)
 - [x] D2 continuous deployment — delta loop containerized in Docker Compose (`poller` service) with automatic client recycling watchdog
 - [x] M5 pricing calibration seeding — `pricing-seed` Compose service and `bin/pricing-seed.sh` keep active pursuits stocked with one baseline price hypothesis for later award measurement
+- [x] Settings v1 — `/api/settings` plus dashboard tab for gated-feature readiness, alert cadence, retention, and calculator defaults used by War Room pricing simulations
 - [x] D4 capture-rate audit harness — automated sampling vs live Etimad listing verifying >= 99% capture SLO (`audit.py`)
 
 Key source facts (probed 2026-09-02): listing API is public JSON (~288k tenders); detail/awarding routes need TSPD cookies (one browser bootstrap per session); components take `tenderIdStr` (raw encrypted id); awarding returns 302→/Home/Error for non-awarded tenders and 429s under fast polling — default pacing is 3s between component fetches.

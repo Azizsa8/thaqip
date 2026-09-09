@@ -72,6 +72,9 @@ tailwind.config = {
       <button data-view="intel" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
         <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20h18M6 16v-5m6 5V8m6 8v-9"/></svg>
         <span>ذكاء المنافسين</span></button>
+      <button data-view="settings" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06A1.65 1.65 0 0015 19.4a1.65 1.65 0 00-1 .6 1.65 1.65 0 00-.4 1.05V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82-.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-.6-1A1.65 1.65 0 003 13.6H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-.6A1.65 1.65 0 0010.4 3V3a2 2 0 014 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.2.39.6.69 1.05.73H21a2 2 0 010 4h-.09A1.65 1.65 0 0019.4 15z"/></svg>
+        <span>الإعدادات</span></button>
     </nav>
     <div class="px-6 pt-2 pb-3 text-[10px] tracking-[.18em] text-mut uppercase">المنافسات النشطة</div>
     <div class="px-3 space-y-1" id="sideCounts">
@@ -275,6 +278,50 @@ tailwind.config = {
         </div>
       </div>
     </section>
+
+    <!-- ================= SETTINGS ================= -->
+    <section id="view-settings" class="hidden px-5 lg:px-8 py-7">
+      <div class="grid xl:grid-cols-5 gap-5">
+        <div class="xl:col-span-3 bg-card border border-line rounded-2xl shadow-card p-6">
+          <div class="flex items-center justify-between gap-3 mb-5">
+            <div>
+              <h2 class="font-semibold text-[15px]">إعدادات الحاسبة والتنبيهات</h2>
+              <p class="text-[12px] text-mut mt-1">Defaults تستخدمها غرفة العمليات عند محاكاة السعر إذا لم يغيّرها المستخدم يدويًا.</p>
+            </div>
+            <span id="settingsSaved" class="text-[11px] text-mut"></span>
+          </div>
+          <div class="grid md:grid-cols-2 gap-4">
+            <label class="block text-[12px] text-mut">هامش الربح الافتراضي %
+              <input id="setMarkup" type="number" min="0" max="100" step="0.5" class="mt-1 w-full bg-paper border border-line rounded-lg px-3.5 py-2 text-[13px] num focus:outline-none focus:ring-2 focus:ring-deep/30">
+            </label>
+            <label class="block text-[12px] text-mut">شهية المخاطرة
+              <select id="setRisk" class="mt-1 w-full bg-paper border border-line rounded-lg px-3 py-2 text-[13px]">
+                <option value="low">منخفضة — هامش أعلى</option>
+                <option value="balanced">متوازنة</option>
+                <option value="high">هجومية — سعر أشرس</option>
+              </select>
+            </label>
+            <label class="block text-[12px] text-mut">تكرار التنبيهات
+              <select id="setAlertFrequency" class="mt-1 w-full bg-paper border border-line rounded-lg px-3 py-2 text-[13px]">
+                <option value="instant">فوري</option>
+                <option value="hourly">ملخص كل ساعة</option>
+                <option value="daily">ملخص يومي</option>
+              </select>
+            </label>
+            <label class="block text-[12px] text-mut">الاحتفاظ بالبيانات / يوم
+              <input id="setRetention" type="number" min="30" max="3650" step="30" class="mt-1 w-full bg-paper border border-line rounded-lg px-3.5 py-2 text-[13px] num focus:outline-none focus:ring-2 focus:ring-deep/30">
+            </label>
+          </div>
+          <button onclick="saveSettings()" class="mt-5 bg-deep hover:bg-deepd text-white rounded-lg px-5 py-2.5 text-[13.5px] font-medium transition shadow-card">حفظ الإعدادات</button>
+        </div>
+        <div class="xl:col-span-2 bg-card border border-line rounded-2xl shadow-card p-6">
+          <h2 class="font-semibold text-[15px] mb-1">فتح الميزات المقفلة</h2>
+          <p class="text-[12px] text-mut mb-4">هذه الحالة تقرأ البيئة الحالية ولا تعرض أسرارًا.</p>
+          <div id="gatedFeatures" class="space-y-2"></div>
+        </div>
+      </div>
+    </section>
+
   </div>
 </div>
 
@@ -308,12 +355,12 @@ function countdown(sec){
 
 /* ---------- navigation ---------- */
 function show(view){
-  ['dash','disc','war','alerts','intel'].forEach(v => $('#view-'+v).classList.toggle('hidden', v!==view));
+  ['dash','disc','war','alerts','intel','settings'].forEach(v => $('#view-'+v).classList.toggle('hidden', v!==view));
   document.querySelectorAll('#nav .navbtn').forEach(b => {
     const on = b.dataset.view === view;
     b.classList.toggle('bg-tint', on); b.classList.toggle('text-deep', on); b.classList.toggle('font-semibold', on);
   });
-  $('#viewTitle').textContent = {dash:'لوحة القيادة', disc:'استكشاف المنافسات', war:'غرفة العمليات', alerts:'التنبيهات', intel:'ذكاء المنافسين'}[view];
+  $('#viewTitle').textContent = {dash:'لوحة القيادة', disc:'استكشاف المنافسات', war:'غرفة العمليات', alerts:'التنبيهات', intel:'ذكاء المنافسين', settings:'الإعدادات'}[view];
 }
 document.querySelectorAll('.navbtn').forEach(b => b.onclick = () => {
   show(b.dataset.view);
@@ -321,6 +368,7 @@ document.querySelectorAll('.navbtn').forEach(b => b.onclick = () => {
   if(b.dataset.view==='alerts') loadAlerts();
   if(b.dataset.view==='war') loadWar();
   if(b.dataset.view==='intel') loadIntel();
+  if(b.dataset.view==='settings') loadSettings();
 });
 
 /* ---------- tooltip ---------- */
@@ -1032,6 +1080,44 @@ async function setStage(id, stage){
       body: JSON.stringify({stage})});
   }
   loadWar(); if(curPursuit) openPursuit(curPursuit);
+}
+
+
+/* ---------- settings ---------- */
+const GATED_LABELS = {
+  etimad_supplier_credentials: ['اعتماد كمورد', 'يفتح خزنة الوثائق، الكراسات، BOQ، وبحث داخل TSD.'],
+  llm_compliance_extraction: ['مفتاح الذكاء الاصطناعي', 'يفتح استخراج بنود الامتثال وAsk-the-tender.'],
+  telegram_alerts: ['بوت تيليجرام', 'يفتح تنبيهات الهاتف والملخصات اليومية.'],
+  ksa_staging: ['بيئة KSA staging', 'يفتح ساعة SLO رسمية وبنية مشاركة إنتاجية.'],
+};
+async function loadSettings(){
+  const s = await (await fetch(API+'/api/settings')).json();
+  $('#setMarkup').value = s.calculator?.default_markup_pct ?? 12;
+  $('#setRisk').value = s.calculator?.risk_tolerance || 'balanced';
+  $('#setAlertFrequency').value = s.alerts?.frequency || 'instant';
+  $('#setRetention').value = s.retention_days || 180;
+  $('#settingsSaved').textContent = s.updated_at ? 'آخر تحديث: '+dt(s.updated_at) : '';
+  $('#gatedFeatures').innerHTML = Object.entries(GATED_LABELS).map(([k, v]) => {
+    const on = !!(s.gated_features || {})[k];
+    return `<div class="rounded-xl border ${on?'border-deep/25 bg-tint':'border-line bg-paper/70'} p-3">
+      <div class="flex items-center justify-between gap-2">
+        <div class="font-semibold text-[12.5px]">${v[0]}</div>
+        <span class="text-[10px] rounded-full px-2 py-0.5 ${on?'bg-deep text-white':'bg-bronzet text-bronze'}">${on?'مفتوحة':'مقفلة'}</span>
+      </div>
+      <div class="text-[11px] text-mut mt-1 leading-relaxed">${v[1]}</div>
+    </div>`;
+  }).join('');
+}
+async function saveSettings(){
+  const body = {
+    default_markup_pct: Number($('#setMarkup').value || 12),
+    risk_tolerance: $('#setRisk').value || 'balanced',
+    default_agency_id: null,
+    alert_frequency: $('#setAlertFrequency').value || 'instant',
+    retention_days: Number($('#setRetention').value || 180),
+  };
+  const s = await (await fetch(API+'/api/settings', {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})).json();
+  $('#settingsSaved').textContent = 'حُفظ الآن · '+dt(s.updated_at);
 }
 
 /* ---------- alerts ---------- */

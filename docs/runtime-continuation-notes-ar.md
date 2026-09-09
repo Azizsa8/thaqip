@@ -15,6 +15,7 @@
 - الـ static demo يصدّر ويخدم `/api/lanes` حتى يرى المستخدم صحة خطوط الاستيعاب في النسخة العامة.
 - حلقة دقة التسعير مفعلة: كل محاكاة سعر تُقاس لاحقًا مقابل قيمة الترسية عند توفرها.
 - تمت إضافة `POST /api/pricing/seed-baselines` لبذر فرضية تسعير واحدة لكل pursuit نشط لا يملك محاكاة. آخر تشغيل محلي زرع 5 فرضيات ورفع القياسات إلى 2 مع 43 محاكاة محفوظة/مقاسة.
+- تمت إضافة تبويب الإعدادات و`/api/settings` لحالة الميزات المقفلة وتفضيلات الحاسبة والتنبيهات والاحتفاظ بالبيانات. محاكي التسعير يستخدم الآن `default_markup_pct` و`risk_tolerance` من الإعدادات عند عدم تمرير قيم مخصصة.
 - تمت إضافة `thaqip_ingestion.pricing_seed` وتشغيله في Modal كل 6 ساعات، وكذلك خدمة Docker Compose باسم `pricing-seed` وسكربت `bin/pricing-seed.sh` للتشغيل المحلي. يسجل الآن connector باسم `pricing.seed` في `ingest_runs` ويظهر في `/api/lanes`.
 - آخر محاولتي نشر Netlify في 2026-09-09 رجعت `JSONHTTPError: Forbidden` رغم وجود login؛ يلزم إصلاح صلاحية/ربط Netlify ثم إعادة أمر النشر.
 
@@ -26,7 +27,7 @@ uv run ruff check src tests ../console/src/thaqip_console/app.py ../../deploy/mo
 uv run pytest -q
 ```
 
-المتوقع حاليًا: `43 passed` لاختبارات ingestion، و`1 passed` لاختبار console الخاص بتأكيد مراجعة الحوادث.
+المتوقع حاليًا: `43 passed` لاختبارات ingestion، واختبارات console الخاصة بالتشغيل والإعدادات تمر محليًا.
 
 ## أوامر نشر نسخة العرض
 
