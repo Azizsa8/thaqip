@@ -9,6 +9,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./db/migrations:/docker-entrypoint-initdb.d:ro
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
@@ -16,6 +17,7 @@ services:
     ports: ["6380:6379"]
     volumes:
       - redisdata:/data
+    restart: unless-stopped
 
   minio:
     image: minio/minio:latest
@@ -26,6 +28,7 @@ services:
     ports: ["9002:9000", "9003:9001"]
     volumes:
       - miniodata:/data
+    restart: unless-stopped
 
   typesense:
     image: typesense/typesense:27.1
