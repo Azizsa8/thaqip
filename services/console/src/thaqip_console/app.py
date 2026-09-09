@@ -991,10 +991,36 @@ async def vendor_detail(vid: int):
         FROM offers o JOIN tenders t ON t.id=o.tender_id
         LEFT JOIN agencies a ON a.id=t.agency_id
         WHERE o.vendor_id=$1 GROUP BY 1 ORDER BY n DESC LIMIT 8""", vid)
+    agency_matrix = await pool.fetch("""
+        WITH offer_context AS (
+          SELECT coalesce(a.canonical_name, t.agency_name_raw) AS agency,
+                 o.offer_value,
+                 o.is_winner,
+                 o.technical_pass,
+                 (SELECT min(o2.offer_value) FROM offers o2
+                   WHERE o2.tender_id = t.id AND o2.technical_pass AND o2.offer_value IS NOT NULL) AS lowest_offer
+          FROM offers o
+          JOIN tenders t ON t.id=o.tender_id
+          LEFT JOIN agencies a ON a.id=t.agency_id
+          WHERE o.vendor_id=$1
+        )
+        SELECT agency,
+               count(*) AS participations,
+               count(*) FILTER (WHERE is_winner) AS wins,
+               round(100.0*count(*) FILTER (WHERE is_winner)/nullif(count(*),0),1) AS win_rate,
+               round(100.0*count(*) FILTER (WHERE technical_pass)/nullif(count(*),0),1) AS tech_rate,
+               round(avg(offer_value),0) AS avg_offer,
+               round(avg(100.0*(offer_value-lowest_offer)/nullif(lowest_offer,0))
+                 FILTER (WHERE offer_value IS NOT NULL AND lowest_offer IS NOT NULL),1) AS avg_gap_vs_lowest_pct
+        FROM offer_context
+        GROUP BY agency
+        ORDER BY wins DESC, participations DESC, agency
+        LIMIT 16""", vid)
     out = dict(v)
     out["stats"] = dict(stats)
     out["history"] = [dict(r) for r in history]
     out["agencies"] = [dict(r) for r in agencies]
+    out["agency_matrix"] = [dict(r) for r in agency_matrix]
     return out
 
 

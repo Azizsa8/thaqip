@@ -1007,6 +1007,7 @@ async function openVendor(id){
       <span class="w-40 truncate text-mut">${a.agency??'—'}</span>
       <div class="flex-1 h-3 bg-line/60 rounded overflow-hidden"><div class="h-full bg-[#2E7C8C]" style="width:${w}%"></div></div>
       <span class="num w-14 text-left">${a.wins}/${a.n}</span></div>`; }).join('') : '';
+  const agencyHeatmap = (v.agency_matrix || []).length ? renderVendorAgencyHeatmap(v.agency_matrix) : '';
   $('#vendorPanel').innerHTML = `
     <div class="bg-card border border-line rounded-2xl shadow-card overflow-hidden">
       <div class="px-6 pt-5 pb-4 border-b border-line">
@@ -1032,7 +1033,13 @@ async function openVendor(id){
         </div>
         <div id="vendorCompareBox" class="hidden mt-4"></div>
       </div>
-      ${agBars?`<div class="px-6 py-4 border-b border-line"><h3 class="text-[12.5px] font-semibold mb-2.5">الجهات (فوز/مشاركة)</h3><div class="space-y-1.5">${agBars}</div></div>`:''}
+      ${(agBars || agencyHeatmap)?`<div class="px-6 py-4 border-b border-line">
+        <div class="flex items-center justify-between gap-2 mb-2.5">
+          <h3 class="text-[12.5px] font-semibold">مصفوفة الفوز حسب الجهة</h3>
+          <span class="text-[10.5px] text-mut">كلما اشتد اللون زاد تركّز الفوز</span>
+        </div>
+        ${agencyHeatmap || `<div class="space-y-1.5">${agBars}</div>`}
+      </div>`:''}
       <div class="px-3 py-2">
         <h3 class="text-[12.5px] font-semibold px-3 pt-1 pb-2">سجل المشاركات</h3>
         <div class="max-h-[46vh] overflow-y-auto"><table class="w-full text-[12px]">
@@ -1054,6 +1061,28 @@ async function openVendor(id){
       </div>
     </div>`;
   loadIntel();
+}
+
+function renderVendorAgencyHeatmap(rows){
+  const maxWin = Math.max(1, ...rows.map(r => Number(r.win_rate || 0)));
+  return `<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2.5">
+    ${rows.map(r => {
+      const wr = Number(r.win_rate || 0);
+      const alpha = Math.max(0.12, Math.min(0.88, wr / maxWin));
+      const gap = r.avg_gap_vs_lowest_pct == null ? '—' : `${Number(r.avg_gap_vs_lowest_pct).toFixed(1)}%`;
+      return `<div class="rounded-xl border border-line bg-paper overflow-hidden">
+        <div class="h-1.5" style="background:rgba(46,124,140,${alpha})"></div>
+        <div class="p-3">
+          <div class="text-[11.5px] font-semibold leading-snug line-clamp-2 min-h-[2rem]">${r.agency || '—'}</div>
+          <div class="grid grid-cols-3 gap-1.5 mt-2 text-center">
+            <div><div class="num text-[14px] font-semibold">${wr}%</div><div class="text-[9.5px] text-mut">فوز</div></div>
+            <div><div class="num text-[14px] font-semibold">${r.wins}/${r.participations}</div><div class="text-[9.5px] text-mut">سجل</div></div>
+            <div><div class="num text-[14px] font-semibold">${gap}</div><div class="text-[9.5px] text-mut">فوق الأدنى</div></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
 }
 
 async function compareVendor(id){

@@ -40,6 +40,7 @@ uv run pytest                                          # fixture-based tests
 - [x] M5 pricing calibration seeding — `pricing-seed` Compose service and `bin/pricing-seed.sh` keep active pursuits stocked with one baseline price hypothesis for later award measurement
 - [x] Settings v1 — `/api/settings` plus dashboard tab for gated-feature readiness, alert cadence, calculator defaults, and my-company comparison baseline used by competitor intelligence
 - [x] Vendor comparison CTA — `/api/vendors/{id}/compare` compares each competitor with the saved company target profile and returns tactical recommendations
+- [x] Agency win heatmap — vendor profiles now expose `agency_matrix` and render a heatmap of wins, participation, and price gap by agency
 - [x] Calculator modes v1 — War Room price simulator now returns and renders 8 pricing modes with ready/needs-data states
 - [x] Tender award export — tender drawer exports offers/award details as Arabic Excel-friendly CSV
 - [x] Alert history drill-down — notifications API and Alerts tab filter by profile and keyword

@@ -183,9 +183,22 @@
       if (costAdv > 0 && targetOffer != null) recommendations.push(`ميزة التكلفة المحفوظة تعني أن سعرًا حول ${targetOffer.toLocaleString('ar-SA')} ر.س يعادل متوسط عروضه بعد الخصم.`);
       return json({ vendor: { id: detail.id, name: detail.canonical_name, participations, wins, win_rate_pct: vendorWinRate, tech_rate_pct: vendorTechRate, avg_offer: avgOffer }, my_company: { name: cfg.name || 'شركتي', target_win_rate_pct: targetWin, cost_advantage_pct: costAdv, target_offer_vs_vendor_avg: targetOffer }, deltas: { win_rate_gap_pct: gap, technical_gap_pct: Math.round((vendorTechRate - 75) * 10) / 10, cost_advantage_pct: costAdv }, recommendations });
     }
-    if ((m = p.match(/^\/api\/vendors\/(\d+)$/)))
-      return db.vendor_details[m[1]] ? json(db.vendor_details[m[1]])
-        : json({ detail: 'خارج نطاق نسخة العرض' }, 404);
+    if ((m = p.match(/^\/api\/vendors\/(\d+)$/))) {
+      const detail = (db.vendor_details || {})[m[1]];
+      if (!detail) return json({ detail: 'خارج نطاق نسخة العرض' }, 404);
+      if (!detail.agency_matrix) {
+        detail.agency_matrix = (detail.agencies || []).map(a => ({
+          agency: a.agency,
+          participations: Number(a.n || 0),
+          wins: Number(a.wins || 0),
+          win_rate: Number(a.n || 0) ? Math.round((1000 * Number(a.wins || 0)) / Number(a.n || 1)) / 10 : 0,
+          tech_rate: detail.stats?.tech_rate ?? null,
+          avg_offer: detail.stats?.avg_offer ?? null,
+          avg_gap_vs_lowest_pct: null,
+        }));
+      }
+      return json(detail);
+    }
 
     if (p === '/api/pursuits' && method === 'GET') return json(db.pursuits);
     if (p === '/api/pursuits' && method === 'POST') {
