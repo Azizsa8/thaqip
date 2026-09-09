@@ -1316,6 +1316,91 @@ async def tender_detail(tender_id: int):
     out["competition"] = competition
     return out
 
+
+@app.get("/api/tenders/{tender_id}/export/awards")
+async def export_tender_awards(tender_id: int):
+    """Export tender awarding details and submitted offers as Arabic CSV."""
+    import csv
+    import io
+
+    from fastapi.responses import StreamingResponse
+
+    pool: asyncpg.Pool = app.state.pool
+    tender = await pool.fetchrow(
+        """SELECT t.id, t.name, t.reference_number,
+                  coalesce(a.canonical_name, t.agency_name_raw) AS agency,
+                  t.activity_name_raw AS activity
+           FROM tenders t LEFT JOIN agencies a ON a.id=t.agency_id
+           WHERE t.id=$1""",
+        tender_id,
+    )
+    if tender is None:
+        raise HTTPException(404, "tender not found")
+
+    rows = await pool.fetch(
+        """SELECT v.canonical_name AS vendor, o.vendor_name_raw, o.offer_value,
+                  o.technical_pass, o.is_winner, w.award_value
+           FROM offers o
+           LEFT JOIN vendors v ON v.id=o.vendor_id
+           LEFT JOIN awards w ON w.tender_id=o.tender_id AND w.vendor_id=o.vendor_id
+           WHERE o.tender_id=$1
+           ORDER BY o.is_winner DESC NULLS LAST, o.offer_value NULLS LAST""",
+        tender_id,
+    )
+    award_only = await pool.fetch(
+        """SELECT v.canonical_name AS vendor, w.award_value
+           FROM awards w LEFT JOIN vendors v ON v.id=w.vendor_id
+           WHERE w.tender_id=$1
+             AND NOT EXISTS (
+               SELECT 1 FROM offers o
+               WHERE o.tender_id=w.tender_id AND o.vendor_id IS NOT DISTINCT FROM w.vendor_id
+             )
+           ORDER BY w.award_value NULLS LAST""",
+        tender_id,
+    )
+
+    stream = io.StringIO()
+    stream.write("\ufeff")
+    writer = csv.writer(stream)
+    writer.writerow(["ثاقب — تصدير تفاصيل الترسية والعروض"])
+    writer.writerow(["المنافسة", tender["name"] or ""])
+    writer.writerow(["الرقم المرجعي", tender["reference_number"] or ""])
+    writer.writerow(["الجهة", tender["agency"] or ""])
+    writer.writerow(["النشاط", tender["activity"] or ""])
+    writer.writerow([])
+    writer.writerow([
+        "المورد",
+        "قيمة العرض (ر.س)",
+        "قيمة الترسية (ر.س)",
+        "مطابق فنياً",
+        "النتيجة",
+    ])
+    for row in rows:
+        writer.writerow([
+            row["vendor"] or row["vendor_name_raw"] or "",
+            f"{float(row['offer_value']):,.2f}" if row["offer_value"] is not None else "",
+            f"{float(row['award_value']):,.2f}" if row["award_value"] is not None else "",
+            "نعم" if row["technical_pass"] else ("لا" if row["technical_pass"] is False else "—"),
+            "فائز" if row["is_winner"] else "غير فائز",
+        ])
+    for row in award_only:
+        writer.writerow([
+            row["vendor"] or "",
+            "",
+            f"{float(row['award_value']):,.2f}" if row["award_value"] is not None else "",
+            "—",
+            "فائز — ترسية بلا عرض محفوظ",
+        ])
+
+    stream.seek(0)
+    safe_ref = tender["reference_number"] or tender_id
+    filename = f"tender_awards_{safe_ref}.csv"
+    return StreamingResponse(
+        io.BytesIO(stream.getvalue().encode("utf-8")),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
 @app.get("/api/pursuits/{pid}/export/compliance")
 async def export_compliance(pid: int):
     """M3-1: Export pursuit compliance matrix as CSV (Arabic UTF-8 with BOM)."""

@@ -61,6 +61,15 @@
   const json = (obj, status = 200) =>
     new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json' } });
 
+  function csvEscape(v) {
+    const s = String(v ?? '');
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function csvResponse(rows, filename) {
+    const csv = '\ufeff' + rows.map(r => r.map(csvEscape).join(',')).join('\n');
+    return new Response(csv, { headers: { 'Content-Type': 'text/csv;charset=utf-8', 'Content-Disposition': `attachment; filename="${filename}"` } });
+  }
+
   const origFetch = window.fetch.bind(window);
   window.fetch = async function (input, init) {
     const url = typeof input === 'string' ? input : input.url;
@@ -115,6 +124,22 @@
       return json({ total: items.length, items: items.slice(off, off + lim) });
     }
     let m;
+    if ((m = p.match(/^\/api\/tenders\/(\d+)\/export\/awards$/))) {
+      const t = db.tender_details[m[1]];
+      if (!t) return json({ detail: 'خارج نطاق نسخة العرض' }, 404);
+      const rows = [
+        ['ثاقب — تصدير تفاصيل الترسية والعروض'],
+        ['المنافسة', t.name || ''],
+        ['الرقم المرجعي', t.reference_number || ''],
+        ['الجهة', t.agency || ''],
+        ['النشاط', t.activity_name_raw || t.activity || ''],
+        [],
+        ['المورد','قيمة العرض (ر.س)','قيمة الترسية (ر.س)','مطابق فنياً','النتيجة'],
+        ...((t.offers || []).map(o => [o.vendor || '', o.offer_value ?? '', (t.awards || []).find(a => a.vendor === o.vendor)?.award_value ?? '', o.technical_pass === true ? 'نعم' : o.technical_pass === false ? 'لا' : '—', o.is_winner ? 'فائز' : 'غير فائز'])),
+        ...((t.awards || []).filter(a => !(t.offers || []).some(o => o.vendor === a.vendor)).map(a => [a.vendor || '', '', a.award_value ?? '', '—', 'فائز — ترسية بلا عرض محفوظ']))
+      ];
+      return csvResponse(rows, `tender_awards_${t.reference_number || m[1]}.csv`);
+    }
     if ((m = p.match(/^\/api\/tenders\/(\d+)$/)))
       return db.tender_details[m[1]] ? json(db.tender_details[m[1]])
         : json({ detail: 'خارج نطاق نسخة العرض' }, 404);
