@@ -35,8 +35,8 @@ tailwind.config = {
   @keyframes fu{to{opacity:1;transform:none}}
   .soft-card{background:linear-gradient(180deg,rgba(255,254,250,.98),rgba(255,254,250,.92));box-shadow:0 1px 2px rgba(16,37,31,.05),0 16px 42px rgba(16,37,31,.08);backdrop-filter:blur(16px)}
   .text-mut{color:#4F5F57!important}.text-deep{color:#075E46!important}.bg-tint{background-color:#DDECE4!important}.border-line{border-color:#D8D0C1!important}
-  .theme-dark,.theme-dark.bg-paper{background:#0D1714!important;color:#F4EFE6}.theme-dark .bg-paper{background-color:#0D1714!important}.theme-dark .bg-card,.theme-dark .soft-card{background:linear-gradient(180deg,rgba(20,34,29,.96),rgba(15,27,23,.94))!important}.theme-dark .text-ink{color:#F4EFE6!important}.theme-dark .text-mut{color:#AEBBB3!important}.theme-dark .border-line{border-color:#2A3B34!important}.theme-dark .bg-tint{background-color:#17382D!important}.theme-dark input,.theme-dark select{background:#13231E!important;color:#F4EFE6!important}
-  .density-compact #view-dash{max-width:1540px;margin-inline:auto}.density-compact #chartMonthly{height:15rem}.density-compact .dashboard-chart-card{align-self:start}
+  .theme-dark,.theme-dark.bg-paper{background:#0D1714!important;color:#F4EFE6}.theme-dark .bg-paper{background-color:#0D1714!important}.theme-dark [class*="bg-paper/"]{background-color:rgba(16,30,25,.82)!important}.theme-dark .bg-card,.theme-dark .soft-card{background:linear-gradient(180deg,rgba(20,34,29,.98),rgba(15,27,23,.96))!important}.theme-dark .text-ink{color:#F4EFE6!important}.theme-dark .text-mut{color:#B7C3BC!important}.theme-dark .border-line{border-color:#2B4139!important}.theme-dark .bg-tint{background-color:#17382D!important}.theme-dark .text-deep{color:#76D6B0!important}.theme-dark .text-bronze{color:#E4B45F!important}.theme-dark input,.theme-dark select{background:#13231E!important;color:#F4EFE6!important}.theme-dark table thead{background:rgba(19,35,30,.92)!important}.theme-dark tr:hover{background:rgba(23,56,45,.45)!important}
+  .density-compact #view-dash{max-width:1560px;margin-inline:auto}.density-compact #chartMonthly{height:12.5rem}.density-compact .dashboard-chart-card{align-self:start}.dashboard-panel{min-height:0}
   .tap-card{touch-action:manipulation;transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s ease,background .22s ease,border-color .22s ease}
   .tap-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(16,37,31,.08),0 22px 52px rgba(16,37,31,.12)}
   .tap-card:active{transform:translateY(0) scale(.985)}
@@ -109,31 +109,31 @@ tailwind.config = {
     </div>
   </aside>
 
-  <nav id="navMobile" class="lg:hidden fixed bottom-0 inset-x-0 z-50 px-3 pt-2 pb-[calc(10px+var(--safe-bottom))] bg-card/92 backdrop-blur-xl border-t border-line mobile-nav-shadow">
-    <div class="grid grid-cols-6 gap-1 max-w-xl mx-auto">
-      <button data-view="dash" class="navbtn focus-ring flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">▦</span><span>القيادة</span></button>
-      <button data-view="disc" class="navbtn focus-ring flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">⌕</span><span>بحث</span></button>
-      <button data-view="war" class="navbtn focus-ring flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">◈</span><span>عمليات</span></button>
-      <button data-view="alerts" class="navbtn focus-ring flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">◌</span><span>تنبيه</span></button>
-      <button data-view="intel" class="navbtn focus-ring flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">▥</span><span>منافسين</span></button>
-      <button data-view="settings" class="navbtn focus-ring flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">⚙</span><span>ضبط</span></button>
+  <nav id="navMobile" class="lg:hidden fixed bottom-0 inset-x-0 z-50 px-3 pt-2 pb-[calc(10px+var(--safe-bottom))] bg-card/94 backdrop-blur-xl border-t border-line mobile-nav-shadow">
+    <div class="flex gap-1.5 max-w-xl mx-auto overflow-x-auto pb-1 snap-x">
+      <button data-view="dash" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">▦</span><span>القيادة</span></button>
+      <button data-view="disc" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">⌕</span><span>بحث</span></button>
+      <button data-view="war" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">◈</span><span>عمليات</span></button>
+      <button data-view="alerts" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">◌</span><span>تنبيه</span></button>
+      <button data-view="intel" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">▥</span><span>منافسين</span></button>
+      <button data-view="settings" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">⚙</span><span>ضبط</span></button>
     </div>
   </nav>
 
   <!-- ======================= MAIN ======================= -->
   <div class="flex-1 min-w-0">
     <header class="sticky top-0 z-20 bg-paper/88 backdrop-blur-xl border-b border-line">
-      <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 px-4 lg:px-8 min-h-16 py-3 sm:py-0">
+      <div class="grid grid-cols-[1fr_auto] sm:flex sm:flex-nowrap items-center gap-3 sm:gap-4 px-4 lg:px-8 min-h-16 py-3 sm:py-0">
         <h1 id="viewTitle" class="text-[17px] font-semibold">لوحة القيادة</h1>
         <span id="freshChip" class="hidden sm:inline-flex items-center gap-2 text-[12px] text-deep bg-tint rounded-full px-3 py-1">
           <span class="w-1.5 h-1.5 rounded-full bg-deep animate-pulse"></span><span id="freshTxt">…</span></span>
-        <div class="ms-auto flex items-center gap-2">
+        <div class="col-span-2 sm:col-span-1 sm:ms-auto flex items-center gap-2 w-full sm:w-auto">
           <div class="hidden md:flex items-center gap-1 bg-card border border-line rounded-xl p-1 shadow-card">
             <button id="themeToggle" class="focus-ring rounded-lg px-2.5 py-1.5 text-[12px] text-deep hover:bg-tint transition">ثيم</button>
             <button id="langToggle" class="focus-ring rounded-lg px-2.5 py-1.5 text-[12px] text-deep hover:bg-tint transition">EN</button>
           </div>
           <input id="q" type="search" placeholder="ابحث في المنافسات…"
-            class="w-40 xs:w-44 sm:w-64 bg-card border border-line rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-deep/40">
+            class="flex-1 sm:flex-none sm:w-64 bg-card border border-line rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-deep/40">
           <button id="goSearch" class="bg-deep hover:bg-deepd text-white rounded-xl px-4 py-2.5 text-[13px] font-medium transition shadow-card">بحث</button>
           <button id="themeToggleMobile" class="md:hidden focus-ring bg-card border border-line rounded-xl px-3 py-2.5 text-[12px] text-deep shadow-card">◐</button>
         </div>
@@ -141,50 +141,50 @@ tailwind.config = {
     </header>
 
     <!-- ================= DASHBOARD ================= -->
-    <section id="view-dash" class="px-4 lg:px-8 py-5 lg:py-7 space-y-5 lg:space-y-6">
+    <section id="view-dash" class="px-4 lg:px-8 py-5 lg:py-7 space-y-5 lg:space-y-6 density-compact">
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4" id="kpis"></div>
 
       <div id="commandMetrics" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4"></div>
 
-      <div class="grid xl:grid-cols-3 gap-4 lg:gap-5 items-start">
-        <div class="dashboard-chart-card xl:col-span-2 soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up" style="animation-delay:.05s">
+      <div class="grid xl:grid-cols-12 gap-4 lg:gap-5 items-start">
+        <div class="dashboard-panel dashboard-chart-card xl:col-span-7 soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up" style="animation-delay:.05s">
           <div class="flex items-baseline justify-between mb-1">
-            <h2 class="font-semibold text-[15px]">العروض حسب شهر الإغلاق</h2>
+            <h2 id="monthlyTitle" class="font-semibold text-[15px]">العروض حسب شهر الإغلاق</h2>
             <div class="flex items-center gap-4 text-[12px] text-mut">
               <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-won inline-block"></span>فائز</span>
               <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-lost inline-block"></span>غير فائز</span>
             </div>
           </div>
-          <p class="text-[12px] text-mut mb-4">اضغط على أي شهر لعرض المنافسات المُرسّاة في جدول الاستكشاف.</p>
-          <div id="chartMonthly" class="h-56 lg:h-60 max-h-[260px]"></div>
+          <p id="monthlySub" class="text-[12px] text-mut mb-3">اضغط على أي شهر لعرض المنافسات المُرسّاة في جدول الاستكشاف.</p>
+          <div id="chartMonthly" class="h-48 lg:h-52 max-h-[220px]"></div>
         </div>
 
-        <div class="soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up self-start" style="animation-delay:.1s">
-          <h2 class="font-semibold text-[15px] mb-1">نبض المصدر</h2>
-          <p class="text-[12px] text-mut mb-5">قياسات حيّة من خط الاستيعاب</p>
+        <div class="dashboard-panel xl:col-span-5 soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up self-start" style="animation-delay:.1s">
+          <h2 id="pulseTitle" class="font-semibold text-[15px] mb-1">نبض المصدر</h2>
+          <p id="pulseSub" class="text-[12px] text-mut mb-4">قياسات حيّة من خط الاستيعاب</p>
           <div class="space-y-4" id="pulse"></div>
         </div>
       </div>
 
-      <div class="grid xl:grid-cols-3 gap-5">
-        <div class="xl:col-span-2 bg-card border border-line rounded-2xl shadow-card p-6 fade-up" style="animation-delay:.12s">
+      <div class="grid xl:grid-cols-12 gap-4 lg:gap-5 items-start">
+        <div class="xl:col-span-8 soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up" style="animation-delay:.12s">
           <div class="flex items-start justify-between gap-3 mb-4">
             <div>
-              <h2 class="font-semibold text-[15px]">خريطة أين نلعب؟</h2>
-              <p class="text-[12px] text-mut mt-1">الجهات والأنشطة الأكثر سخونة. اضغط لتحويل الرسم إلى قائمة منافسات قابلة للتنفيذ.</p>
+              <h2 id="marketTitle" class="font-semibold text-[15px]">خريطة أين نلعب؟</h2>
+              <p id="marketSub" class="text-[12px] text-mut mt-1">الجهات والأنشطة الأكثر سخونة. اضغط لتحويل الرسم إلى قائمة منافسات قابلة للتنفيذ.</p>
             </div>
             <span class="text-[10.5px] bg-tint text-deep rounded-full px-2.5 py-1">تفاعلية</span>
           </div>
           <div id="marketHeat" class="grid md:grid-cols-2 gap-4"></div>
         </div>
-        <div class="bg-card border border-line rounded-2xl shadow-card p-6 fade-up" style="animation-delay:.14s">
-          <h2 class="font-semibold text-[15px] mb-1">أين المال؟</h2>
-          <p class="text-[12px] text-mut mb-4">شرائح قيم الترسيات المحصودة. اضغط على الشريحة لفتح الترسيات.</p>
+        <div class="xl:col-span-4 soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up" style="animation-delay:.14s">
+          <h2 id="moneyTitle" class="font-semibold text-[15px] mb-1">أين المال؟</h2>
+          <p id="moneySub" class="text-[12px] text-mut mb-4">شرائح قيم الترسيات المحصودة. اضغط على الشريحة لفتح الترسيات.</p>
           <div id="awardBandsChart"></div>
         </div>
       </div>
 
-      <div class="bg-card border border-line rounded-2xl shadow-card fade-up overflow-hidden" style="animation-delay:.15s">
+      <div class="soft-card border border-line rounded-3xl fade-up overflow-hidden" style="animation-delay:.15s">
         <div class="flex items-center justify-between px-6 pt-5 pb-3">
           <h2 class="font-semibold text-[15px]">أحدث الترسيات المحصودة</h2>
           <button data-view="disc" class="navbtn text-deep text-[13px] hover:underline">عرض الكل ←</button>
@@ -414,21 +414,23 @@ let offset = 0; const LIMIT = 25;
 
 const nf = new Intl.NumberFormat('en-US');
 const UI = {
-  ar:{dir:'rtl', search:'بحث', searchPh:'ابحث في المنافسات…', theme:'ثيم', lang:'EN', views:{dash:'لوحة القيادة',disc:'استكشاف المنافسات',war:'غرفة العمليات',alerts:'التنبيهات',intel:'ذكاء المنافسين',settings:'الإعدادات'}, nav:['لوحة القيادة','استكشاف المنافسات','غرفة العمليات','التنبيهات','ذكاء المنافسين','الإعدادات']},
-  en:{dir:'ltr', search:'Search', searchPh:'Search tenders…', theme:'Theme', lang:'AR', views:{dash:'Command Dashboard',disc:'Tender Discovery',war:'War Room',alerts:'Alerts',intel:'Competitor Intel',settings:'Settings'}, nav:['Dashboard','Discovery','War Room','Alerts','Competitors','Settings']}
+  ar:{dir:'rtl', search:'بحث', searchPh:'ابحث في المنافسات…', theme:'ثيم', lang:'EN', views:{dash:'لوحة القيادة',disc:'استكشاف المنافسات',war:'غرفة العمليات',alerts:'التنبيهات',intel:'ذكاء المنافسين',settings:'الإعدادات'}, nav:['لوحة القيادة','استكشاف المنافسات','غرفة العمليات','التنبيهات','ذكاء المنافسين','الإعدادات'], dash:{monthly:'العروض حسب شهر الإغلاق', monthlySub:'اضغط على أي شهر لعرض المنافسات المُرسّاة في جدول الاستكشاف.', pulse:'نبض المصدر', pulseSub:'قياسات حيّة من خط الاستيعاب', market:'خريطة أين نلعب؟', marketSub:'الجهات والأنشطة الأكثر سخونة. اضغط لتحويل الرسم إلى قائمة منافسات قابلة للتنفيذ.', money:'أين المال؟', moneySub:'شرائح قيم الترسيات المحصودة. اضغط على الشريحة لفتح الترسيات.', open:'منافسات مفتوحة الآن', awardsValue:'قيمة الترسيات المحصودة', peak:'أعلى ترسية محصودة', offers:'عروض مالية محصودة', table:'افتح الجدول', pressure:'ضغط آخر المواعيد', memory:'ذاكرة السوق السعرية', speed:'سرعة الالتقاط', source:'المصدر الأقوى الآن'}},
+  en:{dir:'ltr', search:'Search', searchPh:'Search tenders…', theme:'Theme', lang:'AR', views:{dash:'Command Dashboard',disc:'Tender Discovery',war:'War Room',alerts:'Alerts',intel:'Competitor Intel',settings:'Settings'}, nav:['Dashboard','Discovery','War Room','Alerts','Competitors','Settings'], dash:{monthly:'Offers by closing month', monthlySub:'Click any month to open the matching awarded tenders table.', pulse:'Source pulse', pulseSub:'Live ingestion and operating signals', market:'Where should we play?', marketSub:'The hottest agencies and activities. Click to turn the chart into an actionable tender list.', money:'Where is the money?', moneySub:'Award value bands from harvested results. Click a band to open awarded tenders.', open:'Open tenders now', awardsValue:'Harvested award value', peak:'Largest harvested award', offers:'Harvested financial offers', table:'Open table', pressure:'Deadline pressure', memory:'Market price memory', speed:'Capture speed', source:'Strongest source now'}}
 };
 let uiLang = localStorage.getItem('thaqip.lang') || 'ar';
 function applyChrome(){
   const cfg = UI[uiLang]; document.documentElement.lang = uiLang; document.documentElement.dir = cfg.dir;
   $('#goSearch').textContent = cfg.search; $('#q').placeholder = cfg.searchPh;
-  ['themeToggle'].forEach(id=>{ const el=$('#'+id); if(el) el.textContent = cfg.theme; });
+  ['themeToggle','themeToggleMobile'].forEach(id=>{ const el=$('#'+id); if(el) el.textContent = cfg.theme; });
   ['langToggle'].forEach(id=>{ const el=$('#'+id); if(el) el.textContent = cfg.lang; });
   document.querySelectorAll('#nav .navbtn span:last-child').forEach((el,i)=>{ if(cfg.nav[i]) el.textContent=cfg.nav[i]; });
   document.querySelectorAll('#navMobile .navbtn span:last-child').forEach((el,i)=>{ const short = uiLang==='ar' ? ['القيادة','بحث','عمليات','تنبيه','منافسين','ضبط'] : ['Home','Search','Ops','Alerts','Intel','Setup']; if(short[i]) el.textContent=short[i]; });
   const active = [...document.querySelectorAll('.navbtn')].find(b=>b.classList.contains('font-semibold'))?.dataset.view || 'dash';
   $('#viewTitle').textContent = cfg.views[active];
+  const d = cfg.dash;
+  [['#monthlyTitle',d.monthly],['#monthlySub',d.monthlySub],['#pulseTitle',d.pulse],['#pulseSub',d.pulseSub],['#marketTitle',d.market],['#marketSub',d.marketSub],['#moneyTitle',d.money],['#moneySub',d.moneySub]].forEach(([sel,val])=>{ const el=$(sel); if(el) el.textContent=val; });
 }
-function toggleTheme(){ document.body.classList.toggle('theme-dark'); localStorage.setItem('thaqip.theme', document.body.classList.contains('theme-dark')?'dark':'light'); }
+function toggleTheme(){ document.body.classList.toggle('theme-dark'); localStorage.setItem('thaqip.theme', document.body.classList.contains('theme-dark')?'dark':'light'); const d = window.__lastDash; if(d?.monthly) drawMonthly(d.monthly); }
 function toggleLang(){ uiLang = uiLang==='ar'?'en':'ar'; localStorage.setItem('thaqip.lang', uiLang); applyChrome(); }
 const money = v => v == null ? '—' : nf.format(Math.round(Number(v)));
 const fmtD = v => v ? new Date(v).toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'short',year:'numeric'}) : '—';
@@ -449,7 +451,7 @@ function show(view){
   ['dash','disc','war','alerts','intel','settings'].forEach(v => $('#view-'+v).classList.toggle('hidden', v!==view));
   document.querySelectorAll('#nav .navbtn, #navMobile .navbtn').forEach(b => {
     const on = b.dataset.view === view;
-    b.classList.toggle('bg-tint', on); b.classList.toggle('text-deep', on); b.classList.toggle('font-semibold', on);
+    b.classList.toggle('bg-tint', on); b.classList.toggle('text-deep', on); b.classList.toggle('font-semibold', on); b.classList.toggle('shadow-card', on);
   });
   $('#viewTitle').textContent = UI[uiLang].views[view];
 }
@@ -478,11 +480,13 @@ function kpiCard(label, value, sub, delay, accent){
 
 async function loadDash(){
   const d = await (await fetch(API+'/api/dashboard')).json();
+  window.__lastDash = d;
+  const L = UI[uiLang].dash;
   $('#kpis').innerHTML =
-    kpiCard('منافسات مفتوحة الآن', nf.format(d.open_now), `${nf.format(d.closing_today)} تغلق اليوم`, .0) +
-    kpiCard('قيمة الترسيات المحصودة', money(d.awards_value)+' <span class="text-[13px] text-mut">ر.س</span>', `${nf.format(d.awards_count)} ترسية في الأرشيف`, .05, 'text-deep') +
-    kpiCard('أعلى ترسية محصودة', money(d.peak_award)+' <span class="text-[13px] text-mut">ر.س</span>', 'من جولات الحصاد حتى الآن', .1) +
-    kpiCard('عروض مالية محصودة', nf.format(d.offers_count), `وسيط المتقدمين ${d.median_bidders ?? '—'} لكل منافسة`, .15);
+    kpiCard(L.open, nf.format(d.open_now), uiLang==='ar' ? `${nf.format(d.closing_today)} تغلق اليوم` : `${nf.format(d.closing_today)} closing today`, .0) +
+    kpiCard(L.awardsValue, money(d.awards_value)+' <span class="text-[13px] text-mut">ر.س</span>', uiLang==='ar' ? `${nf.format(d.awards_count)} ترسية في الأرشيف` : `${nf.format(d.awards_count)} awards in memory`, .05, 'text-deep') +
+    kpiCard(L.peak, money(d.peak_award)+' <span class="text-[13px] text-mut">ر.س</span>', uiLang==='ar' ? 'من جولات الحصاد حتى الآن' : 'From harvested award rounds', .1) +
+    kpiCard(L.offers, nf.format(d.offers_count), uiLang==='ar' ? `وسيط المتقدمين ${d.median_bidders ?? '—'} لكل منافسة` : `Median bidders ${d.median_bidders ?? '—'} per tender`, .15);
   // sidebar counts
   $('#scOpen').textContent = nf.format(d.open_now);
   $('#scToday').textContent = nf.format(d.closing_today);
@@ -537,20 +541,20 @@ function renderCommandMetrics(d){
   const pressure = openTotal ? Math.round(hotNow/openTotal*100) : 0;
   const memory = Number(d.offers_count||0) + Number(d.awards_count||0);
   const freshM = d.fresh_p50_seconds == null ? null : Math.round(Number(d.fresh_p50_seconds)/60);
-  const card = (label, value, sub, cls, onclick, micro='') => `<button onclick="${onclick}" class="text-right soft-card border border-line rounded-3xl p-5 fade-up tap-card group">
+  const card = (label, value, sub, cls, onclick, micro='') => `<button onclick="${onclick}" class="text-start soft-card border border-line rounded-3xl p-5 fade-up tap-card group">
     <div class="flex items-start justify-between gap-3">
       <div>
         <div class="text-[11px] text-mut mb-2">${label}</div>
         <div class="num text-[30px] font-bold leading-none ${cls||'text-ink'}">${value}</div>
       </div>
-      <span class="text-[10px] bg-tint text-deep rounded-full px-2 py-0.5 opacity-80 group-hover:bg-deep group-hover:text-white">افتح الجدول</span>
+      <span class="text-[10px] bg-tint text-deep rounded-full px-2 py-0.5 opacity-80 group-hover:bg-deep group-hover:text-white">${UI[uiLang].dash.table}</span>
     </div>
     <div class="text-[11.5px] text-mut mt-2 leading-relaxed">${sub}</div>${micro}</button>`;
   $('#commandMetrics').innerHTML =
-    card('ضغط آخر المواعيد', pressure+'%', `${nf.format(hotNow)} منافسة تغلق خلال 3 أيام من أصل ${nf.format(openTotal)} مفتوحة`, pressure>20?'text-danger':'text-bronze', "goDiscovery({open_only:true})", urgencyStrip(u)) +
-    card('ذاكرة السوق السعرية', nf.format(memory), `${nf.format(d.offers_count||0)} عرض + ${nf.format(d.awards_count||0)} ترسية تغذي التسعير والمنافسين`, 'text-deep', "goDiscovery({awarded:true})") +
-    card('سرعة الالتقاط', freshM==null?'—':(freshM<60?freshM+'د':(freshM/60).toFixed(1)+'س'), 'وسيط زمن رصد آخر 24 ساعة؛ كل انخفاض هنا يعني سبقًا تجاريًا أسرع.', freshM && freshM>60?'text-bronze':'text-deep', "goDiscovery({open_only:true})") +
-    card('المصدر الأقوى الآن', sourceTop ? sourceTop.source : '—', sourceTop ? `${nf.format(sourceTop.open_now||0)} مفتوحة و${nf.format(sourceTop.awarded||0)} مُرسّاة من ${nf.format(sourceTop.tenders||0)} سجل` : 'بانتظار بيانات المصدر', 'text-ink', `goDiscovery({source:'${sourceTop ? sourceTop.source : ''}'})`);
+    card(UI[uiLang].dash.pressure, pressure+'%', uiLang==='ar' ? `${nf.format(hotNow)} منافسة تغلق خلال 3 أيام من أصل ${nf.format(openTotal)} مفتوحة` : `${nf.format(hotNow)} tenders close within 3 days out of ${nf.format(openTotal)} open`, pressure>20?'text-danger':'text-bronze', "goDiscovery({open_only:true})", urgencyStrip(u)) +
+    card(UI[uiLang].dash.memory, nf.format(memory), uiLang==='ar' ? `${nf.format(d.offers_count||0)} عرض + ${nf.format(d.awards_count||0)} ترسية تغذي التسعير والمنافسين` : `${nf.format(d.offers_count||0)} offers + ${nf.format(d.awards_count||0)} awards feeding pricing intelligence`, 'text-deep', "goDiscovery({awarded:true})") +
+    card(UI[uiLang].dash.speed, freshM==null?'—':(freshM<60?freshM+(uiLang==='ar'?'د':'m'):(freshM/60).toFixed(1)+(uiLang==='ar'?'س':'h')), uiLang==='ar' ? 'وسيط زمن رصد آخر 24 ساعة؛ كل انخفاض هنا يعني سبقًا تجاريًا أسرع.' : 'Median capture time in the last 24h; lower means earlier commercial signal.', freshM && freshM>60?'text-bronze':'text-deep', "goDiscovery({open_only:true})") +
+    card(UI[uiLang].dash.source, sourceTop ? sourceTop.source : '—', sourceTop ? (uiLang==='ar' ? `${nf.format(sourceTop.open_now||0)} مفتوحة و${nf.format(sourceTop.awarded||0)} مُرسّاة من ${nf.format(sourceTop.tenders||0)} سجل` : `${nf.format(sourceTop.open_now||0)} open and ${nf.format(sourceTop.awarded||0)} awarded from ${nf.format(sourceTop.tenders||0)} records`) : (uiLang==='ar'?'بانتظار بيانات المصدر':'Waiting for source data'), 'text-ink', `goDiscovery({source:'${sourceTop ? sourceTop.source : ''}'})`);
 }
 function urgencyStrip(u){
   const total = Math.max(1, u.h24+u.d3+u.d7+u.later);
@@ -791,21 +795,26 @@ function drawMonthly(rows){
   if(!rows.length){ el.innerHTML = '<div class="h-full grid place-items-center text-mut text-[13px]">تتعبأ مع تقدم الحصاد</div>'; return; }
   const W = el.clientWidth || 640, H = el.clientHeight || 224, P = {t:8,b:22,s:6};
   const max = Math.max(...rows.map(r => Math.max(r.won, r.lost)), 1);
+  const dark = document.body.classList.contains('theme-dark');
+  const axis = dark ? '#A9B8B0' : '#56645D';
+  const grid = dark ? '#284238' : '#DCD5C8';
+  const won = dark ? '#35C993' : '#087B55';
+  const lost = dark ? '#D98432' : '#A84D10';
   const gw = W / rows.length;
   const bw = Math.min(16, gw/3);
   let s = `<svg width="${W}" height="${H}" role="img" aria-label="العروض الفائزة وغير الفائزة شهريًا">`;
   [0,.5,1].forEach(f => { const y = P.t + (H-P.t-P.b)*(1-f);
-    s += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#E4E2DA" stroke-width="1"/>`;
-    s += `<text x="${W-4}" y="${y-4}" font-size="10" fill="#6B7770" text-anchor="end" class="num">${Math.round(max*f)}</text>`; });
+    s += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="${grid}" stroke-width="1"/>`;
+    s += `<text x="${W-4}" y="${y-4}" font-size="10" fill="${axis}" text-anchor="end" class="num">${Math.round(max*f)}</text>`; });
   rows.forEach((r,i) => {
     const cx = W - (i+0.5)*gw; // RTL: newest on the left? keep chronological right→left
     const hWon = (H-P.t-P.b) * r.won/max, hLost = (H-P.t-P.b) * r.lost/max;
     const yW = H-P.b-hWon, yL = H-P.b-hLost;
     s += `<g class="cursor-default" data-m="${r.month}" data-w="${r.won}" data-l="${r.lost}">
-      <rect x="${cx-bw-1}" y="${yW}" width="${bw}" height="${Math.max(hWon,2)}" rx="3" fill="#108A5F"/>
-      <rect x="${cx+1}" y="${yL}" width="${bw}" height="${Math.max(hLost,2)}" rx="3" fill="#B45309"/>
+      <rect x="${cx-bw-1}" y="${yW}" width="${bw}" height="${Math.max(hWon,2)}" rx="3" fill="${won}"/>
+      <rect x="${cx+1}" y="${yL}" width="${bw}" height="${Math.max(hLost,2)}" rx="3" fill="${lost}"/>
       <rect x="${cx-gw/2}" y="0" width="${gw}" height="${H}" fill="transparent"/>
-      <text x="${cx}" y="${H-6}" font-size="10" fill="#6B7770" text-anchor="middle" class="num">${r.month.slice(2)}</text></g>`;
+      <text x="${cx}" y="${H-6}" font-size="10" fill="${axis}" text-anchor="middle" class="num">${r.month.slice(2)}</text></g>`;
   });
   s += '</svg>';
   el.innerHTML = s;

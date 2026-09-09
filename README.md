@@ -60,3 +60,5 @@ uv run pytest                                          # fixture-based tests
 Key source facts (probed 2026-09-02): listing API is public JSON (~288k tenders); detail/awarding routes need TSPD cookies (one browser bootstrap per session); components take `tenderIdStr` (raw encrypted id); awarding returns 302→/Home/Error for non-awarded tenders and 429s under fast polling — default pacing is 3s between component fetches.
 
 Ground rules: rate limits stay conservative (default 1 req/s), challenge responses are never parsed as data, and the legal/official-access track (tickets F1–F4) runs in parallel from day one.
+
+- [x] Dashboard production hardening — the command dashboard now uses a compact decision-grid, readable dark-mode chart colors, translated dashboard labels, a scrollable mobile nav, and tighter chart proportions so the monthly bars no longer consume empty space.
