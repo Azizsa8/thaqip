@@ -1099,11 +1099,20 @@ async def agency_detail(aid: int):
                EXISTS (SELECT 1 FROM awards w WHERE w.tender_id=t.id) AS has_award,
                (SELECT w.award_value FROM awards w WHERE w.tender_id=t.id LIMIT 1) AS award_value
         FROM tenders t WHERE t.agency_id=$1 ORDER BY t.published_at DESC NULLS LAST LIMIT 15""", aid)
+    upcoming = await pool.fetch("""
+        SELECT t.id, left(t.name,70) AS name, t.last_offer_date,
+               greatest(0, extract(epoch FROM t.last_offer_date - now()))::bigint AS remaining_s,
+               EXISTS (SELECT 1 FROM awards w WHERE w.tender_id=t.id) AS has_award,
+               (SELECT w.award_value FROM awards w WHERE w.tender_id=t.id LIMIT 1) AS award_value
+        FROM tenders t
+        WHERE t.agency_id=$1 AND t.last_offer_date > now()
+        ORDER BY t.last_offer_date ASC NULLS LAST LIMIT 15""", aid)
     out = dict(a)
     out["stats"] = dict(stats)
     out["top_vendors"] = [dict(r) for r in top_vendors]
     out["activities"] = [dict(r) for r in activities]
     out["recent"] = [dict(r) for r in recent]
+    out["upcoming_deadlines"] = [dict(r) for r in upcoming]
     return out
 
 

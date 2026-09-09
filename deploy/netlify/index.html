@@ -1061,7 +1061,9 @@ async function loadAgencies(){
       <td class="px-4 py-2.5 text-left num">${a.awarded_value>0?money(a.awarded_value):'—'}</td>
     </tr>`).join('');
 }
-async function openAgency(id){
+let agencyPipelineMode = 'recent';
+async function openAgency(id, mode){
+  if(mode) agencyPipelineMode = mode;
   const a = await (await fetch(API+'/api/agencies/'+id)).json();
   const s = a.stats;
   const actBars = a.activities.length ? a.activities.map(x => {
@@ -1088,13 +1090,20 @@ async function openAgency(id){
           `<button onclick="intelTab('vendors');openVendor(${v.id})" class="text-[11.5px] bg-tint text-deep rounded-full px-3 py-1 hover:bg-deep hover:text-white transition">
              ${v.canonical_name} <span class="num">×${v.wins}</span></button>`).join('')}</div></div>`:''}
       ${actBars?`<div class="px-6 py-4 border-b border-line"><h3 class="text-[12.5px] font-semibold mb-2.5">الأنشطة</h3><div class="space-y-1.5">${actBars}</div></div>`:''}
-      <div class="px-3 py-2"><h3 class="text-[12.5px] font-semibold px-3 pt-1 pb-2">أحدث المنافسات</h3>
+      <div class="px-3 py-2">
+        <div class="flex items-center justify-between gap-2 px-3 pt-1 pb-2">
+          <h3 class="text-[12.5px] font-semibold">${agencyPipelineMode==='upcoming'?'المواعيد القادمة':'أحدث المنافسات'}</h3>
+          <div class="inline-flex bg-paper border border-line rounded-lg p-0.5 text-[11px]">
+            <button onclick="openAgency(${a.id}, 'recent')" class="px-2.5 py-1 rounded-md ${agencyPipelineMode==='recent'?'bg-tint text-deep font-semibold':'text-mut'}">الأحدث</button>
+            <button onclick="openAgency(${a.id}, 'upcoming')" class="px-2.5 py-1 rounded-md ${agencyPipelineMode==='upcoming'?'bg-tint text-deep font-semibold':'text-mut'}">المواعيد القادمة</button>
+          </div>
+        </div>
         <div class="max-h-[38vh] overflow-y-auto"><table class="w-full text-[12px]">
-          <tbody>${a.recent.map(r=>`
+          <tbody>${(agencyPipelineMode==='upcoming' ? (a.upcoming_deadlines || []) : a.recent).map(r=>`
             <tr class="border-t border-line/70 hover:bg-tint/40 cursor-pointer" onclick="openDetail(${r.id})">
               <td class="px-3 py-2 leading-snug">${r.name}</td>
               <td class="px-3 py-2 text-left num whitespace-nowrap">${r.has_award?money(r.award_value):(r.remaining_s>0?countdown(r.remaining_s):'منتهية')}</td>
-            </tr>`).join('')}</tbody>
+            </tr>`).join('') || '<tr><td colspan="2" class="px-3 py-8 text-center text-mut">لا توجد منافسات في هذا العرض</td></tr>'}</tbody>
         </table></div></div>
     </div>`;
 }
