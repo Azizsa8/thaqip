@@ -5113,3 +5113,10 @@ ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
 2026-09-10 07:05:14,924 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
 2026-09-10 07:05:17,980 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
 2026-09-10 07:05:19,501 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 2}
+2026-09-10 08:05:03,253 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-10 08:05:06,158 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-10 08:05:08,990 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-10 08:05:12,091 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-10 08:05:14,979 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-10 08:05:17,985 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-10 08:05:19,513 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 1}

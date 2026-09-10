@@ -12,6 +12,7 @@ import hashlib
 import inspect
 import json
 import math
+import logging
 import os
 import re
 import sys
@@ -25,6 +26,8 @@ import asyncpg
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
+
+log = logging.getLogger("thaqip.console")
 
 STATIC = Path(__file__).parent / "static"
 
@@ -1899,13 +1902,39 @@ async def tender_price_curve(tender_id: int, mode: str = Query("awards", pattern
     }
 
 
+# This legacy panel predates the evidence gate. It published an actionable
+# per-vendor price_to_beat from as little as ONE observed offer, on the very
+# tenders where the gated engine correctly returns no competitor at all. That
+# is exactly the false precision the P2W spec forbids, so it is off unless an
+# operator opts in explicitly and accepts the caveat.
+LEGACY_COMPETITOR_PRICES_ENABLED = (
+    os.environ.get("THAQIP_ENABLE_LEGACY_COMPETITOR_PRICES", "").lower()
+    in {"1", "true", "yes"}
+)
+# Below this many observed offers a vendor's "usual price" is not an estimate,
+# it is an anecdote. Matches the competitor model's Tier-B evidence floor.
+LEGACY_MIN_OBSERVATIONS = 4
+
+
 @app.get("/api/tenders/{tender_id}/competitor-prices")
 async def tender_competitor_prices(tender_id: int, limit: int = Query(12, ge=1, le=50)):
-    """Competitor price intelligence for a tender's activity.
+    """DEPRECATED, ungated legacy panel. Use /api/tenders/{id}/competitors.
 
-    Uses harvested offer history in the same activity to estimate each rival's
-    usual bid level and the price needed to narrowly beat their median offer.
+    Disabled by default: it derived a per-vendor price-to-beat from single
+    observations with no evidence tier, no confidence and no suppression.
     """
+    if not LEGACY_COMPETITOR_PRICES_ENABLED:
+        raise HTTPException(
+            status_code=410,
+            detail={
+                "error": "endpoint_retired",
+                "reason_ar": (
+                    "أُوقفت هذه اللوحة: كانت تنشر سعرًا مستهدفًا لكل منافس اعتمادًا على "
+                    "ملاحظة واحدة أحيانًا، دون درجة أدلة أو ثقة أو كتم عند ضعف الأدلة."),
+                "use_instead": f"/api/tenders/{tender_id}/competitors",
+                "override_env": "THAQIP_ENABLE_LEGACY_COMPETITOR_PRICES=1",
+            },
+        )
     pool: asyncpg.Pool = app.state.pool
     tender = await pool.fetchrow(
         """SELECT id, activity_id, activity_name_raw, agency_id, agency_name_raw
@@ -2926,19 +2955,56 @@ async def market_intelligence(tender_id: int, tenant_id: int = Tenant):
     pool: asyncpg.Pool = app.state.pool
     async with pool.acquire() as conn:
         tender = await _p2w_tender(conn, tender_id)
+        # The orchestrator owns the capability ladder and the degradation
+        # contract; the console composition owns the observed block (agency
+        # history, price-percentile curve) that the orchestrator does not
+        # produce. Both derive the market band from market_quantiles at the
+        # same as_of, so the console prediction stays the persisted one and the
+        # engine contributes governance: allowed_level, evidence_tier,
+        # degradations, suppression.
+        #
+        # This bound as tender= against a parameter named tender_id= until
+        # 2026-09-10, so _delegate always returned None, the engine never ran in
+        # production, and allowed_level was null in every payload.
         delegated = _delegate(
             getattr(p2w, "orchestrator", None), "tender_intelligence",
-            _positional=(conn,), tender=tender)
-        payload = (
-            await delegated(conn, tender=tender) if delegated
-            else await _tender_intelligence(conn, tender)
-        )
+            _positional=(conn,), tender_id=tender_id, tenant_id=tenant_id)
+        payload = await _tender_intelligence(conn, tender)
+        engine_ran = False
+        if delegated is not None:
+            try:
+                engine = await delegated(
+                    conn, tender_id=tender_id, tenant_id=tenant_id)
+            except Exception as exc:  # noqa: BLE001 - degrade, never 500
+                log.exception("p2w orchestrator failed for tender %s", tender_id)
+                payload["allowed_level"] = None
+                payload["degradations"] = [{
+                    "stage": "orchestrator",
+                    "reason": "MODEL_UNAVAILABLE",
+                    "detail": f"{type(exc).__name__}: {exc}"[:300],
+                    "caps_level": "L0",
+                }]
+            else:
+                engine_ran = True
+                payload["allowed_level"] = engine.get("allowed_level")
+                payload["evidence_tier"] = engine.get("evidence_tier")
+                payload["degradations"] = engine.get("degradations") or []
+                payload["suppression"] = engine.get("suppression")
+                payload["competitor_count"] = len(engine.get("competitors") or [])
+        else:
+            payload["allowed_level"] = None
+            payload["degradations"] = [{
+                "stage": "orchestrator",
+                "reason": "MODEL_UNAVAILABLE",
+                "detail": "orchestrator.tender_intelligence not importable",
+                "caps_level": "L0",
+            }]
         pred = payload.pop("prediction")
         prediction_id = await _persist_prediction(conn, pred)
     payload["prediction"] = _prediction_envelope(pred, prediction_id=prediction_id)
     payload["model_version"] = p2w.contracts.MODEL_VERSION
     payload["generated_at"] = datetime.now(UTC).isoformat()
-    payload["orchestrator"] = "engine" if delegated else "console_composition"
+    payload["orchestrator"] = "engine" if engine_ran else "console_composition"
     return payload
 
 
@@ -3013,12 +3079,24 @@ async def tender_competitors(
 
 # --- scenarios (tenant-private) --------------------------------------------
 
+# user_bid_scenarios money columns are numeric(18,2): anything at or above
+# 1e16 overflows the column and asyncpg raises NumericValueOutOfRangeError,
+# which reaches the client as an opaque 500. Bounding it here turns ordinary
+# bad input into a 422 that names the field.
+MAX_MONEY = 1e15
+# min_margin_pct is numeric(6,2): 99.996 is accepted by lt=100, then rounded
+# to 100.00 on write and echoed back as a value this same validator forbids —
+# and one the optimizer correctly calls unreachable at any price. Bound it to
+# what the column can actually store.
+MAX_MARGIN_PCT = 99.99
+
+
 class ScenarioIn(BaseModel):
-    estimated_cost: float = Field(gt=0)
-    min_margin_pct: float = Field(ge=0, lt=100)
+    estimated_cost: float = Field(gt=0, le=MAX_MONEY)
+    min_margin_pct: float = Field(ge=0, le=MAX_MARGIN_PCT)
     target_win_pct: float | None = Field(default=None, ge=0, le=100)
-    proposed_bid: float | None = Field(default=None, gt=0)
-    risk_reserve: float = Field(default=0.0, ge=0)
+    proposed_bid: float | None = Field(default=None, gt=0, le=MAX_MONEY)
+    risk_reserve: float = Field(default=0.0, ge=0, le=MAX_MONEY)
     name: str = Field(default="", max_length=160)
     seed: int | None = Field(default=None, ge=0)
 
@@ -3553,12 +3631,30 @@ async def readiness(sample: int = Query(30, ge=5, le=120), tenant_id: int = Tena
                     WHERE fact_table='awards')                                      AS lineage_awards,
                   (SELECT count(*) FROM price_predictions)                          AS predictions,
                   (SELECT count(*) FROM prediction_feedback)                        AS feedback,
-                  (SELECT count(*) FROM prediction_feedback
-                    WHERE interval_hit IS NOT NULL)                                 AS feedback_scored,
-                  (SELECT count(*) FROM prediction_feedback
-                    WHERE interval_hit)                                             AS feedback_hits,
-                  (SELECT avg(abs_pct_error) FROM prediction_feedback
-                    WHERE abs_pct_error IS NOT NULL)                                AS mean_abs_pct_error,
+                  -- Same real-outcome guard as mean_abs_pct_error below: a scored
+                  -- row on a tender with no award is not evidence of anything.
+                  (SELECT count(*) FROM prediction_feedback f
+                     JOIN price_predictions pp ON pp.id = f.prediction_id
+                    WHERE f.interval_hit IS NOT NULL
+                      AND EXISTS (SELECT 1 FROM awards w
+                                   WHERE w.tender_id = pp.tender_id
+                                     AND w.award_value IS NOT NULL))                AS feedback_scored,
+                  (SELECT count(*) FROM prediction_feedback f
+                     JOIN price_predictions pp ON pp.id = f.prediction_id
+                    WHERE f.interval_hit
+                      AND EXISTS (SELECT 1 FROM awards w
+                                   WHERE w.tender_id = pp.tender_id
+                                     AND w.award_value IS NOT NULL))                AS feedback_hits,
+                  -- Only feedback whose tender actually has a recorded award can
+                  -- represent a real outcome. Without this join a row invented on a
+                  -- still-open tender with zero offers counts as measured accuracy,
+                  -- which is how a fabricated number reached this endpoint before.
+                  (SELECT avg(f.abs_pct_error) FROM prediction_feedback f
+                     JOIN price_predictions pp ON pp.id = f.prediction_id
+                    WHERE f.abs_pct_error IS NOT NULL
+                      AND EXISTS (SELECT 1 FROM awards w
+                                   WHERE w.tender_id = pp.tender_id
+                                     AND w.award_value IS NOT NULL))                AS mean_abs_pct_error,
                   (SELECT count(*) FROM tenders WHERE source IS NOT NULL)           AS tenders_sourced,
                   (SELECT count(DISTINCT source) FROM tenders)                      AS distinct_sources,
                   (SELECT count(*) FROM source_registry

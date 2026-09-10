@@ -1043,34 +1043,43 @@ def test_live_scenario_endpoint_never_500s_on_extreme_margin_inputs():
 
 
 @pytest.mark.live_api
-def test_live_api_rounds_min_margin_to_a_value_its_own_validator_rejects():
-    """DEFECT (console layer, not fixed here): documented, not asserted away.
+def test_live_api_rejects_a_margin_the_column_cannot_store():
+    """FIXED 2026-09-10 (was: rounding produced a value the validator forbids).
 
-    ScenarioIn declares ``min_margin_pct < 100``, but user_bid_scenarios stores
-    it as numeric(6,2). A request for 99.996% is accepted, rounded to 100.00 on
-    write, and echoed back as 100.0 - a value the same validator forbids and one
-    the optimizer correctly reports as unreachable at any price. The user asked
-    for a satisfiable margin and gets a refusal. This test pins the CURRENT
-    behaviour so the schema fix is visible when it lands.
+    ScenarioIn declared ``min_margin_pct < 100`` while user_bid_scenarios stores
+    numeric(6,2), so 99.996 was accepted, rounded to 100.00 on write, and echoed
+    back as a value the same validator forbids — and one the optimizer correctly
+    calls unreachable at any price. The bound is now MAX_MARGIN_PCT = 99.99, the
+    largest value the column can hold without rounding, so the request is
+    refused up front by name instead of silently becoming a refusal later.
     """
     _live_console_or_skip()
-    status, created = _console_post(
+    with pytest.raises(urllib.error.HTTPError) as excinfo:
+        _console_post(
+            f"/api/tenders/{MULTI_BIDDER_TENDER_IDS[0]}/scenarios",
+            {
+                "estimated_cost": 100000.0,
+                "min_margin_pct": 99.996,
+                "seed": 5,
+                "name": "red-gate battery: margin rounding",
+            },
+        )
+    assert excinfo.value.code == 422
+
+    # The largest storable margin must round-trip EXACTLY, not get rounded.
+    status_ok, created = _console_post(
         f"/api/tenders/{MULTI_BIDDER_TENDER_IDS[0]}/scenarios",
         {
             "estimated_cost": 100000.0,
-            "min_margin_pct": 99.996,
+            "min_margin_pct": 99.99,
             "seed": 5,
-            "name": "red-gate battery: margin rounding",
+            "name": "red-gate battery: margin boundary",
         },
     )
-    assert status == 200
-    echoed = created["scenario"]["inputs"]["min_margin_pct"]
-    assert echoed == 100.0, (
-        "min_margin_pct rounding changed - if the column was widened, this test "
-        "should now assert the requested 99.996 is preserved"
-    )
-    # The optimizer's own behaviour on the rounded value is still correct:
-    # a 100% margin is unreachable with a positive cost, and it says so.
+    assert status_ok == 200, created
+    assert created["scenario"]["inputs"]["min_margin_pct"] == 99.99
+
+    # And the optimizer's behaviour at an unreachable margin is unchanged.
     assert min_margin_price(100000.0, 100.0) is None
     result = optimize(
         curve=[(1000.0, 0.9), (5000.0, 0.1)],

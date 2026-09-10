@@ -510,11 +510,31 @@ def test_preexisting_per_tender_endpoints_still_work(client, corpus):
     for path in (
         f"/api/tenders/{tid}",
         f"/api/tenders/{tid}/price-curve",
-        f"/api/tenders/{tid}/competitor-prices",
     ):
         r = client.get(path)
         assert r.status_code == 200, f"{path} -> {r.status_code}: {r.text[:200]}"
         assert isinstance(r.json(), dict), path
+
+
+def test_legacy_competitor_prices_is_retired(client, corpus):
+    """The ungated per-vendor price-to-beat panel is deliberately gone.
+
+    It published an actionable price from as little as one observed offer, with
+    no evidence tier, no confidence and no suppression — on the same tenders
+    where the gated engine correctly returns no competitor at all. Retiring it
+    is a BLOCKING readiness fix, so this asserts the retirement rather than the
+    old 200 contract, and names the supported replacement.
+    """
+    tid = corpus["rich"]["tender_id"]
+    r = client.get(f"/api/tenders/{tid}/competitor-prices")
+    assert r.status_code == 410, f"expected 410 Gone, got {r.status_code}"
+    detail = r.json()["detail"]
+    assert detail["error"] == "endpoint_retired"
+    assert detail["use_instead"] == f"/api/tenders/{tid}/competitors"
+    assert detail["reason_ar"].strip()
+    # the replacement must actually answer
+    replacement = client.get(detail["use_instead"])
+    assert replacement.status_code == 200, replacement.text[:200]
 
 
 def test_csv_export_still_streams_csv(client):
