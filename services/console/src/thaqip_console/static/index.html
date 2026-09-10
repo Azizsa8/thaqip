@@ -53,6 +53,24 @@ tailwind.config = {
   ::-webkit-scrollbar{height:8px;width:8px}
   ::-webkit-scrollbar-thumb{background:#D0C9BB;border-radius:8px}
   #tip{pointer-events:none;transition:opacity .12s}
+  /* ---- price-to-win provenance tokens (house rule 1: observed / predicted / your input are never interchangeable) ---- */
+  .prov-observed{background:#DDECE4;color:#075E46;border-color:rgba(7,94,70,.22)}
+  .prov-predicted{background:rgba(46,124,140,.10);color:#2E7C8C;border-color:rgba(46,124,140,.30)}
+  .prov-user{background:#F4E4C5;color:#8F5608;border-color:rgba(143,86,8,.25)}
+  .prov-none{background:transparent;color:#4F5F57;border-color:#D8D0C1}
+  .theme-dark .prov-observed{background:#17382D;color:#76D6B0;border-color:rgba(118,214,176,.28)}
+  .theme-dark .prov-predicted{background:rgba(90,190,210,.14);color:#7ED0DF;border-color:rgba(126,208,223,.34)}
+  .theme-dark .prov-user{background:rgba(228,180,95,.14);color:#E4B45F;border-color:rgba(228,180,95,.32)}
+  .theme-dark .prov-none{color:#B7C3BC;border-color:#2B4139}
+  .p2w-layer{position:relative}
+  .p2w-layer::before{content:"";position:absolute;inset-inline-start:0;top:22px;bottom:22px;width:3px;border-radius:3px}
+  .p2w-layer-market::before{background:#075E46}
+  .p2w-layer-comp::before{background:#2E7C8C}
+  .p2w-layer-bid::before{background:#8F5608}
+  .p2w-step{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:12px}
+  .p2w-suppressed{background:repeating-linear-gradient(135deg,rgba(120,130,124,.05) 0 8px,transparent 8px 16px)}
+  .theme-dark .p2w-suppressed{background:repeating-linear-gradient(135deg,rgba(183,195,188,.07) 0 8px,transparent 8px 16px)}
+  #p2wCurve svg, #p2wRangeBar svg{display:block;width:100%;height:auto}
 </style>
 </head>
 <body class="bg-paper text-ink font-sans text-[14px] leading-relaxed min-h-screen mobile-shell lg:pb-0">
@@ -89,6 +107,9 @@ tailwind.config = {
       <button data-view="intel" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
         <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20h18M6 16v-5m6 5V8m6 8v-9"/></svg>
         <span>ذكاء المنافسين</span></button>
+      <button data-view="p2w" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 18a8 8 0 1116 0"/><path d="M12 18l4.2-4.6"/><circle cx="12" cy="18" r="1.4" fill="currentColor" stroke="none"/><path d="M4 18h1.6M18.4 18H20M6.4 10.6l1.1 1.1M17.6 10.6l-1.1 1.1M12 7.4V9"/></svg>
+        <span>ذكاء التسعير</span></button>
       <button data-view="settings" class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-right hover:bg-tint transition">
         <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06A1.65 1.65 0 0015 19.4a1.65 1.65 0 00-1 .6 1.65 1.65 0 00-.4 1.05V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82-.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-.6-1A1.65 1.65 0 003 13.6H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-.6A1.65 1.65 0 0010.4 3V3a2 2 0 014 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.2.39.6.69 1.05.73H21a2 2 0 010 4h-.09A1.65 1.65 0 0019.4 15z"/></svg>
         <span>الإعدادات</span></button>
@@ -116,6 +137,7 @@ tailwind.config = {
       <button data-view="war" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">◈</span><span>عمليات</span></button>
       <button data-view="alerts" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">◌</span><span>تنبيه</span></button>
       <button data-view="intel" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">▥</span><span>منافسين</span></button>
+      <button data-view="p2w" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">◑</span><span>التسعير</span></button>
       <button data-view="settings" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">⚙</span><span>ضبط</span></button>
     </div>
   </nav>
@@ -133,7 +155,7 @@ tailwind.config = {
             <button id="langToggle" class="focus-ring rounded-lg px-2.5 py-1.5 text-[12px] text-deep hover:bg-tint transition">EN</button>
           </div>
           <input id="q" type="search" placeholder="ابحث في المنافسات…"
-            class="flex-1 sm:flex-none sm:w-64 bg-card border border-line rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-deep/40">
+            class="flex-1 min-w-0 sm:flex-none sm:w-64 bg-card border border-line rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-deep/40">
           <button id="goSearch" class="bg-deep hover:bg-deepd text-white rounded-xl px-4 py-2.5 text-[13px] font-medium transition shadow-card">بحث</button>
           <button id="themeToggleMobile" class="md:hidden focus-ring bg-card border border-line rounded-xl px-3 py-2.5 text-[12px] text-deep shadow-card">◐</button>
         </div>
@@ -344,6 +366,42 @@ tailwind.config = {
       </div>
     </section>
 
+    <!-- ================= PRICE-TO-WIN ================= -->
+    <section id="view-p2w" class="hidden px-4 lg:px-8 py-5 lg:py-7 space-y-5 lg:space-y-6">
+
+      <!-- subject picker -->
+      <div class="soft-card border border-line rounded-3xl p-5 lg:p-6">
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+          <div>
+            <h2 class="font-semibold text-[15px]">ذكاء التسعير — السعر الذي يفوز</h2>
+            <p class="text-[12px] text-mut mt-1 max-w-[62ch]">ثلاث طبقات مرتّبة: نطاق السوق، ثم المنافسون المحتملون، ثم عرضك أنت. كل رقم يحمل مصدره، ولا يُعرض أي تقدير لا تسنده أدلة كافية.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 text-[10.5px]">
+            <span class="prov-observed inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-semibold">مُلاحظ</span>
+            <span class="prov-predicted inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-semibold">متوقع</span>
+            <span class="prov-user inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-semibold">إدخالك</span>
+          </div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
+          <input id="p2wSearch" type="search" placeholder="ابحث عن منافسة بالاسم أو الرقم المرجعي…"
+            class="flex-1 min-w-0 bg-card border border-line rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-deep/30">
+          <button id="p2wSearchBtn" class="focus-ring bg-card border border-line hover:bg-tint text-deep rounded-xl px-4 py-2.5 text-[13px] font-medium transition shrink-0">ابحث</button>
+        </div>
+        <div id="p2wPicker" class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3"></div>
+        <div id="p2wSubject" class="mt-4"></div>
+      </div>
+
+      <div id="p2wEmpty" class="soft-card border border-line rounded-3xl p-8 lg:p-12 text-center">
+        <div class="text-[13.5px] text-mut max-w-[54ch] mx-auto">اختر منافسة من القائمة أعلاه، ثم اضغط <span class="text-deep font-semibold">«اعرف السعر الذكي لهذا العرض»</span> لبناء نطاق السوق وقراءة المنافسين وحساب منحنى عرضك.</div>
+      </div>
+
+      <div id="p2wBody" class="hidden space-y-5 lg:space-y-6">
+        <div id="p2wLayerMarket"></div>
+        <div id="p2wLayerCompetitors"></div>
+        <div id="p2wLayerBid"></div>
+      </div>
+    </section>
+
     <!-- ================= SETTINGS ================= -->
     <section id="view-settings" class="hidden px-5 lg:px-8 py-7">
       <div class="grid xl:grid-cols-5 gap-5">
@@ -414,8 +472,8 @@ let offset = 0; const LIMIT = 25;
 
 const nf = new Intl.NumberFormat('en-US');
 const UI = {
-  ar:{dir:'rtl', search:'بحث', searchPh:'ابحث في المنافسات…', theme:'ثيم', lang:'EN', views:{dash:'لوحة القيادة',disc:'استكشاف المنافسات',war:'غرفة العمليات',alerts:'التنبيهات',intel:'ذكاء المنافسين',settings:'الإعدادات'}, nav:['لوحة القيادة','استكشاف المنافسات','غرفة العمليات','التنبيهات','ذكاء المنافسين','الإعدادات'], dash:{monthly:'العروض حسب شهر الإغلاق', monthlySub:'اضغط على أي شهر لعرض المنافسات المُرسّاة في جدول الاستكشاف.', pulse:'نبض المصدر', pulseSub:'قياسات حيّة من خط الاستيعاب', market:'خريطة أين نلعب؟', marketSub:'الجهات والأنشطة الأكثر سخونة. اضغط لتحويل الرسم إلى قائمة منافسات قابلة للتنفيذ.', money:'أين المال؟', moneySub:'شرائح قيم الترسيات المحصودة. اضغط على الشريحة لفتح الترسيات.', open:'منافسات مفتوحة الآن', awardsValue:'قيمة الترسيات المحصودة', peak:'أعلى ترسية محصودة', offers:'عروض مالية محصودة', table:'افتح الجدول', pressure:'ضغط آخر المواعيد', memory:'ذاكرة السوق السعرية', speed:'سرعة الالتقاط', source:'المصدر الأقوى الآن'}},
-  en:{dir:'ltr', search:'Search', searchPh:'Search tenders…', theme:'Theme', lang:'AR', views:{dash:'Command Dashboard',disc:'Tender Discovery',war:'War Room',alerts:'Alerts',intel:'Competitor Intel',settings:'Settings'}, nav:['Dashboard','Discovery','War Room','Alerts','Competitors','Settings'], dash:{monthly:'Offers by closing month', monthlySub:'Click any month to open the matching awarded tenders table.', pulse:'Source pulse', pulseSub:'Live ingestion and operating signals', market:'Where should we play?', marketSub:'The hottest agencies and activities. Click to turn the chart into an actionable tender list.', money:'Where is the money?', moneySub:'Award value bands from harvested results. Click a band to open awarded tenders.', open:'Open tenders now', awardsValue:'Harvested award value', peak:'Largest harvested award', offers:'Harvested financial offers', table:'Open table', pressure:'Deadline pressure', memory:'Market price memory', speed:'Capture speed', source:'Strongest source now'}}
+  ar:{dir:'rtl', search:'بحث', searchPh:'ابحث في المنافسات…', theme:'ثيم', lang:'EN', views:{dash:'لوحة القيادة',disc:'استكشاف المنافسات',war:'غرفة العمليات',alerts:'التنبيهات',intel:'ذكاء المنافسين',p2w:'ذكاء التسعير',settings:'الإعدادات'}, nav:['لوحة القيادة','استكشاف المنافسات','غرفة العمليات','التنبيهات','ذكاء المنافسين','ذكاء التسعير','الإعدادات'], dash:{monthly:'العروض حسب شهر الإغلاق', monthlySub:'اضغط على أي شهر لعرض المنافسات المُرسّاة في جدول الاستكشاف.', pulse:'نبض المصدر', pulseSub:'قياسات حيّة من خط الاستيعاب', market:'خريطة أين نلعب؟', marketSub:'الجهات والأنشطة الأكثر سخونة. اضغط لتحويل الرسم إلى قائمة منافسات قابلة للتنفيذ.', money:'أين المال؟', moneySub:'شرائح قيم الترسيات المحصودة. اضغط على الشريحة لفتح الترسيات.', open:'منافسات مفتوحة الآن', awardsValue:'قيمة الترسيات المحصودة', peak:'أعلى ترسية محصودة', offers:'عروض مالية محصودة', table:'افتح الجدول', pressure:'ضغط آخر المواعيد', memory:'ذاكرة السوق السعرية', speed:'سرعة الالتقاط', source:'المصدر الأقوى الآن'}},
+  en:{dir:'ltr', search:'Search', searchPh:'Search tenders…', theme:'Theme', lang:'AR', views:{dash:'Command Dashboard',disc:'Tender Discovery',war:'War Room',alerts:'Alerts',intel:'Competitor Intel',p2w:'Price-to-Win',settings:'Settings'}, nav:['Dashboard','Discovery','War Room','Alerts','Competitors','Price-to-Win','Settings'], dash:{monthly:'Offers by closing month', monthlySub:'Click any month to open the matching awarded tenders table.', pulse:'Source pulse', pulseSub:'Live ingestion and operating signals', market:'Where should we play?', marketSub:'The hottest agencies and activities. Click to turn the chart into an actionable tender list.', money:'Where is the money?', moneySub:'Award value bands from harvested results. Click a band to open awarded tenders.', open:'Open tenders now', awardsValue:'Harvested award value', peak:'Largest harvested award', offers:'Harvested financial offers', table:'Open table', pressure:'Deadline pressure', memory:'Market price memory', speed:'Capture speed', source:'Strongest source now'}}
 };
 let uiLang = localStorage.getItem('thaqip.lang') || 'ar';
 function applyChrome(){
@@ -424,16 +482,26 @@ function applyChrome(){
   ['themeToggle','themeToggleMobile'].forEach(id=>{ const el=$('#'+id); if(el) el.textContent = cfg.theme; });
   ['langToggle'].forEach(id=>{ const el=$('#'+id); if(el) el.textContent = cfg.lang; });
   document.querySelectorAll('#nav .navbtn span:last-child').forEach((el,i)=>{ if(cfg.nav[i]) el.textContent=cfg.nav[i]; });
-  document.querySelectorAll('#navMobile .navbtn span:last-child').forEach((el,i)=>{ const short = uiLang==='ar' ? ['القيادة','بحث','عمليات','تنبيه','منافسين','ضبط'] : ['Home','Search','Ops','Alerts','Intel','Setup']; if(short[i]) el.textContent=short[i]; });
+  document.querySelectorAll('#navMobile .navbtn span:last-child').forEach((el,i)=>{ const short = uiLang==='ar' ? ['القيادة','بحث','عمليات','تنبيه','منافسين','التسعير','ضبط'] : ['Home','Search','Ops','Alerts','Intel','Price','Setup']; if(short[i]) el.textContent=short[i]; });
   const active = [...document.querySelectorAll('.navbtn')].find(b=>b.classList.contains('font-semibold'))?.dataset.view || 'dash';
   $('#viewTitle').textContent = cfg.views[active];
   const d = cfg.dash;
   [['#monthlyTitle',d.monthly],['#monthlySub',d.monthlySub],['#pulseTitle',d.pulse],['#pulseSub',d.pulseSub],['#marketTitle',d.market],['#marketSub',d.marketSub],['#moneyTitle',d.money],['#moneySub',d.moneySub]].forEach(([sel,val])=>{ const el=$(sel); if(el) el.textContent=val; });
 }
-function toggleTheme(){ document.body.classList.toggle('theme-dark'); localStorage.setItem('thaqip.theme', document.body.classList.contains('theme-dark')?'dark':'light'); const d = window.__lastDash; if(d?.monthly) drawMonthly(d.monthly); }
+function toggleTheme(){ document.body.classList.toggle('theme-dark'); localStorage.setItem('thaqip.theme', document.body.classList.contains('theme-dark')?'dark':'light'); const d = window.__lastDash; if(d?.monthly) drawMonthly(d.monthly);
+  /* the P2W charts pick their palette at draw time, so redraw them too */
+  try{
+    if($('#p2wRangeBar') && p2wState.mi && !p2wState.mi.prediction.is_suppressed)
+      p2wDrawRangeBar(p2wState.mi.prediction.quantiles);
+    if($('#p2wCurve') && p2wState.curve && !p2wState.curve.suppressed) p2wDrawCurve();
+  }catch(e){ /* charts absent on this view */ }
+}
 function toggleLang(){ uiLang = uiLang==='ar'?'en':'ar'; localStorage.setItem('thaqip.lang', uiLang); applyChrome(); }
 const money = v => v == null ? '—' : nf.format(Math.round(Number(v)));
 const fmtD = v => v ? new Date(v).toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'short',year:'numeric'}) : '—';
+/* date + time — referenced by the lanes, settings and vendor renderers, which
+   threw "dt is not defined" on every dashboard load until it was defined. */
+const dt = v => v ? new Date(v).toLocaleString('ar-SA-u-ca-gregory',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
 function latencyTxt(pub, det){
   if(!pub || !det) return null;
   const s = (new Date(det)-new Date(pub))/1000; if(s<0) return null;
@@ -448,7 +516,7 @@ function countdown(sec){
 
 /* ---------- navigation ---------- */
 function show(view){
-  ['dash','disc','war','alerts','intel','settings'].forEach(v => $('#view-'+v).classList.toggle('hidden', v!==view));
+  ['dash','disc','war','alerts','intel','p2w','settings'].forEach(v => $('#view-'+v).classList.toggle('hidden', v!==view));
   document.querySelectorAll('#nav .navbtn, #navMobile .navbtn').forEach(b => {
     const on = b.dataset.view === view;
     b.classList.toggle('bg-tint', on); b.classList.toggle('text-deep', on); b.classList.toggle('font-semibold', on); b.classList.toggle('shadow-card', on);
@@ -461,6 +529,7 @@ document.querySelectorAll('.navbtn').forEach(b => b.onclick = () => {
   if(b.dataset.view==='alerts') loadAlerts();
   if(b.dataset.view==='war') loadWar();
   if(b.dataset.view==='intel') loadIntel();
+  if(b.dataset.view==='p2w') p2wEnter();
   if(b.dataset.view==='settings') loadSettings();
 });
 
@@ -1630,11 +1699,12 @@ async function openDetail(id){
         ${lat?kv('رصدناها بعد النشر بـ', lat):''}
       </div>
     </div>
-    ${competitionBlock(t)}${awards}${offers}${competitorPricesBlock(t)}${boq}${benchmarkBlock(t)}
+    ${competitionBlock(t)}<div id="p2wDrawerCard"></div>${awards}${offers}${competitorPricesBlock(t)}${boq}${benchmarkBlock(t)}
     ${t.documents.length?`<div class="mt-6 text-[12px] text-mut">${t.documents.length} ملف في خزنة الوثائق</div>`:''}`;
   $('#drawer').classList.remove('-translate-x-full');
   $('#drawer').setAttribute('aria-hidden','false');
   $('#overlay').classList.remove('hidden');
+  loadDrawerP2W(t.id);
 }
 function competitionBlock(t){
   const c = t.competition;
@@ -1799,6 +1869,748 @@ function closeDrawer(){
 }
 $('#overlay').onclick = closeDrawer;
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeDrawer(); });
+
+
+/* ================= PRICE-TO-WIN (ذكاء التسعير) =================
+   Three ordered layers: market range → competitors → your bid.
+   Every number rendered here comes from an API response and carries a
+   provenance badge (مُلاحظ / متوقع / إدخالك). A suppressed prediction is a
+   designed state: it explains its silence and keeps the useful facts on
+   screen. Nothing on this surface is computed from thin air. */
+
+const P2W_SUPPRESS_AR = {
+  INSUFFICIENT_EVIDENCE: 'أدلة غير كافية لإصدار تقدير موثوق',
+  STALE_DATA: 'الأدلة المتاحة أقدم من أن يُبنى عليها تقدير',
+  LOW_SIMILARITY: 'المنافسات المتاحة غير مشابهة بما يكفي لهذه المنافسة',
+  NO_COMPARABLE_TENDERS: 'لا توجد منافسات مشابهة معروفة قبل تاريخ فتح العروض',
+  TENANT_DATA_UNAVAILABLE: 'لا تتوفر بيانات هذا المستأجر لإجراء الحساب',
+  MODEL_UNAVAILABLE: 'النموذج غير متاح حاليًا',
+  CALIBRATION_FAILED: 'فشلت معايرة النموذج، ولن نعرض رقمًا غير معاير',
+};
+const P2W_SUPPRESS_COMPETITOR_AR = {
+  INSUFFICIENT_EVIDENCE: 'أدلة غير كافية لتقدير سعر هذا المنافس',
+  STALE_DATA: 'سجلّ هذا المنافس قديم جدًا لتقدير سعره',
+  LOW_SIMILARITY: 'سجلّ هذا المنافس لا يشبه هذه المنافسة بما يكفي',
+  NO_COMPARABLE_TENDERS: 'لا توجد منافسات سابقة مقارنة لهذا المنافس',
+};
+const P2W_TIER_AR = {
+  A: 'أدلة قوية (A)', B: 'أدلة متوسطة (B)',
+  C: 'أدلة ضعيفة (C)', D: 'أدلة غير كافية (D)',
+};
+const P2W_BASIS_AR = {
+  activity: 'سجلّ في نفس النشاط',
+  agency: 'سجلّ مع نفس الجهة',
+  activity_and_agency: 'سجلّ في النشاط ومع الجهة',
+  insufficient_evidence: 'أدلة غير كافية',
+  no_evidence: 'لا يوجد سجلّ مُلاحظ',
+};
+
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* API money is always {amount, currency, vat_semantics} — never a bare float. */
+const p2wAmt = m => (m && typeof m === 'object') ? Number(m.amount)
+  : (m == null ? null : Number(m));
+function p2wSar(m){
+  const v = p2wAmt(m);
+  if(v == null || !Number.isFinite(v)) return '—';
+  return `${nf.format(Math.round(v))}<span class="text-[.78em] font-normal text-mut"> ر.س</span>`;
+}
+const p2wPct = (v, d=0) => (v == null || !Number.isFinite(Number(v)))
+  ? '—' : `${(Number(v)*100).toFixed(d)}%`;
+const p2wPctRaw = (v, d=1) => (v == null || !Number.isFinite(Number(v)))
+  ? '—' : `${Number(v).toFixed(d)}%`;
+
+/* House rule 1: the badge is structural, not decorative. */
+function prov(kind, extra=''){
+  const map = {observed:['prov-observed','مُلاحظ'], predicted:['prov-predicted','متوقع'],
+               user:['prov-user','إدخالك']};
+  const [cls, label] = map[kind] || map.observed;
+  return `<span class="${cls} ${extra} inline-flex items-center whitespace-nowrap text-[10px] font-semibold rounded-full border px-2 py-0.5 align-middle">${label}</span>`;
+}
+/* Confidence sits next to the number it qualifies — never only in a tooltip. */
+function p2wConfidence(p){
+  if(!p) return '';
+  const c = p.confidence_score;
+  const tier = P2W_TIER_AR[p.evidence_tier] || (p.evidence_tier ?? '—');
+  return `<span class="inline-flex flex-wrap items-center gap-1.5 text-[10.5px] text-mut">
+    <span class="num prov-predicted rounded-full border px-2 py-0.5 font-semibold">ثقة ${c == null ? '—' : c}/100</span>
+    <span class="prov-none rounded-full border px-2 py-0.5">${tier}</span>
+    <span>الثقة ليست احتمالية فوز</span></span>`;
+}
+function p2wEvidenceChips(ev, pred){
+  const bits = [];
+  if(ev){
+    bits.push(['حجم العيّنة', nf.format(ev.comparable_count ?? 0) + ' منافسة']);
+    bits.push(['وسيط عمر الأدلة', ev.median_age_days == null ? '—'
+      : nf.format(Math.round(ev.median_age_days)) + ' يوم']);
+    bits.push(['حداثة البيانات', (ev.freshness ?? 0) + '/100']);
+    bits.push(['ثقة التشابه', (ev.similarity_confidence ?? 0) + '/100']);
+  } else if(pred){
+    bits.push(['حجم العيّنة', nf.format(pred.evidence_count ?? 0)]);
+    bits.push(['حداثة البيانات', (pred.data_freshness_score ?? 0) + '/100']);
+    bits.push(['ثقة التشابه', (pred.similarity_confidence ?? 0) + '/100']);
+  }
+  return `<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">${bits.map(([k,v]) =>
+    `<div class="bg-card border border-line rounded-xl px-3 py-2">
+       <div class="text-[10.5px] text-mut">${k}</div>
+       <div class="num text-[13px] font-semibold mt-0.5">${v}</div></div>`).join('')}</div>`;
+}
+function p2wSuppressionPanel(reason, title, body, dict){
+  const ar = (dict || P2W_SUPPRESS_AR)[reason] || 'لا تكفي الأدلة لإصدار هذا التقدير';
+  return `<div class="p2w-suppressed border border-line rounded-2xl px-4 sm:px-5 py-4">
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-7 h-7 rounded-lg border border-line grid place-items-center text-mut text-[13px]" aria-hidden="true">◌</span>
+      <div class="min-w-0">
+        <div class="font-semibold text-[13.5px]">${esc(title)}</div>
+        <div class="text-[12.5px] text-mut mt-1 leading-relaxed">${esc(ar)}</div>
+        ${body || ''}
+        <div class="text-[11px] text-mut mt-2">السبب الآلي: <span class="num">${esc(reason || 'UNKNOWN')}</span></div>
+      </div></div></div>`;
+}
+function p2wSectionHead(step, title, sub, cls){
+  return `<div class="flex items-start gap-3 mb-4">
+    <span class="p2w-step ${cls} shrink-0 num">${step}</span>
+    <div class="min-w-0"><h2 class="font-semibold text-[15px] leading-tight">${title}</h2>
+      <p class="text-[12px] text-mut mt-1 leading-relaxed">${sub}</p></div></div>`;
+}
+
+let p2wState = {tenderId:null, subject:null, mi:null, comp:null,
+                scenario:null, curve:null, bid:null, busy:false};
+
+async function p2wJSON(url, opts){
+  const r = await fetch(API + url, opts);
+  const body = await r.json().catch(() => null);
+  if(!r.ok){
+    const detail = body && (body.detail || body.error);
+    const reason = detail && typeof detail === 'object'
+      ? (detail.reason || detail.error) : detail;
+    throw new Error(reason || `HTTP ${r.status}`);
+  }
+  return body;
+}
+
+function p2wEnter(){
+  if(!$('#p2wPicker').dataset.loaded) p2wLoadPicker('');
+}
+async function p2wLoadPicker(q){
+  const box = $('#p2wPicker');
+  box.dataset.loaded = '1';
+  box.innerHTML = `<div class="text-[12.5px] text-mut col-span-full">جاري تحميل المنافسات…</div>`;
+  try{
+    const p = new URLSearchParams({limit:'9'});
+    if(q) p.set('q', q);
+    const d = await p2wJSON('/api/tenders?' + p);
+    if(!d.items.length){
+      box.innerHTML = `<div class="text-[12.5px] text-mut col-span-full">لا توجد منافسة مطابقة.</div>`;
+      return;
+    }
+    box.innerHTML = d.items.map(t => `
+      <button type="button" class="focus-ring tap-card text-right bg-card border border-line rounded-2xl p-3.5 hover:bg-tint transition"
+        onclick="p2wSelect(${t.id})">
+        <div class="num text-[11px] text-mut">${esc(t.reference_number ?? '')}</div>
+        <div class="text-[12.5px] font-medium leading-snug mt-1 line-clamp-2">${esc(t.name ?? '')}</div>
+        <div class="text-[11px] text-mut mt-1">${esc(t.agency ?? '')}</div></button>`).join('');
+  }catch(err){
+    box.innerHTML = `<div class="text-[12.5px] text-danger col-span-full">تعذّر تحميل المنافسات: ${esc(err.message)}</div>`;
+  }
+}
+
+async function p2wSelect(id){
+  p2wState = {tenderId:id, subject:null, mi:null, comp:null,
+              scenario:null, curve:null, bid:null, busy:false};
+  $('#p2wBody').classList.add('hidden');
+  $('#p2wEmpty').classList.remove('hidden');
+  const box = $('#p2wSubject');
+  box.innerHTML = `<div class="text-[12.5px] text-mut">جاري تحميل بطاقة المنافسة…</div>`;
+  try{
+    const t = await p2wJSON('/api/tenders/' + id);
+    p2wState.subject = t;
+    box.innerHTML = `
+      <div class="bg-card border border-line rounded-2xl p-4 flex flex-wrap items-start justify-between gap-3">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 text-[11.5px] text-mut">
+            ${prov('observed')}
+            <span class="num bg-paper border border-line rounded-md px-2 py-0.5">${esc(t.reference_number ?? '')}</span>
+            <span class="truncate">${esc(t.agency ?? '')}</span></div>
+          <div class="font-semibold text-[14px] leading-snug mt-2 max-w-[60ch]">${esc(t.name ?? '')}</div>
+          <div class="text-[11.5px] text-mut mt-1">${esc(t.activity_name_raw ?? '—')} · فتح العروض ${fmtD(t.offers_opening_date)}</div>
+        </div>
+        <div class="flex flex-col items-stretch gap-2 shrink-0 w-full sm:w-auto">
+          <button id="p2wRun" onclick="p2wRun()" class="focus-ring bg-deep hover:bg-deepd text-white rounded-xl px-5 py-2.5 text-[13.5px] font-semibold transition shadow-card">اعرف السعر الذكي لهذا العرض</button>
+          <button onclick="openDetail(${t.id})" class="focus-ring bg-card border border-line hover:bg-tint text-deep rounded-xl px-5 py-2 text-[12.5px] transition">فتح بطاقة المنافسة</button>
+        </div></div>`;
+  }catch(err){
+    box.innerHTML = `<div class="text-[12.5px] text-danger">تعذّر تحميل المنافسة: ${esc(err.message)}</div>`;
+  }
+}
+
+async function p2wRun(){
+  const id = p2wState.tenderId;
+  if(!id || p2wState.busy) return;
+  p2wState.busy = true;
+  const btn = $('#p2wRun');
+  if(btn){ btn.disabled = true; btn.textContent = 'جاري الحساب…'; btn.classList.add('opacity-70'); }
+  $('#p2wEmpty').classList.add('hidden');
+  $('#p2wBody').classList.remove('hidden');
+  $('#p2wLayerMarket').innerHTML = p2wSkeleton('نبني نطاق السوق من المنافسات المشابهة…');
+  $('#p2wLayerCompetitors').innerHTML = '';
+  $('#p2wLayerBid').innerHTML = '';
+  try{
+    const [mi, comp] = await Promise.all([
+      p2wJSON(`/api/tenders/${id}/market-intelligence`),
+      p2wJSON(`/api/tenders/${id}/competitors?limit=12`).catch(e => ({error:e.message})),
+    ]);
+    p2wState.mi = mi; p2wState.comp = comp;
+    p2wRenderMarket(); p2wRenderCompetitors(); p2wRenderBidForm();
+  }catch(err){
+    /* A 503 from the engine is a designed state too: say which component is
+       missing rather than showing an empty surface or, worse, a stale number. */
+    $('#p2wLayerMarket').innerHTML = `<div class="p2w-layer p2w-layer-market soft-card border border-line rounded-3xl p-5 lg:p-6 ps-6 lg:ps-7">
+      ${p2wSectionHead(1, 'السوق', 'تعذّر الوصول إلى محرك التسعير.', 'bg-tint text-deep')}
+      ${p2wSuppressionPanel('MODEL_UNAVAILABLE', 'محرك التسعير غير متاح على هذه النسخة',
+        `<div class="text-[12px] mt-2 leading-relaxed num" dir="ltr">${esc(err.message)}</div>
+         <div class="text-[12.5px] mt-2 leading-relaxed">لا نعرض أي نطاق أو احتمال حتى يعود المحرك — رقم من ذاكرة مؤقتة أو من نموذج غائب أسوأ من لا رقم.</div>`)}
+    </div>`;
+  }finally{
+    p2wState.busy = false;
+    if(btn){ btn.disabled = false; btn.textContent = 'اعرف السعر الذكي لهذا العرض'; btn.classList.remove('opacity-70'); }
+  }
+}
+const p2wSkeleton = msg => `<div class="soft-card border border-line rounded-3xl p-6 text-[13px] text-mut">${esc(msg)}</div>`;
+
+/* ---------- layer 1: السوق ---------- */
+function p2wRenderMarket(){
+  const mi = p2wState.mi, pred = mi.prediction, ev = mi.evidence;
+  const obs = mi.observed || {};
+  const used = (mi.similar_tenders && mi.similar_tenders.used) || [];
+  const excluded = (mi.similar_tenders && mi.similar_tenders.excluded) || [];
+  const q = pred.quantiles;
+
+  const body = pred.is_suppressed
+    ? p2wSuppressionPanel(pred.suppression_reason, 'لا نعرض نطاق سعر لهذه المنافسة',
+        `<div class="text-[12.5px] mt-2 leading-relaxed">ما زالت الحقائق المُلاحظة أدناه صالحة للاستخدام: عدد العروض المسجلة، سجلّ الجهة، والمنافسات المشابهة بقيم ترسيتها الفعلية.</div>
+         ${used.length ? `<div class="text-[12px] mt-2 leading-relaxed">تنبيه للقراءة الصحيحة: القائمة أدناه تعرض <span class="num font-semibold">${nf.format(used.length)}</span> منافسة مشابهة، لكن عدد الأدلة السعرية المحتسبة لهذه المنافسة <span class="num font-semibold">${nf.format(ev.comparable_count ?? 0)}</span>. تلك المنافسات معروضة كحقائق مُلاحظة فقط ولم تدخل في أي حساب.</div>` : ''}`)
+    : `<div class="bg-card border border-line rounded-2xl p-4 sm:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <div class="text-[12px] text-mut flex items-center gap-2">نطاق السوق المتوقع ${prov('predicted')}</div>
+          ${p2wConfidence(pred)}
+        </div>
+        <div id="p2wRangeBar" class="mt-3"></div>
+        <div class="grid grid-cols-3 gap-2 mt-3 text-center">
+          ${[['P10 — الطرف المنخفض', q.p10], ['P50 — الوسيط', q.p50], ['P90 — الطرف المرتفع', q.p90]]
+            .map(([lab, val], i) => `<div class="rounded-xl border border-line ${i===1?'bg-tint':'bg-paper/60'} px-2 py-2.5">
+              <div class="text-[10.5px] text-mut">${lab}</div>
+              <div class="num text-[15px] sm:text-[17px] font-bold ${i===1?'text-deep':'text-[#2E7C8C]'} mt-0.5">${p2wSar(val)}</div></div>`).join('')}
+        </div>
+        ${pred.expected_value ? `<div class="text-[11.5px] text-mut mt-2">القيمة المتوقعة ${prov('predicted')} <span class="num">${p2wSar(pred.expected_value)}</span></div>` : ''}
+      </div>`;
+
+  const agency = obs.agency_history || {};
+  const facts = `
+    <div class="mt-4">
+      <div class="text-[11px] tracking-[.14em] text-mut uppercase mb-2 flex items-center gap-2">حقائق مُلاحظة ${prov('observed')}</div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        ${p2wFact('عروض مسجلة على هذه المنافسة', nf.format(obs.recorded_offers_on_this_tender ?? 0))}
+        ${p2wFact('ترسيات سابقة لهذه الجهة', agency.agency_resolved ? nf.format(agency.awarded_tenders ?? 0) : '—')}
+        ${p2wFact('فائزون مختلفون لدى الجهة', agency.agency_resolved ? nf.format(agency.distinct_winners ?? 0) : '—')}
+        ${p2wFact('وسيط ترسيات الجهة', agency.agency_resolved ? p2wSar(agency.median_award_value) : '—')}
+      </div>
+      ${agency.agency_resolved ? '' : `<div class="text-[11px] text-mut mt-2">لم تُربط جهة هذه المنافسة بجهة معيارية، لذلك لا يُنسب لها سجلّ شراء.</div>`}
+    </div>`;
+
+  $('#p2wLayerMarket').innerHTML = `
+    <div class="p2w-layer p2w-layer-market soft-card border border-line rounded-3xl p-5 lg:p-6 ps-6 lg:ps-7">
+      ${p2wSectionHead(1, 'السوق',
+        'أين استقرّت أسعار الترسية في منافسات مشابهة، محسوبة بمعطيات كانت معروفة قبل فتح العروض فقط.',
+        'bg-tint text-deep')}
+      ${body}
+      ${p2wEvidenceChips(ev, pred)}
+      <div class="flex flex-wrap items-center gap-2 mt-3">
+        <button onclick="p2wWhy(${pred.prediction_id}, 'نطاق السوق')" class="focus-ring bg-card border border-line hover:bg-tint text-deep rounded-lg px-3.5 py-1.5 text-[12px] font-medium transition">لماذا؟</button>
+        <span class="text-[10.5px] text-mut num">${esc(pred.model_version || '')} · ${esc((mi.as_of || '').slice(0,10))}</span>
+      </div>
+      <div id="p2wWhyPanel" class="mt-3"></div>
+      ${facts}
+      ${p2wSimilarTable(used, excluded)}
+    </div>`;
+  if(!pred.is_suppressed) p2wDrawRangeBar(q);
+}
+const p2wFact = (label, value) => `<div class="bg-card border border-line rounded-xl px-3 py-2.5">
+  <div class="text-[10.5px] text-mut leading-tight">${label}</div>
+  <div class="num text-[14px] font-semibold mt-1">${value}</div></div>`;
+
+function p2wDrawRangeBar(q){
+  const el = $('#p2wRangeBar'); if(!el) return;
+  const p10 = p2wAmt(q.p10), p50 = p2wAmt(q.p50), p90 = p2wAmt(q.p90);
+  if(![p10,p50,p90].every(Number.isFinite)) return;
+  /* Narrow viewports get a narrower viewBox so the type inside the SVG does
+     not scale down into illegibility. */
+  const narrow = (el.clientWidth || 640) < 520;
+  const W = narrow ? 360 : 640, H = narrow ? 78 : 74, pad = narrow ? 30 : 26;
+  const fs = narrow ? 12 : 11;
+  const span = Math.max(p90 - p10, 1);
+  const lo = p10 - span*0.18, hi = p90 + span*0.18;
+  /* RTL: prices rise from right to left, matching the reading direction. */
+  const x = v => W - pad - ((v - lo)/(hi - lo))*(W - pad*2);
+  const dark = document.body.classList.contains('theme-dark');
+  const teal = dark ? '#7ED0DF' : '#2E7C8C';
+  const deep = dark ? '#76D6B0' : '#075E46';
+  const rail = dark ? '#2B4139' : '#E4E2DA';
+  const y = 34;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img"
+      aria-label="نطاق سعر السوق المتوقع من ${Math.round(p10)} إلى ${Math.round(p90)} ريال، والوسيط ${Math.round(p50)} ريال">
+    <title>نطاق السوق المتوقع P10 إلى P90 مع الوسيط P50</title>
+    <line x1="${pad}" x2="${W-pad}" y1="${y}" y2="${y}" stroke="${rail}" stroke-width="6" stroke-linecap="round"/>
+    <line x1="${x(p90)}" x2="${x(p10)}" y1="${y}" y2="${y}" stroke="${teal}" stroke-width="10" stroke-linecap="round" opacity="0.55"/>
+    <line x1="${x(p50)}" x2="${x(p50)}" y1="${y-15}" y2="${y+15}" stroke="${deep}" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="${x(p10)}" cy="${y}" r="4.5" fill="${teal}"/><circle cx="${x(p90)}" cy="${y}" r="4.5" fill="${teal}"/>
+    <text x="${x(p10)}" y="${y+30}" font-size="${fs}" fill="${teal}" text-anchor="middle" class="num">P10</text>
+    <text x="${x(p50)}" y="${y-21}" font-size="${fs}" fill="${deep}" text-anchor="middle" class="num">P50</text>
+    <text x="${x(p90)}" y="${y+30}" font-size="${fs}" fill="${teal}" text-anchor="middle" class="num">P90</text>
+  </svg>`;
+}
+
+function p2wSimilarTable(used, excluded){
+  if(!used.length && !excluded.length) return '';
+  const row = s => `<tr class="border-b border-line/70 last:border-0 hover:bg-tint/40 cursor-pointer transition" onclick="openDetail(${s.tender_id})">
+      <td class="px-3 py-2 text-[12px] max-w-[280px]"><div class="line-clamp-1">${esc(s.name ?? '')}</div>
+        <div class="text-[10.5px] text-mut line-clamp-1">${esc(s.agency ?? '')}</div></td>
+      <td class="px-2 py-2 text-center num text-[12px] text-mut">${nf.format(s.bidder_count ?? 0)}</td>
+      <td class="px-2 py-2 text-center num text-[12px]">${Math.round((s.total_score ?? 0)*100)}%</td>
+      <td class="px-3 py-2 text-left num text-[12px] font-medium text-deep">${p2wSar(s.award_value)}</td></tr>`;
+  return `<details class="mt-4 group">
+    <summary class="cursor-pointer list-none focus-ring rounded-lg text-[12.5px] font-medium text-deep bg-tint border border-line px-3.5 py-2 inline-flex items-center gap-2">
+      المنافسات المشابهة المستخدمة ${prov('observed')}
+      <span class="num text-mut">${nf.format(used.length)} مستخدمة · ${nf.format(excluded.length)} مستبعدة</span></summary>
+    <div class="mt-3 bg-card border border-line rounded-2xl overflow-hidden">
+      <div class="overflow-x-auto"><table class="w-full min-w-0 text-[12.5px]">
+        <thead><tr class="text-mut text-[10.5px] border-b border-line bg-paper/60">
+          <th class="text-right font-medium px-3 py-2">المنافسة</th>
+          <th class="text-center font-medium px-2 py-2">متنافسون</th>
+          <th class="text-center font-medium px-2 py-2">التشابه</th>
+          <th class="text-left font-medium px-3 py-2">قيمة الترسية</th></tr></thead>
+        <tbody>${used.slice(0,10).map(row).join('') ||
+          `<tr><td colspan="4" class="px-3 py-3 text-[12px] text-mut">لم تدخل أي منافسة في حساب النطاق.</td></tr>`}</tbody>
+      </table></div>
+      ${excluded.length ? `<div class="border-t border-line px-3 py-2.5 text-[11px] text-mut leading-relaxed">
+        استُبعدت ${nf.format(excluded.length)} منافسة: ${esc([...new Set(excluded.map(e => e.exclusion_reason))].join(' · '))}</div>` : ''}
+    </div></details>`;
+}
+
+/* ---------- layer 2: المنافسون ---------- */
+function p2wRenderCompetitors(){
+  const comp = p2wState.comp;
+  const marketPred = p2wState.mi.prediction;
+  const tier = marketPred.evidence_tier;
+  const weakTier = tier === 'C' || tier === 'D';
+  const head = p2wSectionHead(2, 'المنافسون',
+    'من قد يتقدّم لهذه المنافسة، وما النطاق الذي يشير إليه سجلّهم المُلاحظ. لا شيء هنا معرفة بما سيقدمونه فعلاً.',
+    'prov-predicted border');
+
+  let body;
+  if(comp && comp.error){
+    body = p2wSuppressionPanel('MODEL_UNAVAILABLE', 'تعذّر قراءة المنافسين',
+      `<div class="text-[12px] mt-1">${esc(comp.error)}</div>`);
+  }else if(weakTier || !comp || !comp.candidates || !comp.candidates.length){
+    body = p2wSuppressionPanel(
+      (comp && comp.market_prediction && comp.market_prediction.suppression_reason)
+        || marketPred.suppression_reason || 'INSUFFICIENT_EVIDENCE',
+      'نعرض نطاق السوق فقط — الأدلة الحالية لا تكفي لتقدير أسعار منافسين بعينهم',
+      `<div class="text-[12.5px] mt-2 leading-relaxed">مستوى الأدلة الحالي <span class="num font-semibold">${esc(tier ?? '—')}</span>؛ عند هذا المستوى لا نُصدر أرقامًا على مستوى منافس بعينه.
+        استخدم الطبقة الأولى (نطاق السوق والمنافسات المشابهة) والحقائق المُلاحظة أدناه.</div>
+       ${p2wObservedBidders()}`);
+  }else{
+    const undercut = (p2wState.curve && p2wState.curve.simulation
+      && p2wState.curve.simulation.undercut_probabilities) || {};
+    body = `<div class="space-y-2">${comp.candidates.map(c => p2wCompetitorRow(c, undercut)).join('')}</div>
+      <div class="text-[11.5px] text-mut mt-3 leading-relaxed">${esc(comp.disclaimer || '')}</div>`;
+  }
+
+  $('#p2wLayerCompetitors').innerHTML = `
+    <div class="p2w-layer p2w-layer-comp soft-card border border-line rounded-3xl p-5 lg:p-6 ps-6 lg:ps-7">
+      ${head}${body}</div>`;
+}
+function p2wObservedBidders(){
+  const t = p2wState.subject;
+  const offers = (t && t.offers) || [];
+  if(!offers.length) return '';
+  return `<div class="mt-3">
+    <div class="text-[11px] text-mut mb-2 flex items-center gap-2">المتنافسون المسجّلون فعليًا على هذه المنافسة ${prov('observed')}</div>
+    <div class="flex flex-wrap gap-1.5">${offers.slice(0,14).map(o =>
+      `<span class="prov-observed border rounded-full px-2.5 py-1 text-[11px]">${esc(o.vendor ?? '—')}${
+        o.offer_value != null ? ` <span class="num">${nf.format(Math.round(o.offer_value))}</span>` : ''}</span>`).join('')}</div></div>`;
+}
+function p2wCompetitorRow(c, undercut){
+  const o = c.observed || {}, part = c.participation || {}, price = c.price_prediction || {};
+  const name = esc(o.canonical_name || ('مورد #' + c.vendor_id));
+  const partCell = part.is_suppressed || part.probability == null
+    ? `<span class="text-[12px] text-mut">${esc(P2W_SUPPRESS_COMPETITOR_AR[part.suppression] || 'أدلة غير كافية لتقدير احتمال مشاركته')}</span>`
+    : `<div class="flex items-center gap-2"><span class="num text-[15px] font-bold text-[#2E7C8C]">${p2wPct(part.probability)}</span>${prov('predicted')}</div>
+       <div class="text-[10.5px] text-mut mt-0.5">${esc(P2W_BASIS_AR[part.basis] || part.basis || '')} · ${nf.format(part.evidence_count ?? 0)} شواهد</div>`;
+  const priceCell = price.is_suppressed
+    ? `<div class="p2w-suppressed border border-line rounded-lg px-2.5 py-1.5 text-[11.5px] text-mut leading-snug">
+         ${esc(P2W_SUPPRESS_COMPETITOR_AR[price.suppression_reason] || P2W_SUPPRESS_AR[price.suppression_reason] || 'أدلة غير كافية لتقدير سعر هذا المنافس')}
+         <div class="num text-[10px] mt-0.5">${esc(price.suppression_reason || '')}</div></div>`
+    : `<div class="num text-[13px] font-semibold text-[#2E7C8C]">${p2wSar(price.quantiles.p10)} — ${p2wSar(price.quantiles.p90)}</div>
+       <div class="text-[10.5px] text-mut mt-0.5">الوسيط <span class="num">${p2wSar(price.quantiles.p50)}</span></div>
+       <div class="mt-1">${p2wConfidence(price)}</div>`;
+  const u = undercut[c.vendor_id] ?? undercut[String(c.vendor_id)];
+  const underCell = price.is_suppressed
+    ? '<span class="text-[12px] text-mut">—</span>'
+    : (u == null
+      ? '<span class="text-[11.5px] text-mut leading-snug">يظهر بعد إدخال عرضك في الطبقة الثالثة</span>'
+      : `<div class="num text-[14px] font-bold ${u > 0.5 ? 'text-bronze' : 'text-deep'}">${p2wPct(u)}</div>
+         <div class="text-[10.5px] text-mut">احتمال أن يقلّ سعره عن عرضك ${prov('predicted')}</div>`);
+  return `<div class="bg-card border border-line rounded-2xl p-3.5 ${price.is_suppressed ? 'opacity-95' : ''}">
+    <div class="grid gap-3 sm:grid-cols-[1.3fr_1fr_1.2fr_1fr] sm:items-center">
+      <div class="min-w-0">
+        <div class="font-medium text-[13px] leading-snug">${name}</div>
+        <div class="text-[10.5px] text-mut mt-0.5 flex items-center gap-1.5 flex-wrap">${prov('observed')}
+          <span class="num">${nf.format(o.offers_seen ?? 0)}</span> مشاركة ·
+          <span class="num">${nf.format(o.wins_seen ?? 0)}</span> فوز</div>
+      </div>
+      <div><div class="text-[10.5px] text-mut mb-0.5">احتمال المشاركة</div>${partCell}</div>
+      <div><div class="text-[10.5px] text-mut mb-0.5">النطاق المتوقع</div>${priceCell}</div>
+      <div><div class="text-[10.5px] text-mut mb-0.5">خطر التفوق عليك</div>${underCell}
+        ${price.prediction_id ? `<button onclick="p2wWhy(${price.prediction_id}, '${name.replace(/'/g, '')}')" class="focus-ring mt-1 text-[11px] text-deep underline underline-offset-2">لماذا؟</button>` : ''}</div>
+    </div></div>`;
+}
+
+/* ---------- layer 3: عرضك ---------- */
+function p2wRenderBidForm(){
+  const s = p2wState.scenario;
+  const inp = s && s.inputs;
+  const num = (id, label, value, step, extra='') => `
+    <label class="block">
+      <span class="text-[11.5px] text-mut flex items-center gap-1.5">${label} ${prov('user')}</span>
+      <input id="${id}" type="number" step="${step}" ${extra} value="${value ?? ''}"
+        class="mt-1 w-full bg-paper border border-line rounded-xl px-3.5 py-2 text-[13px] num focus:outline-none focus:ring-2 focus:ring-bronze/30"></label>`;
+  $('#p2wLayerBid').innerHTML = `
+    <div class="p2w-layer p2w-layer-bid soft-card border border-line rounded-3xl p-5 lg:p-6 ps-6 lg:ps-7">
+      ${p2wSectionHead(3, 'عرضك',
+        'مدخلاتك خاصة بك ولا تدخل في أي نموذج عام. نعرض احتمالية الفوز والهامش على الرسم نفسه — لأن تحسين الفوز وحده يفوز بعقود خاسرة.',
+        'prov-user border')}
+      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        ${num('p2wCost', 'التكلفة التقديرية (ر.س)', inp ? p2wAmt(inp.estimated_cost) : '', '1000', 'min="1"')}
+        ${num('p2wMargin', 'الحد الأدنى للهامش %', inp ? inp.min_margin_pct : 8, '0.5', 'min="0" max="99"')}
+        ${num('p2wTarget', 'احتمالية الفوز المستهدفة %', inp ? inp.target_win_pct : 60, '1', 'min="0" max="100"')}
+        ${num('p2wReserve', 'احتياطي المخاطر (ر.س)', inp ? p2wAmt(inp.risk_reserve) : 0, '1000', 'min="0"')}
+      </div>
+      <button id="p2wCalcBtn" onclick="p2wCalc()" class="focus-ring mt-4 bg-bronze hover:brightness-95 text-white rounded-xl px-5 py-2.5 text-[13.5px] font-semibold transition shadow-card">احسب منحنى السعر مقابل احتمالية الفوز</button>
+      <div id="p2wBidResult" class="mt-4"></div>
+    </div>`;
+}
+
+async function p2wCalc(){
+  const cost = Number($('#p2wCost').value);
+  const margin = Number($('#p2wMargin').value);
+  const target = $('#p2wTarget').value === '' ? null : Number($('#p2wTarget').value);
+  const reserve = Number($('#p2wReserve').value || 0);
+  const out = $('#p2wBidResult');
+  if(!Number.isFinite(cost) || cost <= 0){
+    out.innerHTML = `<div class="text-[12.5px] text-danger">أدخل تكلفة تقديرية أكبر من صفر.</div>`;
+    return;
+  }
+  const btn = $('#p2wCalcBtn');
+  btn.disabled = true; btn.classList.add('opacity-70');
+  out.innerHTML = `<div class="text-[12.5px] text-mut">جاري تشغيل المحاكاة…</div>`;
+  try{
+    const created = await p2wJSON(`/api/tenders/${p2wState.tenderId}/scenarios`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({estimated_cost:cost, min_margin_pct:margin,
+        target_win_pct:target, risk_reserve:reserve}),
+    });
+    p2wState.scenario = created.scenario;
+    p2wState.curve = await p2wJSON(`/api/scenarios/${created.scenario.id}/curve`);
+    p2wRenderCurve();
+    p2wRenderCompetitors();
+  }catch(err){
+    out.innerHTML = `<div class="text-[12.5px] text-danger">تعذّر الحساب: ${esc(err.message)}</div>`;
+  }finally{
+    btn.disabled = false; btn.classList.remove('opacity-70');
+  }
+}
+
+function p2wRenderCurve(){
+  const c = p2wState.curve, out = $('#p2wBidResult');
+  const cost = p2wAmt(p2wState.scenario.inputs.estimated_cost);
+  if(c.suppressed || !c.curve || !c.curve.length){
+    out.innerHTML = p2wSuppressionPanel(c.suppression_reason || 'INSUFFICIENT_EVIDENCE',
+      'لا نرسم منحنى احتمالية فوز لهذه المنافسة',
+      `<div class="text-[12.5px] mt-2 leading-relaxed">${esc(c.detail || '')}
+        <div class="mt-2">محاكاة مونتي كارلو تحتاج منافسًا واحدًا على الأقل لديه تقدير مشاركة وتقدير سعر معًا؛ لا يتوفر ذلك هنا، ومحاكاة منافس بلا أدلة تصنع بالضبط الرقم الذي وُجدت البوابة لمنعه.</div>
+        <div class="mt-2 text-[12px]">ما زال بإمكانك استخدام أرضية الهامش: بتكلفة <span class="num">${p2wSar(p2wState.scenario.inputs.estimated_cost)}</span> وحد أدنى للهامش <span class="num">${p2wPctRaw(p2wState.scenario.inputs.min_margin_pct)}</span>، أدنى سعر مقبول هو <span class="num font-semibold">${p2wSar(cost / (1 - Number(p2wState.scenario.inputs.min_margin_pct)/100))}</span> ${prov('user')}.</div>
+        <div class="mt-2 text-[11px] text-mut num">seed ${esc(String(c.seed))} · ${esc(c.model_version || '')}</div></div>`);
+    return;
+  }
+  const prices = c.curve.map(p => p2wAmt(p.price));
+  const opt = c.optimizer || {};
+  const rec = p2wAmt(opt.recommended_bid);
+  p2wState.bid = p2wState.bid ?? (rec ?? prices[Math.floor(prices.length/2)]);
+  const lo = Math.min(...prices), hi = Math.max(...prices);
+  const step = Math.max(1, Math.round((hi - lo)/200));
+
+  const optBlock = opt.is_feasible === false
+    ? `<div class="p2w-suppressed border border-line rounded-2xl px-4 py-3 text-[12.5px]">
+         <span class="font-semibold">لا يوجد سعر يحقّق كل قيودك.</span>
+         <span class="text-mut">السبب: <span class="num">${esc(opt.infeasible_reason || '—')}</span></span></div>`
+    : `<div class="grid gap-2 sm:grid-cols-4">
+        ${p2wResultCell('السعر الموصى به', p2wSar(opt.recommended_bid), 'predicted', 'text-deep')}
+        ${p2wResultCell('احتمالية الفوز عنده', p2wPct(opt.win_probability), 'predicted', 'text-[#2E7C8C]')}
+        ${p2wResultCell('الهامش عنده', p2wPctRaw(opt.margin_pct), 'predicted', 'text-bronze')}
+        ${p2wResultCell('المساهمة المتوقعة', p2wSar(opt.expected_contribution), 'predicted', '')}
+      </div>
+      ${(opt.binding_constraints && opt.binding_constraints.length)
+        ? `<div class="text-[11px] text-mut mt-2">القيود الفاعلة: <span class="num">${esc(opt.binding_constraints.join(' · '))}</span></div>` : ''}`;
+
+  const sim = c.simulation;
+  out.innerHTML = `
+    ${optBlock}
+    <div class="bg-card border border-line rounded-2xl p-4 mt-3">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+        <div class="text-[12.5px] font-medium">السعر مقابل احتمالية الفوز والهامش</div>
+        <div class="flex items-center gap-3 text-[11px] text-mut flex-wrap">
+          <span class="inline-flex items-center gap-1.5"><span class="w-4 h-[3px] rounded bg-[#2E7C8C] inline-block"></span>احتمالية الفوز ${prov('predicted')}</span>
+          <span class="inline-flex items-center gap-1.5"><span class="w-4 h-[3px] rounded bg-bronze inline-block" style="background-image:repeating-linear-gradient(90deg,#8F5608 0 4px,transparent 4px 7px)"></span>الهامش ${prov('predicted')}</span>
+          <span class="inline-flex items-center gap-1.5"><span class="w-[3px] h-4 rounded bg-deep inline-block"></span>عرضك ${prov('user')}</span>
+        </div>
+      </div>
+      <div id="p2wCurve"></div>
+      <label class="block mt-3">
+        <span class="text-[11.5px] text-mut flex items-center gap-1.5">اسحب لتجربة سعر ${prov('user')}</span>
+        <input id="p2wSlider" type="range" min="${lo}" max="${hi}" step="${step}" value="${p2wState.bid}"
+          class="mt-2 w-full accent-[#8F5608]" aria-label="سعر العرض المقترح">
+      </label>
+      <div id="p2wSliderOut" class="grid gap-2 sm:grid-cols-4 mt-2"></div>
+    </div>
+    ${sim ? `<div class="grid gap-2 sm:grid-cols-3 mt-3">
+        ${p2wResultCell('احتمالية الفوز بالعرض المحفوظ', p2wPct(sim.win_probability), 'predicted', 'text-[#2E7C8C]')}
+        ${p2wResultCell('السعر الواجب التفوق عليه', p2wSar(sim.price_to_beat), 'predicted', 'text-deep')}
+        ${p2wResultCell('تكرارات المحاكاة', nf.format(sim.iterations), 'observed', '')}
+      </div>` : ''}
+    <div class="text-[11px] text-mut mt-3 leading-relaxed">
+      محاكاة قابلة لإعادة الإنتاج تمامًا من (المدخلات، إصدار النموذج، البذرة): <span class="num">seed ${esc(String(c.seed))}</span> ·
+      <span class="num">${esc(c.model_version || '')}</span> · قاعدة التقييم <span class="num">${esc(c.evaluation_rule || '')}</span>
+      ${(c.excluded_candidates && c.excluded_candidates.length)
+        ? ` · استُبعد من المحاكاة ${nf.format(c.excluded_candidates.length)} منافس لعدم كفاية أدلتهم` : ''}
+    </div>`;
+  p2wDrawCurve();
+  const slider = $('#p2wSlider');
+  slider.addEventListener('input', () => {
+    p2wState.bid = Number(slider.value); p2wDrawCurve(); p2wSliderOut();
+  });
+  p2wSliderOut();
+}
+const p2wResultCell = (label, value, kind, cls) => `
+  <div class="bg-card border border-line rounded-xl px-3 py-2.5">
+    <div class="text-[10.5px] text-mut flex items-center gap-1.5">${label} ${prov(kind)}</div>
+    <div class="num text-[16px] font-bold mt-1 ${cls}">${value}</div></div>`;
+
+function p2wWinAt(price){
+  const c = p2wState.curve.curve;
+  const xs = c.map(p => p2wAmt(p.price));
+  if(price <= xs[0]) return c[0].win_probability;
+  if(price >= xs[xs.length-1]) return c[c.length-1].win_probability;
+  for(let i=1;i<xs.length;i++){
+    if(price <= xs[i]){
+      const t = (price - xs[i-1])/(xs[i] - xs[i-1] || 1);
+      return c[i-1].win_probability + t*(c[i].win_probability - c[i-1].win_probability);
+    }
+  }
+  return c[c.length-1].win_probability;
+}
+function p2wSliderOut(){
+  const price = p2wState.bid;
+  const inputs = p2wState.scenario.inputs;
+  const cost = p2wAmt(inputs.estimated_cost), reserve = p2wAmt(inputs.risk_reserve) || 0;
+  const margin = price > 0 ? ((price - cost)/price)*100 : null;
+  const win = p2wWinAt(price);
+  const floorOk = margin != null && margin >= Number(inputs.min_margin_pct);
+  $('#p2wSliderOut').innerHTML =
+    p2wResultCell('السعر المُجرَّب', p2wSar(price), 'user', 'text-bronze') +
+    p2wResultCell('احتمالية الفوز عنده', p2wPct(win), 'predicted', 'text-[#2E7C8C]') +
+    p2wResultCell('الهامش عنده', p2wPctRaw(margin) + (floorOk ? '' : ' ⚠'), 'predicted',
+      floorOk ? 'text-deep' : 'text-danger') +
+    p2wResultCell('المساهمة', p2wSar(price - cost - reserve), 'predicted', '');
+}
+
+function p2wDrawCurve(){
+  const el = $('#p2wCurve'); if(!el) return;
+  const c = p2wState.curve.curve;
+  const narrow = (el.clientWidth || 720) < 520;
+  const W = narrow ? 380 : 720, H = narrow ? 280 : 260;
+  const padX = narrow ? 42 : 46, padT = narrow ? 20 : 16, padB = narrow ? 40 : 34;
+  const fs = narrow ? 11 : 10;
+  const prices = c.map(p => p2wAmt(p.price));
+  const lo = Math.min(...prices), hi = Math.max(...prices);
+  const margins = c.map(p => p.margin_pct).filter(v => v != null && Number.isFinite(v));
+  const yMin = Math.min(0, ...(margins.length ? margins : [0]));
+  const yMax = 100;
+  /* RTL: price rises right → left, matching the reading direction. */
+  const X = v => W - padX - ((v - lo)/((hi - lo) || 1))*(W - padX*2);
+  const Y = v => padT + (1 - (v - yMin)/((yMax - yMin) || 1))*(H - padT - padB);
+  const dark = document.body.classList.contains('theme-dark');
+  const teal = dark ? '#7ED0DF' : '#2E7C8C';
+  const bronze = dark ? '#E4B45F' : '#8F5608';
+  const deep = dark ? '#76D6B0' : '#075E46';
+  const axis = dark ? '#A9B8B0' : '#56645D';
+  const grid = dark ? '#284238' : '#DCD5C8';
+  const winPts = c.map(p => `${X(p2wAmt(p.price))},${Y(p.win_probability*100)}`).join(' ');
+  const marPts = c.filter(p => p.margin_pct != null)
+    .map(p => `${X(p2wAmt(p.price))},${Y(Math.max(yMin, Math.min(yMax, p.margin_pct)))}`).join(' ');
+  let g = '';
+  [0, 25, 50, 75, 100].forEach(v => {
+    if(v < yMin) return;
+    g += `<line x1="${padX}" x2="${W-padX}" y1="${Y(v)}" y2="${Y(v)}" stroke="${grid}" stroke-width="1"/>
+      <text x="${W-padX+6}" y="${Y(v)+4}" font-size="${fs}" fill="${axis}" class="num">${v}%</text>`;
+  });
+  if(yMin < 0) g += `<line x1="${padX}" x2="${W-padX}" y1="${Y(0)}" y2="${Y(0)}" stroke="${axis}" stroke-width="1" stroke-dasharray="2 3"/>`;
+  const opt = p2wState.curve.optimizer || {};
+  const rec = p2wAmt(opt.recommended_bid);
+  const marks = [];
+  if(rec != null && rec >= lo && rec <= hi)
+    marks.push(`<line x1="${X(rec)}" x2="${X(rec)}" y1="${padT}" y2="${H-padB}" stroke="${teal}" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <text x="${X(rec)}" y="${padT+11}" font-size="${fs}" fill="${teal}" text-anchor="middle">موصى به</text>`);
+  const bid = p2wState.bid;
+  if(bid != null && bid >= lo && bid <= hi)
+    marks.push(`<line x1="${X(bid)}" x2="${X(bid)}" y1="${padT}" y2="${H-padB}" stroke="${deep}" stroke-width="2.5"/>
+      <circle cx="${X(bid)}" cy="${Y(p2wWinAt(bid)*100)}" r="4.5" fill="${deep}"/>`);
+  const ticks = [lo, lo + (hi-lo)/2, hi].map(v =>
+    `<text x="${X(v)}" y="${H-12}" font-size="${fs}" fill="${axis}" text-anchor="middle" class="num">${nf.format(Math.round(v))}</text>`).join('');
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img"
+      aria-label="منحنى يقارن احتمالية الفوز والهامش عبر نطاق أسعار من ${Math.round(lo)} إلى ${Math.round(hi)} ريال. السعر يرتفع من اليمين إلى اليسار.">
+    <title>احتمالية الفوز والهامش مقابل سعر العرض</title>
+    <desc>خطان على محور نسبة مئوية واحد: احتمالية الفوز بالأزرق المخضر، والهامش بالبرونزي المتقطع.</desc>
+    ${g}${marks.join('')}
+    <polyline points="${winPts}" fill="none" stroke="${teal}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+    ${marPts ? `<polyline points="${marPts}" fill="none" stroke="${bronze}" stroke-width="2.2" stroke-dasharray="6 4" stroke-linejoin="round" stroke-linecap="round"/>` : ''}
+    ${ticks}
+    <text x="${W/2}" y="${H-1}" font-size="${fs-0.5}" fill="${axis}" text-anchor="middle">سعر العرض (ر.س) — يرتفع نحو اليسار</text>
+    <rect id="p2wCurveHit" x="${padX}" y="${padT}" width="${W-padX*2}" height="${H-padT-padB}" fill="transparent"/>
+  </svg>`;
+  const svg = el.querySelector('svg');
+  svg.addEventListener('mousemove', e => {
+    const box = svg.getBoundingClientRect();
+    const vx = ((e.clientX - box.left)/box.width)*W;
+    const price = lo + ((W - padX - vx)/(W - padX*2))*(hi - lo);
+    if(price < lo || price > hi){ tipHide(); return; }
+    let nearest = c[0], best = Infinity;
+    c.forEach(p => { const d = Math.abs(p2wAmt(p.price) - price); if(d < best){ best = d; nearest = p; } });
+    tipShow(e, `${nf.format(Math.round(p2wAmt(nearest.price)))} ر.س<br>
+      <span style="color:#7ED0DF">فوز ${(nearest.win_probability*100).toFixed(0)}%</span> ·
+      <span style="color:#E4B45F">هامش ${nearest.margin_pct == null ? '—' : nearest.margin_pct.toFixed(1)+'%'}</span>`);
+  });
+  svg.addEventListener('mouseleave', tipHide);
+}
+
+/* ---------- "لماذا؟" drill-down ---------- */
+async function p2wWhy(predictionId, title){
+  const panel = $('#p2wWhyPanel'); if(!panel || !predictionId) return;
+  panel.innerHTML = `<div class="text-[12.5px] text-mut">جاري تحميل التفسير…</div>`;
+  panel.scrollIntoView({block:'nearest', behavior:
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+  try{
+    const x = await p2wJSON(`/api/predictions/${predictionId}/explanation`);
+    const dirIcon = d => d === 'increases' ? '▲' : d === 'decreases' ? '▼' : '■';
+    const dirCls = d => d === 'increases' ? 'text-bronze' : d === 'decreases' ? 'text-deep' : 'text-mut';
+    const factors = (x.factors || []).length ? `
+      <div class="mt-3 space-y-1.5">${x.factors.map(f => `
+        <div class="flex items-center gap-3 bg-paper/60 border border-line rounded-xl px-3 py-2">
+          <span class="${dirCls(f.direction)} text-[13px] shrink-0">${dirIcon(f.direction)}</span>
+          <div class="min-w-0 flex-1">
+            <div class="text-[12.5px] font-medium flex items-center gap-2">${esc(f.name)} ${prov(f.kind === 'observed' ? 'observed' : f.kind === 'predicted' ? 'predicted' : 'user')}</div>
+            ${f.detail ? `<div class="text-[11px] text-mut mt-0.5 leading-relaxed">${esc(f.detail)}</div>` : ''}</div>
+          <div class="shrink-0 w-24"><div class="h-1.5 rounded-full bg-line overflow-hidden">
+            <div class="h-full rounded-full bg-[#2E7C8C]" style="width:${Math.min(100, Math.abs(Number(f.weight||0))*100)}%"></div></div>
+            <div class="num text-[10px] text-mut mt-0.5 text-left">${Number(f.weight||0).toFixed(2)}</div></div>
+        </div>`).join('')}</div>`
+      : `<div class="mt-3 p2w-suppressed border border-line rounded-xl px-3 py-2.5 text-[12px] text-mut">
+           لم يسجّل النموذج عوامل تفسير لهذا التقدير — وهو ما نتوقعه عندما يكون التقدير مكتومًا أصلًا لعدم كفاية الأدلة.</div>`;
+    const warn = [];
+    if(x.is_suppressed) warn.push('هذا التقدير مكتوم ولا يقدّم أي رقم: ' + (P2W_SUPPRESS_AR[x.suppression_reason] || x.suppression_reason));
+    if(x.lineage && x.lineage.traceable === false) warn.push(x.lineage.note || 'لا توجد سجلات مصدر مفصّلة لهذه الحقيقة.');
+    if((x.data_freshness_score ?? 0) < 40) warn.push('حداثة البيانات منخفضة (' + (x.data_freshness_score ?? 0) + '/100).');
+    if((x.similarity_confidence ?? 0) < 40) warn.push('ثقة التشابه منخفضة (' + (x.similarity_confidence ?? 0) + '/100).');
+
+    panel.innerHTML = `
+      <div class="bg-card border border-line rounded-2xl p-4">
+        <div class="flex items-start justify-between gap-3">
+          <div><div class="font-semibold text-[13.5px]">لماذا؟ — ${esc(title)}</div>
+            <div class="text-[12px] text-mut mt-1">${esc(x.headline || '')}</div></div>
+          <button onclick="$('#p2wWhyPanel').innerHTML=''" class="focus-ring w-8 h-8 rounded-lg border border-line grid place-items-center text-mut" aria-label="إغلاق">✕</button>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+          ${p2wFact('عدد الأدلة', nf.format(x.evidence_count ?? 0))}
+          ${p2wFact('مستوى الأدلة', esc(P2W_TIER_AR[x.evidence_tier] || x.evidence_tier || '—'))}
+          ${p2wFact('حداثة البيانات', (x.data_freshness_score ?? 0) + '/100')}
+          ${p2wFact('ثقة التشابه', (x.similarity_confidence ?? 0) + '/100')}
+        </div>
+        <div class="text-[11.5px] text-mut mt-3 font-medium">العوامل المؤثرة واتجاهها ووزنها</div>
+        ${factors}
+        ${warn.length ? `<div class="mt-3 border border-line rounded-xl px-3 py-2.5 p2w-suppressed">
+          <div class="text-[11.5px] font-semibold mb-1">تحذيرات جودة البيانات</div>
+          <ul class="text-[11.5px] text-mut space-y-1 list-disc ps-4">${warn.map(w => `<li>${esc(w)}</li>`).join('')}</ul></div>` : ''}
+        <div class="text-[11px] text-mut mt-3 num">${esc(x.model_version || '')} · snapshot ${esc(x.feature_snapshot_id || '—')} · seed ${esc(String(x.seed ?? '—'))} · ${esc((x.generated_at || '').slice(0,19).replace('T',' '))}</div>
+        ${p2wWhyComparables()}
+      </div>`;
+  }catch(err){
+    panel.innerHTML = `<div class="text-[12.5px] text-danger">تعذّر تحميل التفسير: ${esc(err.message)}</div>`;
+  }
+}
+function p2wWhyComparables(){
+  const used = (p2wState.mi && p2wState.mi.similar_tenders && p2wState.mi.similar_tenders.used) || [];
+  if(!used.length) return '';
+  return `<div class="mt-3">
+    <div class="text-[11.5px] text-mut font-medium mb-1.5">أقرب المنافسات المقارنة ${prov('observed')} — اضغط لفتح بطاقتها</div>
+    <div class="space-y-1">${used.slice(0,5).map(s => `
+      <button type="button" onclick="openDetail(${s.tender_id})"
+        class="focus-ring w-full text-right bg-paper/60 border border-line rounded-xl px-3 py-2 hover:bg-tint transition flex items-center justify-between gap-3">
+        <span class="min-w-0"><span class="block text-[12px] font-medium line-clamp-1">${esc(s.name ?? '')}</span>
+          <span class="block text-[10.5px] text-mut line-clamp-1">${esc(s.agency ?? '')}</span></span>
+        <span class="shrink-0 text-left"><span class="num text-[12px] font-semibold text-deep">${p2wSar(s.award_value)}</span>
+          <span class="block num text-[10px] text-mut">تشابه ${Math.round((s.total_score ?? 0)*100)}%</span></span>
+      </button>`).join('')}</div></div>`;
+}
+
+$('#p2wSearchBtn').onclick = () => p2wLoadPicker($('#p2wSearch').value.trim());
+$('#p2wSearch').addEventListener('keydown', e => {
+  if(e.key === 'Enter') p2wLoadPicker($('#p2wSearch').value.trim());
+});
+
+/* ---------- compact card inside the tender drawer ---------- */
+async function loadDrawerP2W(tenderId){
+  const box = $('#p2wDrawerCard'); if(!box) return;
+  try{
+    const mi = await p2wJSON(`/api/tenders/${tenderId}/market-intelligence`);
+    const p = mi.prediction, ev = mi.evidence;
+    const used = (mi.similar_tenders && mi.similar_tenders.used) || [];
+    const inner = p.is_suppressed
+      ? `<div class="text-[12.5px] text-mut leading-relaxed">${esc(P2W_SUPPRESS_AR[p.suppression_reason] || 'لا تكفي الأدلة لعرض نطاق سعر')}
+           <div class="text-[11px] mt-1 num">${esc(p.suppression_reason || '')} · مستوى الأدلة ${esc(p.evidence_tier || '—')}</div>
+           ${used.length ? `<div class="text-[12px] mt-2">لكن لدينا <span class="num font-semibold">${nf.format(used.length)}</span> منافسة مشابهة بقيم ترسية مُلاحظة ${prov('observed')}</div>` : ''}</div>`
+      : `<div class="grid grid-cols-3 gap-2 text-center">
+          ${[['P10', p.quantiles.p10], ['P50', p.quantiles.p50], ['P90', p.quantiles.p90]].map(([l, v], i) =>
+            `<div class="rounded-xl border border-line ${i===1?'bg-tint':'bg-paper/60'} px-2 py-2">
+              <div class="text-[10px] text-mut num">${l}</div>
+              <div class="num text-[13.5px] font-bold ${i===1?'text-deep':'text-[#2E7C8C]'}">${p2wSar(v)}</div></div>`).join('')}
+        </div>
+        <div class="mt-2">${p2wConfidence(p)}</div>`;
+    box.innerHTML = `
+      <div class="mt-5 border border-line rounded-2xl bg-card p-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div class="font-semibold text-[13.5px] flex items-center gap-2">
+            <span class="w-1.5 h-4 rounded-full bg-[#2E7C8C] inline-block"></span>ذكاء التسعير ${prov('predicted')}</div>
+          <span class="text-[10.5px] text-mut num">${nf.format(ev.comparable_count ?? 0)} شواهد · ${esc(p.model_version || '')}</span>
+        </div>
+        ${inner}
+        <button onclick="closeDrawer(); show('p2w'); p2wSelect(${tenderId}).then(()=>p2wRun());"
+          class="focus-ring mt-3 w-full bg-deep hover:bg-deepd text-white rounded-xl px-4 py-2.5 text-[13px] font-semibold transition">اعرف السعر الذكي لهذا العرض</button>
+      </div>`;
+  }catch(err){
+    box.innerHTML = `<div class="mt-5 border border-line rounded-2xl p-4 text-[12px] text-mut">
+      تعذّر تحميل ذكاء التسعير: ${esc(err.message)}</div>`;
+  }
+}
 
 /* ---------- boot ---------- */
 if(localStorage.getItem('thaqip.theme')==='dark') document.body.classList.add('theme-dark');

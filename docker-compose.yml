@@ -93,7 +93,9 @@ services:
     restart: unless-stopped
 
   console:
-    build: ./services/console
+    build:
+      context: .
+      dockerfile: services/console/Dockerfile
     environment:
       DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
       TYPESENSE_URL: http://typesense:8108

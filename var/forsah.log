@@ -4794,3 +4794,301 @@ ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
 2026-09-09 06:05:14,984 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
 2026-09-09 06:05:17,757 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
 2026-09-09 06:05:19,345 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 2}
+2026-09-09 07:05:01,524 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 07:05:03,175 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 07:05:04,758 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 07:05:06,351 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 07:05:07,938 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 07:05:09,513 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 07:05:11,045 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}
+2026-09-09 08:05:02,058 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 08:05:03,655 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 08:05:05,269 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 08:05:06,867 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 08:05:08,447 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 08:05:10,045 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 08:05:11,567 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}
+2026-09-09 09:05:03,705 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 09:05:06,681 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 09:05:09,452 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 09:05:12,880 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 09:05:16,127 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 09:05:19,016 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 09:05:20,546 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 7}
+2026-09-09 10:05:03,150 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 10:05:06,227 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 10:05:09,185 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 10:05:12,508 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 10:05:15,479 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 10:05:18,396 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 10:05:19,927 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 1, 'updated': 7}
+2026-09-09 11:05:03,452 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 11:05:06,695 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 11:05:09,788 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 11:05:13,183 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 11:05:16,371 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 11:05:19,914 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 11:05:21,445 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 3, 'updated': 11}
+2026-09-09 12:05:03,988 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 12:05:07,260 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 12:05:09,991 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 12:05:12,973 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 12:05:16,065 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 12:05:19,065 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 12:05:20,589 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 12}
+2026-09-09 13:05:02,907 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 13:05:06,377 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 13:05:09,819 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 13:05:13,042 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 13:05:16,291 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 13:05:20,010 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 13:05:21,530 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 7}
+2026-09-09 14:05:02,835 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 14:05:05,849 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 14:05:08,819 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 14:05:11,739 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 14:05:14,579 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 14:05:17,653 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 14:05:19,195 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 10}
+2026-09-09 15:05:04,049 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 15:05:06,938 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 15:05:09,741 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 15:05:12,558 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 15:05:15,627 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 15:05:18,817 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 15:05:20,350 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 1, 'updated': 6}
+2026-09-09 16:05:03,762 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 16:05:06,566 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 16:05:09,434 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 16:05:13,504 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 16:05:16,181 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 16:05:19,300 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 16:05:20,821 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 1, 'updated': 5}
+2026-09-09 17:05:03,032 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 17:05:06,141 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 17:05:09,192 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 17:05:12,132 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 17:05:15,174 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 17:05:18,257 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 17:05:19,779 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 2, 'updated': 4}
+2026-09-09 18:05:01,704 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 18:05:03,301 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 18:05:04,871 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 18:05:06,436 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 18:05:08,041 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 18:05:09,618 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 18:05:11,143 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}
+2026-09-09 19:05:01,939 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 19:05:03,529 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 19:05:05,115 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 19:05:06,704 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 19:05:08,308 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 19:05:09,891 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 19:05:11,417 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}
+2026-09-09 20:05:02,482 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 20:05:04,084 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 20:05:05,681 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 20:05:07,325 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 20:05:08,921 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 20:05:10,524 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 20:05:12,059 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}
+2026-09-09 21:05:01,914 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-09 21:05:03,508 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-09 21:05:05,120 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-09 21:05:06,702 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-09 21:05:08,273 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-09 21:05:09,861 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-09 21:05:11,399 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/forsah.py", line 182, in <module>
+    main()
+    ~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/forsah.py", line 177, in main
+    stats = asyncio.run(run(args.pages))
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/forsah.py", line 153, in run
+    pool = await db.connect(os.environ["DATABASE_URL"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/db.py", line 72, in connect
+    return await asyncpg.create_pool(dsn, min_size=1, max_size=4)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 439, in _async__init__
+    await self._initialize()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 466, in _initialize
+    await first_ch.connect()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 153, in connect
+    self._con = await self._pool._get_new_connection()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 538, in _get_new_connection
+    con = await self._connect(
+          ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1172, in create_connection
+    raise exceptions[0]
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1147, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1046, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 643, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 683, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/forsah.py", line 182, in <module>
+    main()
+    ~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/forsah.py", line 177, in main
+    stats = asyncio.run(run(args.pages))
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 196, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/runners.py", line 119, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 726, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/forsah.py", line 153, in run
+    pool = await db.connect(os.environ["DATABASE_URL"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/src/thaqip_ingestion/db.py", line 72, in connect
+    return await asyncpg.create_pool(dsn, min_size=1, max_size=4)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 439, in _async__init__
+    await self._initialize()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 466, in _initialize
+    await first_ch.connect()
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 153, in connect
+    self._con = await self._pool._get_new_connection()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/pool.py", line 538, in _get_new_connection
+    con = await self._connect(
+          ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "/home/ais04/thaqip/services/ingestion/.venv/lib/python3.13/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1172, in create_connection
+    raise exceptions[0]
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1147, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/base_events.py", line 1046, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 643, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/ais04/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/selector_events.py", line 683, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
+2026-09-10 00:05:03,680 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-10 00:05:06,650 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-10 00:05:09,527 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-10 00:05:12,703 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-10 00:05:15,627 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-10 00:05:18,529 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-10 00:05:20,075 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 16}
+2026-09-10 01:05:03,106 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-10 01:05:05,800 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-10 01:05:08,619 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-10 01:05:11,415 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-10 01:05:14,129 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-10 01:05:17,172 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-10 01:05:18,708 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}
+2026-09-10 02:05:01,817 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-10 02:05:03,398 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-10 02:05:04,982 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-10 02:05:06,553 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-10 02:05:08,137 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-10 02:05:09,717 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-10 02:05:11,255 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}
+2026-09-10 03:05:01,936 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-10 03:05:03,558 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-10 03:05:05,150 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-10 03:05:06,735 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-10 03:05:08,319 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-10 03:05:09,929 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-10 03:05:11,453 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}
+2026-09-10 04:05:02,013 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-10 04:05:03,628 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-10 04:05:05,208 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-10 04:05:06,803 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-10 04:05:08,395 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-10 04:05:09,977 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-10 04:05:11,501 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}

@@ -1214,3 +1214,32 @@ ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
 2026-09-09 04:50:10,472 thaqip_ingestion.etimad.session INFO bootstrap complete: 14 cookies (10 TSPD)
 2026-09-09 04:50:10,664 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mBvjGnW7iN50HUuOfLSagg%3D%3D "HTTP/1.1 200 OK"
 2026-09-09 04:50:13,669 thaqip.award_watch INFO checked 1 pursued tenders, 0 newly announced
+2026-09-09 08:50:01,567 thaqip_ingestion.etimad.session INFO bootstrapping Etimad session via headless browser
+2026-09-09 08:50:10,926 thaqip_ingestion.etimad.session INFO bootstrap complete: 14 cookies (10 TSPD)
+2026-09-09 08:50:11,222 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetRelationsDetailsViewComponenet?tenderIdStr=e28JRd3YOBbAJdAygqMSFQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 08:50:12,306 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetTenderDatesViewComponenet?tenderIdStr=e28JRd3YOBbAJdAygqMSFQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 08:50:13,369 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAttachmentsViewComponenet?tenderIdStr=e28JRd3YOBbAJdAygqMSFQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 08:50:14,448 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=e28JRd3YOBbAJdAygqMSFQ%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 08:50:17,502 thaqip.award_watch INFO enriched 1 pursuits from detail components
+2026-09-09 08:50:17,678 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mBvjGnW7iN50HUuOfLSagg%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 08:50:20,684 thaqip.award_watch INFO checked 1 pursued tenders, 0 newly announced
+2026-09-09 12:50:02,503 thaqip_ingestion.etimad.session INFO bootstrapping Etimad session via headless browser
+2026-09-09 12:50:10,604 thaqip_ingestion.etimad.session INFO bootstrap complete: 14 cookies (10 TSPD)
+2026-09-09 12:50:10,961 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mBvjGnW7iN50HUuOfLSagg%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 12:50:13,966 thaqip.award_watch INFO checked 1 pursued tenders, 0 newly announced
+2026-09-09 16:50:01,864 thaqip_ingestion.etimad.session INFO bootstrapping Etimad session via headless browser
+2026-09-09 16:50:09,955 thaqip_ingestion.etimad.session INFO bootstrap complete: 14 cookies (10 TSPD)
+2026-09-09 16:50:10,358 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mBvjGnW7iN50HUuOfLSagg%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 16:50:13,362 thaqip.award_watch INFO checked 1 pursued tenders, 0 newly announced
+2026-09-09 20:50:02,072 thaqip_ingestion.etimad.session INFO bootstrapping Etimad session via headless browser
+2026-09-09 20:50:13,107 thaqip_ingestion.etimad.session INFO bootstrap complete: 14 cookies (10 TSPD)
+2026-09-09 20:50:13,273 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mBvjGnW7iN50HUuOfLSagg%3D%3D "HTTP/1.1 200 OK"
+2026-09-09 20:50:16,278 thaqip.award_watch INFO checked 1 pursued tenders, 0 newly announced
+2026-09-10 00:50:02,168 thaqip_ingestion.etimad.session INFO bootstrapping Etimad session via headless browser
+2026-09-10 00:50:11,330 thaqip_ingestion.etimad.session INFO bootstrap complete: 14 cookies (10 TSPD)
+2026-09-10 00:50:11,726 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mBvjGnW7iN50HUuOfLSagg%3D%3D "HTTP/1.1 200 OK"
+2026-09-10 00:50:14,731 thaqip.award_watch INFO checked 1 pursued tenders, 0 newly announced
+2026-09-10 04:50:01,727 thaqip_ingestion.etimad.session INFO bootstrapping Etimad session via headless browser
+2026-09-10 04:50:10,342 thaqip_ingestion.etimad.session INFO bootstrap complete: 14 cookies (10 TSPD)
+2026-09-10 04:50:11,716 httpx INFO HTTP Request: GET https://tenders.etimad.sa/Tender/GetAwardingResultsForVisitorViewComponenet?tenderIdStr=mBvjGnW7iN50HUuOfLSagg%3D%3D "HTTP/1.1 200 OK"
+2026-09-10 04:50:14,721 thaqip.award_watch INFO checked 1 pursued tenders, 0 newly announced

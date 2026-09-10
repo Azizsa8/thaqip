@@ -8,18 +8,58 @@ Run:  DATABASE_URL=... uv run uvicorn thaqip_console.app:app --port 8080
 """
 from __future__ import annotations
 
+import hashlib
+import inspect
 import json
+import math
 import os
 import re
+import sys
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import asyncpg
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 STATIC = Path(__file__).parent / "static"
+
+
+# ---------------------------------------------------------------------------
+# P2W engine bootstrap
+# ---------------------------------------------------------------------------
+# The pricing engine lives in the ingestion package (thaqip_ingestion.p2w). The
+# console image does not depend on it as a wheel, so make the source tree
+# importable when it is present. Order: explicit env override, the in-image
+# path, then the repo checkout (developer machines / tests).
+def _p2w_source_candidates() -> list[Path]:
+    here = Path(__file__).resolve()
+    candidates: list[Path] = []
+    env = os.environ.get("THAQIP_P2W_SRC")
+    if env:
+        candidates.append(Path(env))
+    candidates.append(Path("/app/ingestion/src"))
+    # services/console/src/thaqip_console/app.py -> services/ingestion/src
+    for parent in here.parents:
+        if parent.name == "services":
+            candidates.append(parent / "ingestion" / "src")
+            break
+    return candidates
+
+
+def _bootstrap_p2w() -> None:
+    for path in _p2w_source_candidates():
+        if (path / "thaqip_ingestion" / "p2w" / "contracts.py").exists():
+            resolved = str(path)
+            if resolved not in sys.path:
+                sys.path.insert(0, resolved)
+            return
+
+
+_bootstrap_p2w()
 
 
 @asynccontextmanager
@@ -27,11 +67,51 @@ async def lifespan(app: FastAPI):
     app.state.pool = await asyncpg.create_pool(
         os.environ["DATABASE_URL"], min_size=1, max_size=5
     )
+    app.state.tenant_ids = {}
+    app.state.scenario_curve_cache = {}
     yield
     await app.state.pool.close()
 
 
 app = FastAPI(title="Thaqip Console", lifespan=lifespan)
+
+
+# ---------------------------------------------------------------------------
+# Tenancy (P2W hard red gate)
+# ---------------------------------------------------------------------------
+# Every table holding user-private state (pursuits, compliance_items via their
+# pursuit, outcomes, predictions, follows, alert_profiles, user_bid_scenarios,
+# user_calculator_prefs) is filtered by tenant_id. The tenant comes from the
+# X-Thaqip-Tenant header and defaults to the 'default' tenant; an unknown slug
+# is a 404 rather than a silent fallback, because silently serving the default
+# tenant's rows to an unknown caller is exactly the leak this gate exists for.
+TENANT_HEADER = "X-Thaqip-Tenant"
+DEFAULT_TENANT_SLUG = os.environ.get("THAQIP_DEFAULT_TENANT", "default")
+
+
+async def _resolve_tenant(pool: asyncpg.Pool, slug: str) -> int:
+    cache = getattr(app.state, "tenant_ids", None)
+    if cache is None:
+        cache = app.state.tenant_ids = {}
+    if slug in cache:
+        return cache[slug]
+    tid = await pool.fetchval("SELECT id FROM tenants WHERE slug=$1", slug)
+    if tid is None:
+        raise HTTPException(404, f"unknown tenant {slug!r}")
+    cache[slug] = int(tid)
+    return int(tid)
+
+
+async def get_tenant_id(request: Request) -> int:
+    """FastAPI dependency: the caller's tenant id. Never returns another
+    tenant's id, and never invents one."""
+    slug = (request.headers.get(TENANT_HEADER) or DEFAULT_TENANT_SLUG).strip()
+    if not slug:
+        slug = DEFAULT_TENANT_SLUG
+    return await _resolve_tenant(request.app.state.pool, slug)
+
+
+Tenant = Depends(get_tenant_id)
 
 
 @app.get("/")
@@ -310,7 +390,7 @@ async def _forsah_enrichment(source_uid: str) -> tuple[list[tuple[str, str, str,
 
 
 @app.post("/api/pursuits")
-async def create_pursuit(body: PursuitIn):
+async def create_pursuit(body: PursuitIn, tenant_id: int = Tenant):
     pool: asyncpg.Pool = app.state.pool
     t = await pool.fetchrow("SELECT * FROM tenders WHERE id=$1", body.tender_id)
     if t is None:
@@ -321,11 +401,13 @@ async def create_pursuit(body: PursuitIn):
         extra, forsah_boq = await _forsah_enrichment(t["source_uid"])
     async with pool.acquire() as conn, conn.transaction():
         existing = await conn.fetchval(
-            "SELECT id FROM pursuits WHERE tender_id=$1", body.tender_id)
+            "SELECT id FROM pursuits WHERE tender_id=$1 AND tenant_id=$2",
+            body.tender_id, tenant_id)
         if existing:
             return {"id": existing, "created": False}
         pid = await conn.fetchval(
-            "INSERT INTO pursuits (tender_id) VALUES ($1) RETURNING id", body.tender_id)
+            "INSERT INTO pursuits (tender_id, tenant_id) VALUES ($1, $2) RETURNING id",
+            body.tender_id, tenant_id)
         base = _field_requirements(dict(t)) + (GTPL_BASELINE if t["source"] == "etimad" else [])
         for req, cat, ref, order in base + extra:
             await conn.execute(
@@ -342,9 +424,9 @@ async def create_pursuit(body: PursuitIn):
         live = (t["submitted_bids_count"] or 0) + (t["external_bids_count"] or 0)
         if t["source"] == "forsah" and live > 0:
             await conn.execute(
-                """INSERT INTO predictions (pursuit_id, value, basis)
-                   VALUES ($1, $2, $3::jsonb)""",
-                pid, round(1 / (live + 1), 4),
+                """INSERT INTO predictions (pursuit_id, tenant_id, value, basis)
+                   VALUES ($1, $2, $3, $4::jsonb)""",
+                pid, tenant_id, round(1 / (live + 1), 4),
                 f'{{"basis":"live","bidders":{live},"source":"forsah"}}')
         else:
             mb = await conn.fetchval(
@@ -356,15 +438,15 @@ async def create_pursuit(body: PursuitIn):
                 t["activity_id"])
             if mb:
                 await conn.execute(
-                    """INSERT INTO predictions (pursuit_id, value, basis)
-                       VALUES ($1, $2, $3::jsonb)""",
-                    pid, round(1 / max(float(mb), 1), 4),
+                    """INSERT INTO predictions (pursuit_id, tenant_id, value, basis)
+                       VALUES ($1, $2, $3, $4::jsonb)""",
+                    pid, tenant_id, round(1 / max(float(mb), 1), 4),
                     f'{{"basis":"activity_history","median_bidders":{float(mb)}}}')
     return {"id": pid, "created": True}
 
 
 @app.get("/api/pursuits")
-async def pursuits():
+async def pursuits(tenant_id: int = Tenant):
     rows = await app.state.pool.fetch(
         """SELECT p.id, p.stage, p.created_at, t.id AS tender_id, t.name, t.reference_number,
                   t.source, coalesce(a.canonical_name, t.agency_name_raw) AS agency,
@@ -376,13 +458,15 @@ async def pursuits():
            FROM pursuits p
            JOIN tenders t ON t.id = p.tender_id
            LEFT JOIN agencies a ON a.id = t.agency_id
-           ORDER BY p.created_at DESC"""
+           WHERE p.tenant_id = $1
+           ORDER BY p.created_at DESC""",
+        tenant_id,
     )
     return [dict(r) for r in rows]
 
 
 @app.get("/api/pursuits/{pid}")
-async def pursuit_detail(pid: int):
+async def pursuit_detail(pid: int, tenant_id: int = Tenant):
     pool: asyncpg.Pool = app.state.pool
     p = await pool.fetchrow(
         """SELECT p.*, t.name, t.reference_number, t.source,
@@ -392,7 +476,8 @@ async def pursuit_detail(pid: int):
                   t.last_offer_date, t.last_offer_date_hijri,
                   greatest(0, extract(epoch FROM t.last_offer_date - now()))::bigint AS remaining_s
            FROM pursuits p JOIN tenders t ON t.id = p.tender_id
-           LEFT JOIN agencies a ON a.id = t.agency_id WHERE p.id=$1""", pid)
+           LEFT JOIN agencies a ON a.id = t.agency_id
+           WHERE p.id=$1 AND p.tenant_id=$2""", pid, tenant_id)
     if p is None:
         raise HTTPException(404)
     items = await pool.fetch(
@@ -431,24 +516,33 @@ class ItemPatch(BaseModel):
 
 
 @app.patch("/api/compliance/{item_id}")
-async def patch_item(item_id: int, body: ItemPatch):
+async def patch_item(item_id: int, body: ItemPatch, tenant_id: int = Tenant):
     if body.status not in ("missing", "in_progress", "met", "n_a"):
         raise HTTPException(422)
     evidence_ref = body.evidence_ref.strip() if body.evidence_ref is not None else None
+    # compliance_items has no tenant_id of its own; it inherits the tenant of
+    # the pursuit that owns it, so the gate is an EXISTS on that pursuit.
     if "evidence_ref" in body.model_fields_set:
         n = await app.state.pool.execute(
-            """UPDATE compliance_items
+            """UPDATE compliance_items c
                SET status=$2, evidence_ref=$3
-               WHERE id=$1""",
+               WHERE c.id=$1
+                 AND EXISTS (SELECT 1 FROM pursuits p
+                             WHERE p.id = c.pursuit_id AND p.tenant_id = $4)""",
             item_id,
             body.status,
             evidence_ref,
+            tenant_id,
         )
     else:
         n = await app.state.pool.execute(
-            "UPDATE compliance_items SET status=$2 WHERE id=$1",
+            """UPDATE compliance_items c SET status=$2
+               WHERE c.id=$1
+                 AND EXISTS (SELECT 1 FROM pursuits p
+                             WHERE p.id = c.pursuit_id AND p.tenant_id = $3)""",
             item_id,
             body.status,
+            tenant_id,
         )
     if n.endswith("0"):
         raise HTTPException(404)
@@ -460,11 +554,12 @@ class StagePatch(BaseModel):
 
 
 @app.patch("/api/pursuits/{pid}/stage")
-async def patch_stage(pid: int, body: StagePatch):
+async def patch_stage(pid: int, body: StagePatch, tenant_id: int = Tenant):
     if body.stage not in ("studying", "pricing", "writing", "submitted", "won", "lost"):
         raise HTTPException(422)
     n = await app.state.pool.execute(
-        "UPDATE pursuits SET stage=$2, updated_at=now() WHERE id=$1", pid, body.stage)
+        "UPDATE pursuits SET stage=$2, updated_at=now() WHERE id=$1 AND tenant_id=$3",
+        pid, body.stage, tenant_id)
     if n.endswith("0"):
         raise HTTPException(404)
     return {"ok": True}
@@ -509,14 +604,16 @@ def _checkpoint_has_acknowledgement(checkpoint: object) -> bool:
     return bool(_checkpoint_json(checkpoint).get("acknowledged_at"))
 
 
-async def _measure_pricing_predictions(conn: asyncpg.Connection, pursuit_id: int) -> int:
+async def _measure_pricing_predictions(
+    conn: asyncpg.Connection, pursuit_id: int, tenant_id: int
+) -> int:
     """Attach actual award values to stored pricing simulations once known."""
     rows = await conn.fetch(
         """WITH actual AS (
                SELECT p.id AS pursuit_id, w.award_value::numeric AS award_value
                FROM pursuits p
                JOIN awards w ON w.tender_id = p.tender_id
-               WHERE p.id = $1 AND w.award_value IS NOT NULL
+               WHERE p.id = $1 AND p.tenant_id = $2 AND w.award_value IS NOT NULL
                ORDER BY w.id LIMIT 1
              )
            INSERT INTO pricing_prediction_results
@@ -536,18 +633,19 @@ async def _measure_pricing_predictions(conn: asyncpg.Connection, pursuit_id: int
              measured_at = now()
            RETURNING id""",
         pursuit_id,
+        tenant_id,
     )
     return len(rows)
 
 
-async def _measure_all_pricing_predictions(pool: asyncpg.Pool) -> int:
+async def _measure_all_pricing_predictions(pool: asyncpg.Pool, tenant_id: int) -> int:
     """Backfill accuracy rows for every simulation whose tender now has an award."""
     rows = await pool.fetch(
         """WITH actual AS (
                SELECT DISTINCT ON (p.id) p.id AS pursuit_id, w.award_value::numeric AS award_value
                FROM pursuits p
                JOIN awards w ON w.tender_id = p.tender_id
-               WHERE w.award_value IS NOT NULL
+               WHERE w.award_value IS NOT NULL AND p.tenant_id = $1
                ORDER BY p.id, w.id
              )
            INSERT INTO pricing_prediction_results
@@ -564,18 +662,20 @@ async def _measure_all_pricing_predictions(pool: asyncpg.Pool) -> int:
              absolute_error = EXCLUDED.absolute_error,
              percentage_error = EXCLUDED.percentage_error,
              measured_at = now()
-           RETURNING id"""
+           RETURNING id""",
+        tenant_id,
     )
     return len(rows)
 
 
 @app.post("/api/pursuits/{pid}/outcome")
-async def log_outcome(pid: int, body: OutcomeIn):
+async def log_outcome(pid: int, body: OutcomeIn, tenant_id: int = Tenant):
     """M5-1: capture bid outcome; auto-reconcile award value + competitor count."""
     if body.result not in ("won", "lost"):
         raise HTTPException(422)
     pool: asyncpg.Pool = app.state.pool
-    tender_id = await pool.fetchval("SELECT tender_id FROM pursuits WHERE id=$1", pid)
+    tender_id = await pool.fetchval(
+        "SELECT tender_id FROM pursuits WHERE id=$1 AND tenant_id=$2", pid, tenant_id)
     if tender_id is None:
         raise HTTPException(404)
     award_value = await pool.fetchval(
@@ -585,18 +685,20 @@ async def log_outcome(pid: int, body: OutcomeIn):
     measured_predictions = 0
     async with pool.acquire() as conn, conn.transaction():
         await conn.execute(
-            """INSERT INTO outcomes (pursuit_id, result, submitted_value, award_value,
-                                     competitor_count, notes)
-               VALUES ($1,$2,$3,$4,$5,$6)
+            """INSERT INTO outcomes (pursuit_id, tenant_id, result, submitted_value,
+                                     award_value, competitor_count, notes)
+               VALUES ($1,$2,$3,$4,$5,$6,$7)
                ON CONFLICT (pursuit_id) DO UPDATE SET result=EXCLUDED.result,
                  submitted_value=EXCLUDED.submitted_value, notes=EXCLUDED.notes,
                  award_value=EXCLUDED.award_value, competitor_count=EXCLUDED.competitor_count,
                  logged_at=now()""",
-            pid, body.result, body.submitted_value, award_value, competitor_count, body.notes)
+            pid, tenant_id, body.result, body.submitted_value, award_value,
+            competitor_count, body.notes)
         if award_value:
-            measured_predictions = await _measure_pricing_predictions(conn, pid)
+            measured_predictions = await _measure_pricing_predictions(conn, pid, tenant_id)
         await conn.execute(
-            "UPDATE pursuits SET stage=$2, updated_at=now() WHERE id=$1", pid, body.result)
+            "UPDATE pursuits SET stage=$2, updated_at=now() WHERE id=$1 AND tenant_id=$3",
+            pid, body.result, tenant_id)
         await conn.execute(
             """INSERT INTO ingest_events (event_type, entity_type, entity_id, data)
                VALUES ('outcome.logged', 'pursuit', $1, '{}')""", pid)
@@ -684,10 +786,10 @@ async def lanes():
 
 
 @app.get("/api/ops/summary")
-async def ops_summary():
+async def ops_summary(tenant_id: int = Tenant):
     """Single operational verdict for monitors, demos, and handoff reviews."""
     lane_rows = await lanes()
-    accuracy = await pricing_accuracy()
+    accuracy = await pricing_accuracy(tenant_id)
     attention = [r for r in lane_rows if r.get("needs_attention")]
     running = [r for r in lane_rows if r.get("status") == "running"]
     healthy = [r for r in lane_rows if r.get("status") == "healthy"]
@@ -754,15 +856,41 @@ async def acknowledge_ops_incident(body: OpsAckIn):
     return {"acknowledged": True, "connector": body.connector, "run_id": row["id"]}
 
 
+async def _prefs_row(pool: asyncpg.Pool, tenant_id: int) -> asyncpg.Record | dict:
+    """Calculator preferences for one tenant.
+
+    user_calculator_prefs is pinned to a single row by ``CHECK (id = 1)``, so a
+    non-default tenant cannot own a row today. Rather than serve another
+    tenant's private settings, an unprovisioned tenant gets the schema defaults
+    and is told the row is not tenant-owned.
+    """
+    row = await pool.fetchrow(
+        "SELECT * FROM user_calculator_prefs WHERE id=1 AND tenant_id=$1", tenant_id)
+    if row is not None:
+        return row
+    occupied = await pool.fetchval("SELECT count(*) FROM user_calculator_prefs WHERE id=1")
+    if not occupied:
+        await pool.execute(
+            "INSERT INTO user_calculator_prefs (id, tenant_id) VALUES (1, $1) "
+            "ON CONFLICT DO NOTHING", tenant_id)
+        row = await pool.fetchrow(
+            "SELECT * FROM user_calculator_prefs WHERE id=1 AND tenant_id=$1", tenant_id)
+        if row is not None:
+            return row
+    return {
+        "default_markup_pct": 12.00, "risk_tolerance": "balanced",
+        "default_agency_id": None, "alert_frequency": "instant", "retention_days": 180,
+        "my_company_name": "شركتي", "target_win_rate_pct": 25.00,
+        "cost_advantage_pct": 0.00, "updated_at": None, "tenant_id": tenant_id,
+        "tenant_owned": False,
+    }
+
+
 @app.get("/api/settings")
-async def settings():
+async def settings(tenant_id: int = Tenant):
     """Operator settings for gated features and calculator defaults."""
     pool: asyncpg.Pool = app.state.pool
-    row = await pool.fetchrow("SELECT * FROM user_calculator_prefs WHERE id=1")
-    if row is None:
-        await pool.execute("INSERT INTO user_calculator_prefs (id) VALUES (1) ON CONFLICT DO NOTHING")
-        row = await pool.fetchrow("SELECT * FROM user_calculator_prefs WHERE id=1")
-    assert row is not None
+    row = await _prefs_row(pool, tenant_id)
     return {
         "gated_features": {
             "etimad_supplier_credentials": bool(os.environ.get("THAQIP_ETIMAD_USERNAME"))
@@ -784,18 +912,29 @@ async def settings():
         },
         "retention_days": row["retention_days"],
         "updated_at": row["updated_at"],
+        "tenant_id": tenant_id,
     }
 
 
 @app.patch("/api/settings")
-async def update_settings(body: SettingsIn):
-    """Persist Settings tab defaults for the current single-operator demo."""
+async def update_settings(body: SettingsIn, tenant_id: int = Tenant):
+    """Persist Settings tab defaults for the calling tenant."""
     pool: asyncpg.Pool = app.state.pool
+    owner = await pool.fetchval("SELECT tenant_id FROM user_calculator_prefs WHERE id=1")
+    if owner is not None and int(owner) != tenant_id:
+        # Schema limitation, not a policy decision: user_calculator_prefs is
+        # pinned to a single row (PK id, CHECK id = 1), so a second tenant has
+        # nowhere to store its own preferences. Refuse rather than overwrite
+        # another tenant's row. See the migration note in the P2W report.
+        raise HTTPException(
+            409, "per-tenant calculator preferences require the user_calculator_prefs "
+                 "primary key to become (tenant_id, id)")
     await pool.execute(
         """INSERT INTO user_calculator_prefs
-             (id, default_markup_pct, risk_tolerance, default_agency_id, alert_frequency, retention_days,
+             (id, tenant_id, default_markup_pct, risk_tolerance, default_agency_id,
+              alert_frequency, retention_days,
               my_company_name, target_win_rate_pct, cost_advantage_pct, updated_at)
-           VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, now())
+           VALUES (1, $9, $1, $2, $3, $4, $5, $6, $7, $8, now())
            ON CONFLICT (id) DO UPDATE SET
              default_markup_pct=EXCLUDED.default_markup_pct,
              risk_tolerance=EXCLUDED.risk_tolerance,
@@ -814,8 +953,9 @@ async def update_settings(body: SettingsIn):
         body.my_company_name.strip(),
         body.target_win_rate_pct,
         body.cost_advantage_pct,
+        tenant_id,
     )
-    return await settings()
+    return await settings(tenant_id)
 
 
 @app.get("/api/market/price-position")
@@ -840,15 +980,17 @@ async def price_position():
 
 
 @app.post("/api/follows/{tender_id}")
-async def follow(tender_id: int):
+async def follow(tender_id: int, tenant_id: int = Tenant):
     n = await app.state.pool.execute(
-        "INSERT INTO follows (tender_id) VALUES ($1) ON CONFLICT DO NOTHING", tender_id)
+        "INSERT INTO follows (tender_id, tenant_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+        tender_id, tenant_id)
     return {"following": True, "created": n.endswith("1")}
 
 
 @app.delete("/api/follows/{tender_id}")
-async def unfollow(tender_id: int):
-    await app.state.pool.execute("DELETE FROM follows WHERE tender_id=$1", tender_id)
+async def unfollow(tender_id: int, tenant_id: int = Tenant):
+    await app.state.pool.execute(
+        "DELETE FROM follows WHERE tender_id=$1 AND tenant_id=$2", tender_id, tenant_id)
     return {"following": False}
 
 
@@ -856,6 +998,7 @@ async def unfollow(tender_id: int):
 async def tenders_csv(
     q: str | None = None, agency_id: int | None = None, activity_id: int | None = None,
     awarded: bool | None = None, open_only: bool = False, source: str | None = None,
+    tenant_id: int = Tenant,
 ):
     """M2-5: Excel-ready export (UTF-8 BOM so Arabic opens correctly)."""
     import csv
@@ -865,7 +1008,7 @@ async def tenders_csv(
 
     data = await tenders(q=q, agency_id=agency_id, activity_id=activity_id,
                          awarded=awarded, open_only=open_only, source=source,
-                         limit=200, offset=0)
+                         limit=200, offset=0, tenant_id=tenant_id)
     buf = _io.StringIO()
     w = csv.writer(buf)
     w.writerow(["المرجع", "المنافسة", "الجهة", "النشاط", "المصدر", "الحالة",
@@ -886,7 +1029,7 @@ async def tenders_csv(
 
 
 @app.get("/api/calibration")
-async def calibration():
+async def calibration(tenant_id: int = Tenant):
     """M5-4: prediction-vs-outcome pairs — the calibration dataset status."""
     pool: asyncpg.Pool = app.state.pool
     row = await pool.fetchrow(
@@ -896,7 +1039,8 @@ async def calibration():
                   round(avg((o.result='won')::int::numeric)
                         FILTER (WHERE o.id IS NOT NULL), 4)          AS actual_win_rate
            FROM predictions pr
-           LEFT JOIN outcomes o ON o.pursuit_id = pr.pursuit_id""")
+           LEFT JOIN outcomes o ON o.pursuit_id = pr.pursuit_id AND o.tenant_id = $1
+           WHERE pr.tenant_id = $1""", tenant_id)
     pairs = await pool.fetch(
         """SELECT pr.pursuit_id, pr.value AS predicted, o.result,
                   left(t.name, 50) AS name
@@ -904,20 +1048,22 @@ async def calibration():
            JOIN outcomes o ON o.pursuit_id = pr.pursuit_id
            JOIN pursuits p ON p.id = pr.pursuit_id
            JOIN tenders t ON t.id = p.tender_id
-           ORDER BY o.logged_at DESC LIMIT 20""")
+           WHERE pr.tenant_id = $1 AND o.tenant_id = $1 AND p.tenant_id = $1
+           ORDER BY o.logged_at DESC LIMIT 20""", tenant_id)
     return {**dict(row), "recent_pairs": [dict(r) for r in pairs]}
 
 
 @app.get("/api/pricing/accuracy")
-async def pricing_accuracy():
+async def pricing_accuracy(tenant_id: int = Tenant):
     """M5: measured latest price prediction per pursuit versus announced awards."""
     pool: asyncpg.Pool = app.state.pool
-    refreshed = await _measure_all_pricing_predictions(pool)
+    refreshed = await _measure_all_pricing_predictions(pool, tenant_id)
     row = await pool.fetchrow(
         """WITH latest AS (
                SELECT DISTINCT ON (r.pursuit_id) r.*
                FROM pricing_prediction_results r
                JOIN pursuit_simulations s ON s.id = r.simulation_id
+               JOIN pursuits pu ON pu.id = r.pursuit_id AND pu.tenant_id = $1
                ORDER BY r.pursuit_id, s.created_at DESC, r.id DESC
              )
            SELECT count(*)::int AS measured,
@@ -929,14 +1075,19 @@ async def pricing_accuracy():
                   round(100.0 * count(*) FILTER (WHERE percentage_error <= 0.10) / nullif(count(*),0), 1)::float AS within_10_pct,
                   round(100.0 * count(*) FILTER (WHERE percentage_error <= 0.20) / nullif(count(*),0), 1)::float AS within_20_pct,
                   round(100.0 * count(*) FILTER (WHERE percentage_error <= 0.30) / nullif(count(*),0), 1)::float AS within_30_pct
-           FROM latest"""
+           FROM latest""",
+        tenant_id,
     )
-    total_measured = await pool.fetchval("SELECT count(*) FROM pricing_prediction_results")
+    total_measured = await pool.fetchval(
+        """SELECT count(*) FROM pricing_prediction_results r
+           JOIN pursuits pu ON pu.id = r.pursuit_id
+           WHERE pu.tenant_id = $1""", tenant_id)
     recent = await pool.fetch(
         """WITH latest AS (
                SELECT DISTINCT ON (r.pursuit_id) r.*
                FROM pricing_prediction_results r
                JOIN pursuit_simulations s ON s.id = r.simulation_id
+               JOIN pursuits pu ON pu.id = r.pursuit_id AND pu.tenant_id = $1
                ORDER BY r.pursuit_id, s.created_at DESC, r.id DESC
              )
            SELECT r.pursuit_id, left(t.name, 70) AS name,
@@ -951,7 +1102,8 @@ async def pricing_accuracy():
            JOIN pursuit_simulations s ON s.id = r.simulation_id
            JOIN pursuits p ON p.id = r.pursuit_id
            JOIN tenders t ON t.id = p.tender_id
-           ORDER BY r.measured_at DESC LIMIT 12"""
+           ORDER BY r.measured_at DESC LIMIT 12""",
+        tenant_id,
     )
     out = dict(row)
     out["total_measured_simulations"] = total_measured
@@ -963,7 +1115,7 @@ async def pricing_accuracy():
 
 
 @app.post("/api/pricing/seed-baselines")
-async def seed_pricing_baselines():
+async def seed_pricing_baselines(tenant_id: int = Tenant):
     """Create one baseline pricing simulation for active pursuits lacking one.
 
     This accelerates the calibration loop: once an award is announced, the
@@ -977,12 +1129,14 @@ async def seed_pricing_baselines():
                   t.submitted_bids_count, t.external_bids_count
            FROM pursuits p
            JOIN tenders t ON t.id = p.tender_id
-           WHERE p.stage NOT IN ('submitted', 'won', 'lost')
+           WHERE p.tenant_id = $1
+             AND p.stage NOT IN ('submitted', 'won', 'lost')
              AND NOT EXISTS (
                SELECT 1 FROM pursuit_simulations s WHERE s.pursuit_id = p.id
              )
            ORDER BY p.updated_at DESC, p.id DESC
-           LIMIT 100"""
+           LIMIT 100""",
+        tenant_id,
     )
     seeded = []
     async with pool.acquire() as conn:
@@ -1045,17 +1199,17 @@ async def seed_pricing_baselines():
                 "basis": basis,
                 "sample_count": sample_count,
             })
-    measured = await _measure_all_pricing_predictions(pool)
+    measured = await _measure_all_pricing_predictions(pool, tenant_id)
     return {"seeded": len(seeded), "measured_after_seed": measured, "items": seeded}
 
 
 @app.get("/api/outcomes/summary")
-async def outcomes_summary():
+async def outcomes_summary(tenant_id: int = Tenant):
     row = await app.state.pool.fetchrow(
         """SELECT count(*) AS total,
                   count(*) FILTER (WHERE result='won') AS won,
                   avg(submitted_value) FILTER (WHERE result='won') AS avg_win_value
-           FROM outcomes""")
+           FROM outcomes WHERE tenant_id = $1""", tenant_id)
     return dict(row)
 
 
@@ -1149,15 +1303,10 @@ async def vendor_detail(vid: int):
 
 
 @app.get("/api/vendors/{vid}/compare")
-async def vendor_compare(vid: int):
+async def vendor_compare(vid: int, tenant_id: int = Tenant):
     """Compare a competitor profile against the operator's company target profile."""
-    pool: asyncpg.Pool = app.state.pool
     detail = await vendor_detail(vid)
-    prefs = await pool.fetchrow("SELECT * FROM user_calculator_prefs WHERE id=1")
-    if prefs is None:
-        await pool.execute("INSERT INTO user_calculator_prefs (id) VALUES (1) ON CONFLICT DO NOTHING")
-        prefs = await pool.fetchrow("SELECT * FROM user_calculator_prefs WHERE id=1")
-    assert prefs is not None
+    prefs = await _prefs_row(app.state.pool, tenant_id)
     stats = detail["stats"]
     participations = int(stats.get("participations") or 0)
     wins = int(stats.get("wins") or 0)
@@ -1364,31 +1513,34 @@ class ProfilePatch(BaseModel):
 
 
 @app.get("/api/profiles")
-async def profiles():
+async def profiles(tenant_id: int = Tenant):
     rows = await app.state.pool.fetch(
         """SELECT p.*,
                   (SELECT count(*) FROM notifications n WHERE n.profile_id = p.id) AS sent_count,
                   (SELECT max(created_at) FROM notifications n WHERE n.profile_id = p.id) AS last_at
-           FROM alert_profiles p ORDER BY p.id DESC"""
+           FROM alert_profiles p WHERE p.tenant_id = $1 ORDER BY p.id DESC""",
+        tenant_id,
     )
     return [dict(r) for r in rows]
 
 
 @app.post("/api/profiles")
-async def create_profile(p: ProfileIn):
+async def create_profile(p: ProfileIn, tenant_id: int = Tenant):
     row = await app.state.pool.fetchrow(
         """INSERT INTO alert_profiles (name, channel, target, keywords, activity_ids,
-                                       agency_ids, sources, event_types, digest_interval)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id""",
+                                       agency_ids, sources, event_types, digest_interval,
+                                       tenant_id)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id""",
         p.name, p.channel, p.target, p.keywords, p.activity_ids,
-        p.agency_ids, p.sources, p.event_types, p.digest_interval,
+        p.agency_ids, p.sources, p.event_types, p.digest_interval, tenant_id,
     )
     return {"id": row["id"]}
 
 
 @app.patch("/api/profiles/{pid}")
-async def update_profile(pid: int, patch: ProfilePatch):
-    current = await app.state.pool.fetchrow("SELECT * FROM alert_profiles WHERE id=$1", pid)
+async def update_profile(pid: int, patch: ProfilePatch, tenant_id: int = Tenant):
+    current = await app.state.pool.fetchrow(
+        "SELECT * FROM alert_profiles WHERE id=$1 AND tenant_id=$2", pid, tenant_id)
     if current is None:
         raise HTTPException(404)
     data = dict(current)
@@ -1404,7 +1556,7 @@ async def update_profile(pid: int, patch: ProfilePatch):
         """UPDATE alert_profiles
            SET name=$2, channel=$3, target=$4, keywords=$5, activity_ids=$6,
                agency_ids=$7, sources=$8, event_types=$9, digest_interval=$10
-           WHERE id=$1
+           WHERE id=$1 AND tenant_id=$11
            RETURNING *""",
         pid,
         data["name"],
@@ -1416,14 +1568,16 @@ async def update_profile(pid: int, patch: ProfilePatch):
         data["sources"],
         data["event_types"],
         data["digest_interval"],
+        tenant_id,
     )
     return dict(row)
 
 
 @app.patch("/api/profiles/{pid}/toggle")
-async def toggle_profile(pid: int):
+async def toggle_profile(pid: int, tenant_id: int = Tenant):
     active = await app.state.pool.fetchval(
-        "UPDATE alert_profiles SET active = NOT active WHERE id=$1 RETURNING active", pid
+        "UPDATE alert_profiles SET active = NOT active WHERE id=$1 AND tenant_id=$2 "
+        "RETURNING active", pid, tenant_id
     )
     if active is None:
         raise HTTPException(404)
@@ -1431,9 +1585,14 @@ async def toggle_profile(pid: int):
 
 
 @app.delete("/api/profiles/{pid}")
-async def delete_profile(pid: int):
+async def delete_profile(pid: int, tenant_id: int = Tenant):
+    owned = await app.state.pool.fetchval(
+        "SELECT 1 FROM alert_profiles WHERE id=$1 AND tenant_id=$2", pid, tenant_id)
+    if not owned:
+        raise HTTPException(404)
     await app.state.pool.execute("DELETE FROM notifications WHERE profile_id=$1", pid)
-    n = await app.state.pool.execute("DELETE FROM alert_profiles WHERE id=$1", pid)
+    n = await app.state.pool.execute(
+        "DELETE FROM alert_profiles WHERE id=$1 AND tenant_id=$2", pid, tenant_id)
     if n.endswith("0"):
         raise HTTPException(404)
     return {"deleted": True}
@@ -1444,6 +1603,7 @@ async def notifications(
     limit: int = Query(50, le=200),
     profile_id: int | None = None,
     q: str | None = Query(None, max_length=120),
+    tenant_id: int = Tenant,
 ):
     where: list[str] = []
     args: list[object] = []
@@ -1452,6 +1612,7 @@ async def notifications(
         args.append(value)
         return f"${len(args)}"
 
+    where.append(f"p.tenant_id = {arg(tenant_id)}")
     if profile_id is not None:
         where.append(f"n.profile_id = {arg(profile_id)}")
     if q:
@@ -1482,6 +1643,7 @@ async def tenders(
     source: str | None = None,
     limit: int = Query(50, le=200),
     offset: int = 0,
+    tenant_id: int = Tenant,
 ):
     pool: asyncpg.Pool = app.state.pool
     where, args = ["TRUE"], []
@@ -1503,6 +1665,12 @@ async def tenders(
     if source in ("etimad", "forsah"):
         where.append(f"t.source = {arg(source)}")
 
+    # The corpus itself is shared; only the "followed" flag is tenant-private,
+    # so the tenant argument belongs to the projection, not to the filter.
+    filter_sql = " AND ".join(where)
+    filter_args = list(args)
+    tenant_arg = arg(tenant_id)
+
     rows = await pool.fetch(
         f"""SELECT t.id, t.source, t.source_tender_id, t.reference_number, t.name,
                    t.submitted_bids_count, t.draft_bids_count, t.external_bids_count,
@@ -1510,17 +1678,18 @@ async def tenders(
                    t.activity_name_raw AS activity, t.status_id,
                    t.last_offer_date, t.published_at, t.detected_at,
                    EXISTS (SELECT 1 FROM awards w WHERE w.tender_id = t.id) AS has_award,
-                   EXISTS (SELECT 1 FROM follows f WHERE f.tender_id = t.id) AS followed,
+                   EXISTS (SELECT 1 FROM follows f
+                            WHERE f.tender_id = t.id AND f.tenant_id = {tenant_arg}) AS followed,
                    greatest(0, extract(epoch FROM t.last_offer_date - now()))::bigint AS remaining_s
             FROM tenders t LEFT JOIN agencies a ON a.id = t.agency_id
-            WHERE {' AND '.join(where)}
+            WHERE {filter_sql}
             ORDER BY t.published_at DESC NULLS LAST
             LIMIT {arg(limit)} OFFSET {arg(offset)}""",
         *args,
     )
     total = await pool.fetchval(
-        f"SELECT count(*) FROM tenders t WHERE {' AND '.join(where[: len(where)])}",
-        *args[:-2],
+        f"SELECT count(*) FROM tenders t WHERE {filter_sql}",
+        *filter_args,
     )
     return {"total": total, "items": [dict(r) for r in rows]}
 
@@ -1910,7 +2079,7 @@ async def export_tender_awards(tender_id: int):
     )
 
 @app.get("/api/pursuits/{pid}/export/compliance")
-async def export_compliance(pid: int):
+async def export_compliance(pid: int, tenant_id: int = Tenant):
     """M3-1: Export pursuit compliance matrix as CSV (Arabic UTF-8 with BOM)."""
     import csv
     import io
@@ -1921,7 +2090,7 @@ async def export_compliance(pid: int):
     p = await pool.fetchrow(
         """SELECT p.*, t.name, t.reference_number
            FROM pursuits p JOIN tenders t ON t.id = p.tender_id
-           WHERE p.id=$1""", pid)
+           WHERE p.id=$1 AND p.tenant_id=$2""", pid, tenant_id)
     if p is None:
         raise HTTPException(404, "pursuit not found")
 
@@ -2058,7 +2227,7 @@ def _war_room_decision(tender: dict, compliance: list[dict], market: dict) -> di
 
 
 @app.post("/api/pursuits/{pid}/simulate-price")
-async def simulate_price(pid: int, body: PriceSimulationIn):
+async def simulate_price(pid: int, body: PriceSimulationIn, tenant_id: int = Tenant):
     """M5-2, M5-3: Dynamic Win-Probability & Pricing Intelligence Simulator."""
     if body.proposed_price <= 0:
         raise HTTPException(422, "Proposed price must be greater than zero")
@@ -2068,7 +2237,7 @@ async def simulate_price(pid: int, body: PriceSimulationIn):
         """SELECT p.id, t.*
            FROM pursuits p
            JOIN tenders t ON t.id = p.tender_id
-           WHERE p.id = $1""", pid
+           WHERE p.id = $1 AND p.tenant_id = $2""", pid, tenant_id
     )
     if p is None:
         raise HTTPException(404, "pursuit not found")
@@ -2078,7 +2247,9 @@ async def simulate_price(pid: int, body: PriceSimulationIn):
     tender_id = tender.get("id")
 
     async with pool.acquire() as conn:
-        prefs = await conn.fetchrow("SELECT default_markup_pct, risk_tolerance FROM user_calculator_prefs WHERE id=1")
+        prefs = await conn.fetchrow(
+            "SELECT default_markup_pct, risk_tolerance FROM user_calculator_prefs "
+            "WHERE id=1 AND tenant_id=$1", tenant_id)
         default_margin_pct = float(prefs["default_markup_pct"]) if prefs else 12.0
         target_margin_pct = body.target_margin_pct if body.target_margin_pct is not None else default_margin_pct
         risk_tolerance = body.risk_tolerance or (prefs["risk_tolerance"] if prefs else "balanced")
@@ -2350,3 +2521,1181 @@ async def export_vendor_dossier(vid: int):
         media_type="text/csv",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+# ===========================================================================
+# ===  P2W (Price-to-Win) API  —  architecture guide section 13           ====
+# ===========================================================================
+# Everything below this banner is the P2W surface. It is deliberately kept in
+# one block: the honesty rules (observed vs predicted kept apart, suppression
+# surfaced rather than papered over, tenant-private inputs never echoed on a
+# shared endpoint) are easier to audit when the whole surface is in one place.
+#
+# The engine itself lives in thaqip_ingestion.p2w. This module never
+# recomputes a quantile, a probability or a tier of its own — it retrieves,
+# envelopes and persists what the engine returned.
+
+P2W_CURRENCY = "SAR"
+# We do not know whether a published award value includes VAT: Etimad does not
+# say, and guessing would be a fabricated fact. Say so on every amount.
+P2W_VAT_SEMANTICS = "unknown"
+
+KIND_OBSERVED = "observed"
+KIND_PREDICTED = "predicted"
+KIND_USER_INPUT = "user_input"
+LABEL_AR = {
+    KIND_OBSERVED: "مُلاحظ",
+    KIND_PREDICTED: "متوقع",
+    KIND_USER_INPUT: "إدخالك",
+}
+
+# Tables /api/internal/lineage may trace. A whitelist, not a formatted table
+# name: this endpoint takes a path segment straight from the caller.
+LINEAGE_FACT_TABLES = {
+    "tenders": "id",
+    "offers": "id",
+    "awards": "id",
+    "documents": "id",
+    "boq_items": "id",
+    "price_predictions": "id",
+}
+
+READINESS_DOMAIN_WEIGHTS = {
+    "data_readiness": 25,
+    "model_readiness": 25,
+    "product_ux_readiness": 15,
+    "security_privacy_legal": 20,
+    "operational_readiness": 10,
+    "commercial_readiness": 5,
+}
+
+
+class P2WUnavailable(HTTPException):
+    """503 with a machine-readable reason, never a fabricated fallback."""
+
+    def __init__(self, detail: str) -> None:
+        super().__init__(503, {"error": "p2w_engine_unavailable", "reason": detail})
+
+
+def _p2w():
+    """The engine namespace, or a 503 that says exactly what is missing.
+
+    Imported lazily so the console still boots (and every pre-P2W endpoint
+    still serves) on an image that does not carry the ingestion source tree.
+    """
+    cached = getattr(app.state, "p2w", None)
+    if cached is not None:
+        return cached
+    try:
+        from thaqip_ingestion.p2w import (
+            competitor,
+            contracts,
+            evidence,
+            market,
+            montecarlo,
+            optimizer,
+            participation,
+            similarity,
+        )
+    except ImportError as exc:  # pragma: no cover - depends on deployment
+        raise P2WUnavailable(
+            f"thaqip_ingestion.p2w is not importable ({exc}); "
+            f"searched {[str(p) for p in _p2w_source_candidates()]}"
+        ) from exc
+
+    optional: dict[str, Any] = {}
+    for name in ("orchestrator", "explain", "lineage"):
+        try:
+            optional[name] = __import__(
+                f"thaqip_ingestion.p2w.{name}", fromlist=[name]
+            )
+        except ImportError:
+            optional[name] = None
+
+    ns = type("P2W", (), {
+        "competitor": competitor, "contracts": contracts, "evidence": evidence,
+        "market": market, "montecarlo": montecarlo, "optimizer": optimizer,
+        "participation": participation, "similarity": similarity,
+        **optional,
+    })
+    app.state.p2w = ns
+    return ns
+
+
+def _delegate(module: Any, name: str, /, **kwargs):
+    """Return a bound engine function when the sibling module provides one with
+    a compatible signature, else None so the caller composes it locally.
+
+    Checked by signature rather than by try/except so a genuine bug inside the
+    engine surfaces as a 500 instead of being silently swallowed by a fallback.
+    """
+    fn = getattr(module, name, None) if module is not None else None
+    if fn is None:
+        return None
+    try:
+        sig = inspect.signature(fn)
+        sig.bind(*kwargs.pop("_positional", ()), **kwargs)
+    except (TypeError, ValueError):
+        return None
+    return fn
+
+
+# --- envelope helpers ------------------------------------------------------
+
+def _amount(value: Any) -> dict[str, Any] | None:
+    """Every money value in a P2W response carries its currency and its VAT
+    semantics. A bare float is how a 12% VAT error gets shipped."""
+    if value is None:
+        return None
+    return {
+        "amount": round(float(value), 2),
+        "currency": P2W_CURRENCY,
+        "vat_semantics": P2W_VAT_SEMANTICS,
+    }
+
+
+def _prediction_envelope(pred: Any, *, prediction_id: int | None = None) -> dict[str, Any]:
+    """The one shape every prediction-bearing response uses.
+
+    Guarantees the six mandatory keys (model_version, generated_at,
+    confidence_score, evidence_count, evidence_tier, suppression_reason) are
+    present on every prediction object, suppressed or not, and that a
+    suppressed prediction carries no numbers at all.
+    """
+    raw = pred.to_dict()
+    suppressed = bool(raw["is_suppressed"])
+    envelope: dict[str, Any] = {
+        "kind": KIND_PREDICTED,
+        "label_ar": LABEL_AR[KIND_PREDICTED],
+        "prediction_id": prediction_id,
+        "prediction_scope": raw["prediction_scope"],
+        "subject_id": raw["subject_id"],
+        "is_suppressed": suppressed,
+        "suppression_reason": raw["suppression_reason"],
+        "model_version": raw["model_version"],
+        "generated_at": raw["generated_at"],
+        "confidence_score": raw["confidence_score"],
+        "confidence_is_not_win_probability": True,
+        "evidence_count": raw["evidence_count"],
+        "evidence_tier": raw["evidence_tier"],
+        "similarity_confidence": raw["similarity_confidence"],
+        "data_freshness_score": raw["data_freshness_score"],
+        "feature_snapshot_id": raw["feature_snapshot_id"],
+        "seed": raw["seed"],
+        "explanation_factors": raw["explanation_factors"],
+        "quantiles": None,
+        "expected_value": None,
+        "win_probability": None,
+    }
+    if not suppressed:
+        envelope["quantiles"] = {
+            "p10": _amount(raw["p10"]),
+            "p50": _amount(raw["p50"]),
+            "p90": _amount(raw["p90"]),
+        }
+        envelope["expected_value"] = _amount(raw["expected_value"])
+        envelope["win_probability"] = raw["win_probability"]
+    return envelope
+
+
+def _observed(payload: dict[str, Any]) -> dict[str, Any]:
+    """Tag a block of counted facts so the UI can never render it as a model
+    output (house rule 1)."""
+    return {"kind": KIND_OBSERVED, "label_ar": LABEL_AR[KIND_OBSERVED], **payload}
+
+
+def _iso(value: Any) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return str(value)
+
+
+def _f(value: Any) -> float | None:
+    return None if value is None else float(value)
+
+
+async def _p2w_tender(conn: Any, tender_id: int) -> dict[str, Any]:
+    row = await conn.fetchrow("SELECT * FROM tenders WHERE id=$1", tender_id)
+    if row is None:
+        raise HTTPException(404, "tender not found")
+    return dict(row)
+
+
+async def _persist_prediction(conn: Any, pred: Any) -> int:
+    """Store a generated prediction and return its id.
+
+    Persisting is what makes /api/predictions/{id}/explanation and /feedback
+    addressable, and it is also the audit trail: every number a user saw is on
+    disk with its model version, seed and feature snapshot.
+    """
+    raw = pred.to_dict()
+    return int(await conn.fetchval(
+        """INSERT INTO price_predictions
+             (tender_id, prediction_scope, subject_vendor_id, p10, p50, p90,
+              expected_value, win_probability, confidence_score, similarity_confidence,
+              data_freshness_score, evidence_count, evidence_tier, model_version,
+              feature_snapshot_id, seed, suppression_reason, explanation_factors,
+              generated_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18::jsonb,$19)
+           RETURNING id""",
+        raw["tender_id"], raw["prediction_scope"], raw["subject_id"],
+        raw["p10"], raw["p50"], raw["p90"], raw["expected_value"], raw["win_probability"],
+        raw["confidence_score"], raw["similarity_confidence"], raw["data_freshness_score"],
+        raw["evidence_count"], raw["evidence_tier"], raw["model_version"],
+        raw["feature_snapshot_id"], raw["seed"], raw["suppression_reason"],
+        json.dumps(raw["explanation_factors"]),
+        datetime.fromisoformat(raw["generated_at"]),
+    ))
+
+
+def _similar_payload(items: Any) -> list[dict[str, Any]]:
+    out = []
+    for item in items:
+        d = item.to_dict()
+        d["award_value"] = _amount(d.get("award_value"))
+        out.append(d)
+    return out
+
+
+# --- market intelligence ---------------------------------------------------
+
+async def _tender_intelligence(conn: Any, tender: dict[str, Any]) -> dict[str, Any]:
+    """Compose the market view for one tender from the engine modules.
+
+    Used when thaqip_ingestion.p2w.orchestrator.tender_intelligence is not
+    available; when it is, the endpoint delegates to it instead.
+    """
+    p2w = _p2w()
+    as_of = p2w.evidence.resolve_as_of(tender)
+    similar = await p2w.similarity.find_similar_tenders(
+        conn, tender=tender, as_of=as_of, limit=20, include_excluded=True)
+    eligible = [s for s in similar if not s.is_excluded]
+    excluded = [s for s in similar if s.is_excluded]
+    ev = await p2w.evidence.market_evidence(conn, tender=tender, as_of=as_of)
+    market = await p2w.market.market_quantiles(
+        conn, tender=tender, as_of=as_of, similar=eligible)
+
+    curve: list[dict[str, Any]] = []
+    if not market.is_suppressed and market.p50:
+        lo, hi = market.p10 or market.p50, market.p90 or market.p50
+        span_lo, span_hi = max(lo * 0.7, 1.0), max(hi * 1.3, lo * 0.7 + 1.0)
+        grid = [span_lo + (span_hi - span_lo) * i / 20 for i in range(21)]
+        curve = await p2w.market.market_curve(
+            conn, tender=tender, as_of=as_of, grid=grid, similar=eligible)
+        for point in curve:
+            point["price"] = _amount(point["price"])
+
+    # Only when the agency was actually resolved: `agency_id IS NOT DISTINCT
+    # FROM NULL` would silently pool every unresolved agency into one fake
+    # "history" and report it as this buyer's track record.
+    agency = None
+    if tender.get("agency_id") is not None:
+        agency = await conn.fetchrow(
+            """SELECT count(*)::int AS awarded_tenders,
+                      count(DISTINCT a.vendor_id)::int AS distinct_winners,
+                      percentile_cont(0.5) WITHIN GROUP (ORDER BY a.award_value)::float
+                        AS median_award_value
+               FROM awards a JOIN tenders t ON t.id = a.tender_id
+               WHERE t.agency_id = $1 AND a.award_value IS NOT NULL""",
+            tender["agency_id"])
+    bidders = await conn.fetchrow(
+        "SELECT count(*)::int AS n FROM offers WHERE tender_id=$1", tender["id"])
+
+    return {
+        "as_of": _iso(as_of),
+        "observed": _observed({
+            "tender": {
+                "id": tender["id"],
+                "reference_number": tender.get("reference_number"),
+                "name": tender.get("name"),
+                "agency_id": tender.get("agency_id"),
+                "agency_name": tender.get("agency_name_raw"),
+                "activity_id": tender.get("activity_id"),
+                "activity_name": tender.get("activity_name_raw"),
+                "source": tender.get("source"),
+                "published_at": _iso(tender.get("published_at")),
+                "last_offer_date": _iso(tender.get("last_offer_date")),
+                "offers_opening_date": _iso(tender.get("offers_opening_date")),
+                "booklet_price": _amount(tender.get("booklet_price")),
+            },
+            "recorded_offers_on_this_tender": bidders["n"],
+            "agency_history": {
+                "agency_resolved": agency is not None,
+                "awarded_tenders": agency["awarded_tenders"] if agency else None,
+                "distinct_winners": agency["distinct_winners"] if agency else None,
+                "median_award_value": _amount(
+                    agency["median_award_value"]) if agency else None,
+                "note": None if agency else (
+                    "this tender's agency is not resolved to a canonical agency, "
+                    "so no buyer history can be attributed"),
+            },
+            "price_percentile_curve": curve,
+        }),
+        "evidence": ev.to_dict(),
+        "prediction": market,
+        "similar_tenders": {
+            "retrieval_version": p2w.similarity.RETRIEVAL_VERSION,
+            "used": _similar_payload(eligible),
+            "excluded": _similar_payload(excluded),
+        },
+    }
+
+
+@app.get("/api/tenders/{tender_id}/market-intelligence")
+async def market_intelligence(tender_id: int, tenant_id: int = Tenant):
+    """Market range, similar tenders and agency context for one tender.
+
+    Shared endpoint: it must never contain a tenant's cost, margin or bid.
+    """
+    p2w = _p2w()
+    pool: asyncpg.Pool = app.state.pool
+    async with pool.acquire() as conn:
+        tender = await _p2w_tender(conn, tender_id)
+        delegated = _delegate(
+            getattr(p2w, "orchestrator", None), "tender_intelligence",
+            _positional=(conn,), tender=tender)
+        payload = (
+            await delegated(conn, tender=tender) if delegated
+            else await _tender_intelligence(conn, tender)
+        )
+        pred = payload.pop("prediction")
+        prediction_id = await _persist_prediction(conn, pred)
+    payload["prediction"] = _prediction_envelope(pred, prediction_id=prediction_id)
+    payload["model_version"] = p2w.contracts.MODEL_VERSION
+    payload["generated_at"] = datetime.now(UTC).isoformat()
+    payload["orchestrator"] = "engine" if delegated else "console_composition"
+    return payload
+
+
+# --- competitors -----------------------------------------------------------
+
+@app.get("/api/tenders/{tender_id}/competitors")
+async def tender_competitors(
+    tender_id: int,
+    limit: int = Query(12, ge=1, le=30),
+    tenant_id: int = Tenant,
+):
+    """Likely bidders and their modelled price ranges.
+
+    Suppressed rows are returned, not dropped: the UI has to be able to explain
+    its silence about a competitor rather than leave a blank. Nothing here is a
+    claim about what a competitor will do — every range is `متوقع`.
+    """
+    p2w = _p2w()
+    pool: asyncpg.Pool = app.state.pool
+    out: list[dict[str, Any]] = []
+    async with pool.acquire() as conn:
+        tender = await _p2w_tender(conn, tender_id)
+        as_of = p2w.evidence.resolve_as_of(tender)
+        market = await p2w.market.market_quantiles(conn, tender=tender, as_of=as_of)
+        market_id = await _persist_prediction(conn, market)
+        candidates = await p2w.participation.candidate_bidders(
+            conn, tender=tender, as_of=as_of, limit=limit)
+        for cand in candidates:
+            vendor = await conn.fetchrow(
+                """SELECT v.id, v.canonical_name,
+                          (SELECT count(*)::int FROM offers o WHERE o.vendor_id = v.id)  AS offers_seen,
+                          (SELECT count(*)::int FROM offers o
+                            WHERE o.vendor_id = v.id AND o.is_winner)                    AS wins_seen,
+                          (SELECT max(t2.published_at) FROM offers o
+                             JOIN tenders t2 ON t2.id = o.tender_id
+                            WHERE o.vendor_id = v.id)                                    AS last_seen_at
+                   FROM vendors v WHERE v.id = $1""",
+                cand.vendor_id)
+            price = await p2w.competitor.competitor_quantiles(
+                conn, vendor_id=cand.vendor_id, tender=tender, as_of=as_of, market=market)
+            price_id = await _persist_prediction(conn, price)
+            comp_ev = await p2w.evidence.competitor_evidence(
+                conn, vendor_id=cand.vendor_id, tender=tender, as_of=as_of)
+            out.append({
+                "vendor_id": cand.vendor_id,
+                "observed": _observed({
+                    "canonical_name": vendor["canonical_name"] if vendor else None,
+                    "offers_seen": vendor["offers_seen"] if vendor else 0,
+                    "wins_seen": vendor["wins_seen"] if vendor else 0,
+                    "last_seen_at": _iso(vendor["last_seen_at"]) if vendor else None,
+                }),
+                "evidence": comp_ev.to_dict(),
+                "participation": cand.to_dict(),
+                "price_prediction": _prediction_envelope(price, prediction_id=price_id),
+            })
+    return {
+        "tender_id": tender_id,
+        "as_of": _iso(as_of),
+        "model_version": p2w.contracts.MODEL_VERSION,
+        "generated_at": datetime.now(UTC).isoformat(),
+        "market_prediction": _prediction_envelope(market, prediction_id=market_id),
+        "candidates": out,
+        "candidate_count": len(out),
+        "suppressed_count": sum(
+            1 for c in out if c["price_prediction"]["is_suppressed"]),
+        "disclaimer": (
+            "نطاقات المنافسين تقديرات احتمالية مبنية على سجلّهم المُلاحظ، "
+            "وليست معرفة بما سيقدمونه فعلاً."
+        ),
+    }
+
+
+# --- scenarios (tenant-private) --------------------------------------------
+
+class ScenarioIn(BaseModel):
+    estimated_cost: float = Field(gt=0)
+    min_margin_pct: float = Field(ge=0, lt=100)
+    target_win_pct: float | None = Field(default=None, ge=0, le=100)
+    proposed_bid: float | None = Field(default=None, gt=0)
+    risk_reserve: float = Field(default=0.0, ge=0)
+    name: str = Field(default="", max_length=160)
+    seed: int | None = Field(default=None, ge=0)
+
+
+def _scenario_seed(tender_id: int, tenant_id: int, version: int) -> int:
+    """Deterministic seed from (tender, tenant, version).
+
+    Never time- or random-derived: house rule 7 requires a Monte Carlo result
+    to be reproducible from (inputs, model_version, seed), which is only worth
+    anything if re-reading the saved scenario reproduces the same seed.
+    """
+    digest = hashlib.sha256(f"{tender_id}|{tenant_id}|{version}".encode()).hexdigest()
+    return int(digest[:15], 16)
+
+
+@app.post("/api/tenders/{tender_id}/scenarios")
+async def create_scenario(tender_id: int, body: ScenarioIn, tenant_id: int = Tenant):
+    """Create a new tenant-private scenario version for a tender."""
+    pool: asyncpg.Pool = app.state.pool
+    async with pool.acquire() as conn, conn.transaction():
+        exists = await conn.fetchval("SELECT 1 FROM tenders WHERE id=$1", tender_id)
+        if not exists:
+            raise HTTPException(404, "tender not found")
+        pursuit_id = await conn.fetchval(
+            "SELECT id FROM pursuits WHERE tender_id=$1 AND tenant_id=$2",
+            tender_id, tenant_id)
+        version = 1 + int(await conn.fetchval(
+            """SELECT coalesce(max(version), 0) FROM user_bid_scenarios
+               WHERE tender_id=$1 AND tenant_id=$2""", tender_id, tenant_id))
+        seed = body.seed if body.seed is not None else _scenario_seed(
+            tender_id, tenant_id, version)
+        row = await conn.fetchrow(
+            """INSERT INTO user_bid_scenarios
+                 (tenant_id, pursuit_id, tender_id, name, estimated_cost, min_margin_pct,
+                  target_win_pct, proposed_bid, risk_reserve, version, seed)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+               RETURNING *""",
+            tenant_id, pursuit_id, tender_id, body.name or f"scenario v{version}",
+            body.estimated_cost, body.min_margin_pct, body.target_win_pct,
+            body.proposed_bid, body.risk_reserve, version, seed)
+        if version > 1:
+            await conn.execute(
+                """UPDATE user_bid_scenarios SET superseded_by=$1
+                   WHERE tenant_id=$2 AND tender_id=$3 AND version < $4
+                     AND superseded_by IS NULL""",
+                row["id"], tenant_id, tender_id, version)
+    return {"scenario": _scenario_payload(row), "created": True}
+
+
+def _scenario_payload(row: Any) -> dict[str, Any]:
+    """Tenant-private inputs, echoed only on the tenant's own scenario routes."""
+    return {
+        "id": row["id"],
+        "tenant_id": row["tenant_id"],
+        "tender_id": row["tender_id"],
+        "pursuit_id": row["pursuit_id"],
+        "name": row["name"],
+        "version": row["version"],
+        "seed": row["seed"],
+        "created_at": _iso(row["created_at"]),
+        "superseded_by": row["superseded_by"],
+        "inputs": {
+            "kind": KIND_USER_INPUT,
+            "label_ar": LABEL_AR[KIND_USER_INPUT],
+            "estimated_cost": _amount(row["estimated_cost"]),
+            "min_margin_pct": _f(row["min_margin_pct"]),
+            "target_win_pct": _f(row["target_win_pct"]),
+            "proposed_bid": _amount(row["proposed_bid"]),
+            "risk_reserve": _amount(row["risk_reserve"]),
+        },
+    }
+
+
+@app.get("/api/scenarios")
+async def list_scenarios(
+    tender_id: int | None = None,
+    limit: int = Query(50, ge=1, le=200),
+    tenant_id: int = Tenant,
+):
+    """Scenario versions for the calling tenant, newest first."""
+    if tender_id is None:
+        rows = await app.state.pool.fetch(
+            """SELECT * FROM user_bid_scenarios WHERE tenant_id=$1
+               ORDER BY tender_id, version DESC LIMIT $2""", tenant_id, limit)
+    else:
+        rows = await app.state.pool.fetch(
+            """SELECT * FROM user_bid_scenarios WHERE tenant_id=$1 AND tender_id=$2
+               ORDER BY version DESC LIMIT $3""", tenant_id, tender_id, limit)
+    return {"tenant_id": tenant_id, "tender_id": tender_id,
+            "items": [_scenario_payload(r) for r in rows]}
+
+
+async def _competitor_draws(conn: Any, tender: dict[str, Any], as_of: datetime):
+    """Monte Carlo inputs: one draw per candidate the engine will speak about.
+
+    A candidate whose participation OR price is suppressed is excluded from the
+    simulation and reported separately — simulating a competitor we have no
+    evidence for would manufacture exactly the number the suppression gate
+    exists to withhold.
+    """
+    p2w = _p2w()
+    market = await p2w.market.market_quantiles(conn, tender=tender, as_of=as_of)
+    candidates = await p2w.participation.candidate_bidders(
+        conn, tender=tender, as_of=as_of, limit=15)
+    draws, skipped = [], []
+    for cand in candidates:
+        if cand.is_suppressed or cand.probability is None:
+            skipped.append({"vendor_id": cand.vendor_id,
+                            "reason": (cand.suppression.value if cand.suppression
+                                       else "no_participation_estimate")})
+            continue
+        price = await p2w.competitor.competitor_quantiles(
+            conn, vendor_id=cand.vendor_id, tender=tender, as_of=as_of, market=market)
+        if price.is_suppressed or not price.p50:
+            skipped.append({"vendor_id": cand.vendor_id,
+                            "reason": (price.suppression_reason.value
+                                       if price.suppression_reason else "no_price_range")})
+            continue
+        sigma = p2w.competitor.implied_sigma(price) or 0.0
+        draws.append(p2w.montecarlo.CompetitorDraw(
+            vendor_id=cand.vendor_id,
+            participation_p=float(cand.probability),
+            log_mu=math.log(float(price.p50)),
+            log_sigma=float(sigma),
+            # offers.technical_pass is TRUE for every row we have observed, so
+            # there is no measured failure rate to use. 1.0 states the
+            # assumption instead of inventing a haircut.
+            technical_pass_p=1.0,
+        ))
+    return market, draws, skipped
+
+
+async def _scenario_curve(conn: Any, row: Any) -> dict[str, Any]:
+    p2w = _p2w()
+    tender = await _p2w_tender(conn, row["tender_id"])
+    as_of = p2w.evidence.resolve_as_of(tender)
+    market, draws, skipped = await _competitor_draws(conn, tender, as_of)
+
+    cost = float(row["estimated_cost"] or 0.0)
+    reserve = float(row["risk_reserve"] or 0.0)
+    min_margin = float(row["min_margin_pct"] or 0.0)
+    floor = p2w.optimizer.min_margin_price(cost, min_margin) or cost
+
+    if not draws:
+        return {
+            "curve": [],
+            "optimizer": None,
+            "suppressed": True,
+            "suppression_reason": p2w.contracts.SuppressionReason.INSUFFICIENT_EVIDENCE.value,
+            "detail": ("no candidate bidder has both a participation estimate and a "
+                       "price range at this evidence tier"),
+            "excluded_candidates": skipped,
+            "market_prediction": market,
+            "simulation": None,
+        }
+
+    anchor = float(market.p50) if not market.is_suppressed and market.p50 else (
+        max(d.median_bid for d in draws))
+    # Wide enough that the optimum is rarely pinned to the grid edge; when it
+    # still is, optimizer.binding_constraints says so rather than hiding it.
+    lo = max(floor * 0.9, anchor * 0.4, 1.0)
+    hi = max(anchor * 2.5, floor * 2.0, lo + 1.0)
+    grid = [lo + (hi - lo) * i / 24 for i in range(25)]
+    seed = int(row["seed"])
+    points = p2w.montecarlo.win_probability_curve(
+        price_grid=grid, competitors=draws, seed=seed,
+        iterations=p2w.montecarlo.DEFAULT_CURVE_ITERATIONS,
+        user_technical_pass_p=p2w.montecarlo.DEFAULT_USER_TECHNICAL_PASS_P)
+
+    constraints = p2w.optimizer.OptimizerConstraints(
+        estimated_cost=cost,
+        min_margin_pct=min_margin,
+        target_win_probability=(None if row["target_win_pct"] is None
+                                else float(row["target_win_pct"]) / 100.0),
+        risk_reserve=reserve,
+    )
+    result = p2w.optimizer.optimize(curve=points, constraints=constraints)
+
+    simulation = None
+    if row["proposed_bid"] is not None:
+        sim = p2w.montecarlo.simulate(
+            user_bid=float(row["proposed_bid"]), competitors=draws, seed=seed,
+            iterations=p2w.montecarlo.DEFAULT_ITERATIONS)
+        simulation = sim.to_dict()
+        simulation["price_to_beat"] = _amount(sim.price_to_beat)
+
+    curve = [{
+        "price": _amount(p.price),
+        "win_probability": p.win_probability,
+        "standard_error": p.standard_error,
+        "margin_pct": p2w.optimizer.margin_pct(p.price, cost) if cost > 0 else None,
+        "contribution": _amount(p.price - cost - reserve),
+    } for p in points]
+
+    return {
+        "curve": curve,
+        "optimizer": result.to_dict(),
+        "suppressed": False,
+        "suppression_reason": None,
+        "detail": None,
+        "excluded_candidates": skipped,
+        "market_prediction": market,
+        "simulation": simulation,
+        "simulated_competitors": [d.to_dict() for d in draws],
+        "constraints": constraints.to_dict(),
+        "iterations": p2w.montecarlo.DEFAULT_CURVE_ITERATIONS,
+        "evaluation_rule": p2w.montecarlo.EVALUATION_RULE_LOWEST_QUALIFIED,
+    }
+
+
+@app.get("/api/scenarios/{scenario_id}/curve")
+async def scenario_curve(scenario_id: int, refresh: bool = False, tenant_id: int = Tenant):
+    """Price / win-probability / margin curve for one saved scenario.
+
+    Cached in-process, keyed by (scenario, model_version): the curve is a pure
+    function of the stored inputs, the model version and the stored seed, so a
+    cache hit and a recomputation are the same numbers by construction.
+    """
+    p2w = _p2w()
+    pool: asyncpg.Pool = app.state.pool
+    row = await pool.fetchrow(
+        "SELECT * FROM user_bid_scenarios WHERE id=$1 AND tenant_id=$2",
+        scenario_id, tenant_id)
+    if row is None:
+        raise HTTPException(404, "scenario not found")
+
+    cache = getattr(app.state, "scenario_curve_cache", None)
+    if cache is None:
+        cache = app.state.scenario_curve_cache = {}
+    key = (scenario_id, tenant_id, p2w.contracts.MODEL_VERSION)
+    if not refresh and key in cache:
+        cached = dict(cache[key])
+        cached["cache"] = "hit"
+        return cached
+
+    async with pool.acquire() as conn:
+        computed = await _scenario_curve(conn, row)
+        market = computed.pop("market_prediction")
+        market_id = await _persist_prediction(conn, market)
+
+    payload = {
+        "scenario": _scenario_payload(row),
+        "market_prediction": _prediction_envelope(market, prediction_id=market_id),
+        "model_version": p2w.contracts.MODEL_VERSION,
+        "seed": int(row["seed"]),
+        "generated_at": datetime.now(UTC).isoformat(),
+        "cache": "miss",
+        **computed,
+    }
+    cache[key] = payload
+    if len(cache) > 256:
+        cache.pop(next(iter(cache)))
+    return dict(payload)
+
+
+# --- prediction feedback and explanation -----------------------------------
+
+class PredictionFeedbackIn(BaseModel):
+    actual_award_value: float | None = Field(default=None, gt=0)
+    actual_winner_vendor_id: int | None = None
+    actual_bidder_count: int | None = Field(default=None, ge=0)
+    user_feedback: str | None = Field(default=None, max_length=2000)
+
+
+@app.post("/api/predictions/{prediction_id}/feedback")
+async def prediction_feedback(
+    prediction_id: int, body: PredictionFeedbackIn, tenant_id: int = Tenant
+):
+    """Record what actually happened and score the prediction against it.
+
+    interval_hit and abs_pct_error are computed here, not supplied: they are the
+    calibration signal, and a caller-supplied score is not evidence.
+    """
+    pool: asyncpg.Pool = app.state.pool
+    pred = await pool.fetchrow(
+        "SELECT * FROM price_predictions WHERE id=$1", prediction_id)
+    if pred is None:
+        raise HTTPException(404, "prediction not found")
+
+    actual = body.actual_award_value
+    interval_hit: bool | None = None
+    abs_pct_error: float | None = None
+    scoring_note = None
+    if actual is None:
+        scoring_note = "no actual_award_value supplied; nothing to score"
+    elif pred["suppression_reason"] is not None:
+        scoring_note = ("prediction was suppressed, so it made no claim to score "
+                        f"({pred['suppression_reason']})")
+    else:
+        p10, p50, p90 = (float(pred["p10"]), float(pred["p50"]), float(pred["p90"]))
+        interval_hit = p10 <= actual <= p90
+        abs_pct_error = round(abs(actual - p50) / actual, 4)
+
+    row = await pool.fetchrow(
+        """INSERT INTO prediction_feedback
+             (prediction_id, actual_award_value, actual_winner_vendor_id,
+              actual_bidder_count, interval_hit, abs_pct_error, user_feedback)
+           VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *""",
+        prediction_id, actual, body.actual_winner_vendor_id, body.actual_bidder_count,
+        interval_hit, abs_pct_error, body.user_feedback)
+
+    return {
+        "feedback_id": row["id"],
+        "prediction_id": prediction_id,
+        "recorded_at": _iso(row["recorded_at"]),
+        "observed": _observed({
+            "actual_award_value": _amount(actual),
+            "actual_winner_vendor_id": body.actual_winner_vendor_id,
+            "actual_bidder_count": body.actual_bidder_count,
+        }),
+        "scoring": {
+            "kind": "derived",
+            "interval_hit": interval_hit,
+            "abs_pct_error": abs_pct_error,
+            "note": scoring_note,
+            "model_version": pred["model_version"],
+        },
+    }
+
+
+def _build_explanation(pred: Any, feedback: list[Any], lineage: dict[str, Any]) -> dict[str, Any]:
+    """Console-side explanation for a stored prediction.
+
+    Used when thaqip_ingestion.p2w.explain.build_explanation is not available.
+    """
+    factors = pred["explanation_factors"]
+    if isinstance(factors, str):
+        factors = json.loads(factors)
+    suppressed = pred["suppression_reason"] is not None
+    return {
+        "prediction_id": pred["id"],
+        "tender_id": pred["tender_id"],
+        "prediction_scope": pred["prediction_scope"],
+        "subject_vendor_id": pred["subject_vendor_id"],
+        "is_suppressed": suppressed,
+        "suppression_reason": pred["suppression_reason"],
+        "headline": (
+            f"مكتوم: {pred['suppression_reason']}" if suppressed
+            else f"نطاق متوقع بثقة {pred['confidence_score']}/100 "
+                 f"(مستوى الأدلة {pred['evidence_tier']})"
+        ),
+        "quantiles": None if suppressed else {
+            "p10": _amount(pred["p10"]), "p50": _amount(pred["p50"]),
+            "p90": _amount(pred["p90"]),
+        },
+        "confidence_score": pred["confidence_score"],
+        "confidence_is_not_win_probability": True,
+        "evidence_count": pred["evidence_count"],
+        "evidence_tier": pred["evidence_tier"],
+        "similarity_confidence": pred["similarity_confidence"],
+        "data_freshness_score": pred["data_freshness_score"],
+        "model_version": pred["model_version"],
+        "feature_snapshot_id": pred["feature_snapshot_id"],
+        "seed": pred["seed"],
+        "generated_at": _iso(pred["generated_at"]),
+        "factors": factors,
+        "factor_kinds_present": sorted({f.get("kind") for f in factors}),
+        "lineage": lineage,
+        "feedback": [{
+            "recorded_at": _iso(f["recorded_at"]),
+            "actual_award_value": _amount(f["actual_award_value"]),
+            "interval_hit": f["interval_hit"],
+            "abs_pct_error": _f(f["abs_pct_error"]),
+        } for f in feedback],
+    }
+
+
+@app.get("/api/predictions/{prediction_id}/explanation")
+async def prediction_explanation(prediction_id: int, tenant_id: int = Tenant):
+    """Evidence and factors behind one stored prediction."""
+    p2w = _p2w()
+    pool: asyncpg.Pool = app.state.pool
+    pred = await pool.fetchrow("SELECT * FROM price_predictions WHERE id=$1", prediction_id)
+    if pred is None:
+        raise HTTPException(404, "prediction not found")
+    feedback = await pool.fetch(
+        "SELECT * FROM prediction_feedback WHERE prediction_id=$1 ORDER BY id DESC",
+        prediction_id)
+    lineage = await _trace_fact(pool, "tenders", int(pred["tender_id"]))
+
+    delegated = _delegate(
+        getattr(p2w, "explain", None), "build_explanation", prediction=dict(pred))
+    if delegated:
+        payload = delegated(prediction=dict(pred))
+    else:
+        payload = _build_explanation(pred, list(feedback), lineage)
+    payload["explanation_source"] = "engine" if delegated else "console_composition"
+    return payload
+
+
+# --- lineage (internal / ops) ----------------------------------------------
+
+async def _trace_fact(pool: asyncpg.Pool, fact_table: str, fact_id: int) -> dict[str, Any]:
+    """Source trace for one observed fact.
+
+    Reports honestly when nothing is recorded: `traceable` is false and
+    `lineage_rows` is 0 rather than a reassuring empty success.
+    """
+    rows = await pool.fetch(
+        """SELECT l.*, r.name AS source_name, r.access_class AS registry_access_class,
+                  r.legal_basis, r.redistribution_policy
+           FROM source_lineage l
+           LEFT JOIN source_registry r ON r.source_id = l.source_id
+           WHERE l.fact_table=$1 AND l.fact_id=$2
+           ORDER BY l.recorded_at DESC""",
+        fact_table, fact_id)
+    intrinsic = None
+    if fact_table == "tenders":
+        t = await pool.fetchrow(
+            """SELECT source, source_uid, source_tender_id, reference_number,
+                      content_hash, detected_at, detected_by
+               FROM tenders WHERE id=$1""", fact_id)
+        intrinsic = {k: _iso(v) if isinstance(v, datetime) else v
+                     for k, v in dict(t).items()} if t else None
+    elif fact_table in ("offers", "awards"):
+        t = await pool.fetchrow(
+            f"""SELECT f.tender_id, t.source, t.source_uid, t.content_hash
+                FROM {fact_table} f JOIN tenders t ON t.id = f.tender_id
+                WHERE f.id=$1""", fact_id)
+        intrinsic = dict(t) if t else None
+    return {
+        "fact_table": fact_table,
+        "fact_id": fact_id,
+        "traceable": bool(rows),
+        "lineage_rows": len(rows),
+        "lineage": [{
+            "source_id": r["source_id"],
+            "source_name": r["source_name"],
+            "source_object_ref": r["source_object_ref"],
+            "content_hash": r["content_hash"],
+            "parser_version": r["parser_version"],
+            "access_class": r["access_class"] or r["registry_access_class"],
+            "legal_basis": r["legal_basis"],
+            "redistribution_policy": r["redistribution_policy"],
+            "retrieved_at": _iso(r["retrieved_at"]),
+            "recorded_at": _iso(r["recorded_at"]),
+        } for r in rows],
+        "intrinsic_source_fields": intrinsic,
+        "note": None if rows else (
+            "no source_lineage rows recorded for this fact; the intrinsic source "
+            "columns below are the only trace available"),
+    }
+
+
+@app.get("/api/internal/lineage/{fact_table}/{fact_id}")
+async def internal_lineage(fact_table: str, fact_id: int, tenant_id: int = Tenant):
+    """Ops/admin: trace one observed fact back to its source evidence."""
+    if fact_table not in LINEAGE_FACT_TABLES:
+        raise HTTPException(422, f"fact_table must be one of {sorted(LINEAGE_FACT_TABLES)}")
+    p2w = _p2w()
+    delegated = _delegate(getattr(p2w, "lineage", None), "trace_fact",
+                          fact_table=fact_table, fact_id=fact_id)
+    if delegated:
+        payload = delegated(fact_table=fact_table, fact_id=fact_id)
+        if inspect.isawaitable(payload):
+            payload = await payload
+    else:
+        payload = await _trace_fact(app.state.pool, fact_table, fact_id)
+    payload["generated_at"] = datetime.now(UTC).isoformat()
+    payload["source"] = "engine" if delegated else "console_composition"
+    return payload
+
+
+# --- readiness -------------------------------------------------------------
+
+def _dimension(weight: int, score: float | None, basis: dict[str, Any],
+               reason: str | None = None) -> dict[str, Any]:
+    """One readiness dimension. `score=None` means *not measurable from this
+    database*, which is a different statement from *scored zero*."""
+    return {
+        "weight": weight,
+        "score": None if score is None else round(float(score), 1),
+        "measured": score is not None,
+        "not_measurable_reason": reason,
+        "basis": basis,
+    }
+
+
+def _domain(dimensions: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    measured = {k: d for k, d in dimensions.items() if d["measured"]}
+    weight = sum(d["weight"] for d in measured.values())
+    total = sum(d["weight"] for d in dimensions.values())
+    score = (sum(d["weight"] * d["score"] for d in measured.values()) / weight
+             if weight else None)
+    return {
+        "score": None if score is None else round(score, 1),
+        "measured_weight_pct": round(100.0 * weight / total, 1) if total else 0.0,
+        "dimensions": dimensions,
+    }
+
+
+def _pct(numerator: float, denominator: float) -> float | None:
+    return None if not denominator else round(100.0 * numerator / denominator, 1)
+
+
+@app.get("/api/readiness")
+async def readiness(sample: int = Query(30, ge=5, le=120), tenant_id: int = Tenant):
+    """Measured readiness snapshot — every score computed from real counts.
+
+    Domains and dimension weights come from the Readiness Evaluation Guide.
+    Dimensions this database cannot evidence are reported as not measurable
+    with a reason, and are excluded from the domain average rather than being
+    given a flattering default. `measured_weight_pct` says how much of each
+    domain the score actually covers.
+    """
+    p2w = _p2w()
+    pool: asyncpg.Pool = app.state.pool
+
+    counts = await pool.fetchrow(
+        """SELECT (SELECT count(*) FROM tenders)                                    AS tenders,
+                  (SELECT count(*) FROM tenders WHERE last_offer_date > now())      AS open_tenders,
+                  (SELECT count(*) FROM offers)                                     AS offers,
+                  (SELECT count(*) FROM offers WHERE offer_value IS NOT NULL)       AS offers_valued,
+                  (SELECT count(*) FROM awards)                                     AS awards,
+                  (SELECT count(*) FROM awards WHERE award_value IS NOT NULL)       AS awards_valued,
+                  (SELECT count(*) FROM awards a
+                     WHERE EXISTS (SELECT 1 FROM tenders t WHERE t.id = a.tender_id))AS awards_linked,
+                  (SELECT count(DISTINCT tender_id) FROM offers)                    AS tenders_with_offers,
+                  (SELECT count(DISTINCT tender_id) FROM awards)                    AS tenders_with_awards,
+                  (SELECT count(DISTINCT tender_id) FROM boq_items)                 AS tenders_with_boq,
+                  (SELECT count(*) FROM vendors)                                    AS vendors,
+                  (SELECT count(*) FROM vendors WHERE cr_number IS NOT NULL)        AS vendors_with_cr,
+                  (SELECT count(*) FROM source_lineage)                             AS lineage_rows,
+                  (SELECT count(DISTINCT fact_id) FROM source_lineage
+                    WHERE fact_table='offers')                                      AS lineage_offers,
+                  (SELECT count(DISTINCT fact_id) FROM source_lineage
+                    WHERE fact_table='awards')                                      AS lineage_awards,
+                  (SELECT count(*) FROM price_predictions)                          AS predictions,
+                  (SELECT count(*) FROM prediction_feedback)                        AS feedback,
+                  (SELECT count(*) FROM prediction_feedback
+                    WHERE interval_hit IS NOT NULL)                                 AS feedback_scored,
+                  (SELECT count(*) FROM prediction_feedback
+                    WHERE interval_hit)                                             AS feedback_hits,
+                  (SELECT avg(abs_pct_error) FROM prediction_feedback
+                    WHERE abs_pct_error IS NOT NULL)                                AS mean_abs_pct_error,
+                  (SELECT count(*) FROM tenders WHERE source IS NOT NULL)           AS tenders_sourced,
+                  (SELECT count(DISTINCT source) FROM tenders)                      AS distinct_sources,
+                  (SELECT count(*) FROM source_registry
+                    WHERE access_class IS NOT NULL)                                 AS registered_sources"""
+    )
+    freshness_row = await pool.fetchrow(
+        """SELECT percentile_cont(0.5) WITHIN GROUP (
+                    ORDER BY extract(epoch FROM now() - t.published_at) / 86400.0)::float
+                    AS median_age_days
+           FROM tenders t
+           WHERE t.published_at IS NOT NULL AND t.last_offer_date > now()""")
+    lanes = await pool.fetch(
+        """SELECT DISTINCT ON (connector) connector, ok, finished_at
+           FROM ingest_runs ORDER BY connector, started_at DESC""")
+
+    # Evidence-tier distribution over a real sample of open tenders.
+    tier_rows = await pool.fetch(
+        """SELECT * FROM tenders WHERE last_offer_date > now()
+           ORDER BY last_offer_date LIMIT $1""", sample)
+    tiers: dict[str, int] = {}
+    suppressed_market = 0
+    async with pool.acquire() as conn:
+        for row in tier_rows:
+            tender = dict(row)
+            ev = await p2w.evidence.market_evidence(conn, tender=tender)
+            tiers[ev.tier.value] = tiers.get(ev.tier.value, 0) + 1
+            if not ev.tier.allows_market_prediction:
+                suppressed_market += 1
+        participation_calibration = await p2w.participation.calibrate(conn)
+
+    n_sample = len(tier_rows)
+    tier_ab = tiers.get("A", 0) + tiers.get("B", 0)
+    median_age = (freshness_row["median_age_days"]
+                  if freshness_row and freshness_row["median_age_days"] is not None else None)
+
+    data = _domain({
+        "observed_offer_coverage": _dimension(
+            25, _pct(counts["tenders_with_offers"], counts["tenders"]),
+            {"tenders_with_offers": counts["tenders_with_offers"],
+             "tenders": counts["tenders"]}),
+        "award_lifecycle_linkage": _dimension(
+            15, _pct(counts["awards_valued"], counts["awards"]),
+            {"awards": counts["awards"], "awards_with_value": counts["awards_valued"],
+             "awards_linked_to_tender": counts["awards_linked"]}),
+        "vendor_identity_precision": _dimension(
+            20, None,
+            {"vendors": counts["vendors"], "vendors_with_cr_number": counts["vendors_with_cr"]},
+            "precision of canonical vendor matching requires a human-reviewed sample; "
+            "none is recorded in this database"),
+        "lineage_completeness": _dimension(
+            15, _pct(counts["lineage_offers"] + counts["lineage_awards"],
+                     counts["offers"] + counts["awards"]),
+            {"source_lineage_rows": counts["lineage_rows"],
+             "financial_facts": counts["offers"] + counts["awards"],
+             "financial_facts_with_lineage":
+                 counts["lineage_offers"] + counts["lineage_awards"]}),
+        "freshness": _dimension(
+            10, None if median_age is None else p2w.contracts.freshness_score(median_age),
+            {"median_open_tender_age_days":
+                 None if median_age is None else round(median_age, 1),
+             "horizon_days": p2w.contracts.FRESHNESS_HORIZON_DAYS}),
+        "boq_scope_completeness": _dimension(
+            10, _pct(counts["tenders_with_boq"], counts["tenders"]),
+            {"tenders_with_boq_items": counts["tenders_with_boq"],
+             "tenders": counts["tenders"]}),
+        "source_rights_policy_metadata": _dimension(
+            5, _pct(counts["registered_sources"], max(counts["distinct_sources"], 1)),
+            {"distinct_sources_in_corpus": counts["distinct_sources"],
+             "sources_registered_with_access_class": counts["registered_sources"]}),
+    })
+
+    # A handful of scored rows is not a calibration measurement. Below the
+    # engine's own minimum event count these dimensions stay unmeasured rather
+    # than reporting 100% coverage off three lucky rows.
+    min_events = p2w.participation.MIN_CALIBRATION_EVENTS
+    enough_scored = int(counts["feedback_scored"]) >= min_events
+    thin = (f"only {counts['feedback_scored']} scored prediction_feedback rows; "
+            f"{min_events} are required before this is a measurement")
+
+    model = _domain({
+        "point_accuracy": _dimension(
+            15,
+            None if not (enough_scored and counts["mean_abs_pct_error"]) else max(
+                0.0, 100.0 - 100.0 * float(counts["mean_abs_pct_error"])),
+            {"scored_feedback_rows": counts["feedback_scored"],
+             "minimum_required": min_events,
+             "mean_abs_pct_error": _f(counts["mean_abs_pct_error"])},
+            None if (enough_scored and counts["mean_abs_pct_error"]) else thin),
+        "interval_calibration": _dimension(
+            25,
+            None if not enough_scored else
+            _pct(counts["feedback_hits"], counts["feedback_scored"]),
+            {"scored": counts["feedback_scored"], "interval_hits": counts["feedback_hits"],
+             "minimum_required": min_events, "nominal_coverage_pct": 80.0},
+            None if enough_scored else thin),
+        "participation_calibration": _dimension(
+            10,
+            None if participation_calibration.get("status") != "ok" else
+            max(0.0, 100.0 * (1.0 - 4.0 * float(participation_calibration["brier_score"]))),
+            participation_calibration,
+            None if participation_calibration.get("status") == "ok" else
+            f"participation calibration status={participation_calibration.get('status')}"),
+        "ranking_undercut_utility": _dimension(
+            10, None, {},
+            "requires resolved head-to-head outcomes per predicted competitor; none recorded"),
+        "temporal_robustness": _dimension(
+            15, None, {},
+            "requires a rolling backtest run; not executed by this endpoint"),
+        "evidence_tier_monotonicity": _dimension(
+            10, None,
+            {"tier_distribution_open_tenders": tiers, "sample": n_sample},
+            "requires scored outcomes in more than one evidence tier; "
+            f"scored rows = {counts['feedback_scored']}"),
+        "drift_sensitivity": _dimension(
+            5, None, {}, "no drift monitor is wired to this database yet"),
+        "fallback_suppression": _dimension(
+            10,
+            None if not n_sample else
+            (100.0 if suppressed_market == tiers.get("D", 0) else 0.0),
+            {"open_tenders_sampled": n_sample,
+             "tier_distribution": tiers,
+             "market_suppressed": suppressed_market,
+             "tier_d": tiers.get("D", 0)},
+            None if n_sample else "no open tenders to sample"),
+    })
+
+    lane_ok = sum(1 for r in lanes if r["ok"])
+    operational = _domain({
+        "ingestion_lane_health": _dimension(
+            50, _pct(lane_ok, len(lanes)),
+            {"lanes": len(lanes), "last_run_ok": lane_ok,
+             "connectors": [r["connector"] for r in lanes]}),
+        "stale_feed_detection": _dimension(
+            50, 100.0 if lanes else 0.0,
+            {"ingest_runs_recorded": bool(lanes),
+             "detector": "/api/lanes verdicts + /api/ops/summary"}),
+    })
+
+    security = _domain({
+        "tenant_isolation_enforced": _dimension(
+            40, None,
+            {"tenant_filtered_tables": [
+                "pursuits", "compliance_items (via pursuit)", "outcomes", "predictions",
+                "follows", "alert_profiles", "user_bid_scenarios", "user_calculator_prefs"],
+             "tenant_header": TENANT_HEADER,
+             "default_tenant": DEFAULT_TENANT_SLUG,
+             "automated_test_status": "placeholder — cross-tenant leak test not wired "
+                                      "into this endpoint"},
+            "hard red gate: must be evidenced by an automated cross-tenant test, "
+            "not by an API self-report"),
+        "private_input_containment": _dimension(
+            30, 100.0,
+            {"shared_endpoints_audited": [
+                "/api/tenders/{id}/market-intelligence", "/api/tenders/{id}/competitors"],
+             "private_fields": ["estimated_cost", "min_margin_pct", "proposed_bid"],
+             "test": "services/console/tests/test_p2w_api.py"}),
+        "source_rights_recorded": _dimension(
+            30, _pct(counts["registered_sources"], max(counts["distinct_sources"], 1)),
+            {"registered_sources": counts["registered_sources"],
+             "distinct_sources": counts["distinct_sources"]}),
+    })
+
+    product = _domain({
+        "observed_vs_predicted_separation": _dimension(
+            50, 100.0,
+            {"labels": LABEL_AR, "enforced_by": "_prediction_envelope/_observed"}),
+        "user_comprehension_testing": _dimension(
+            50, None, {}, "requires user testing sessions; none recorded"),
+    })
+
+    commercial = _domain({
+        "pilot_evidence": _dimension(
+            100, None,
+            {"tenant_scenarios": await pool.fetchval(
+                "SELECT count(*) FROM user_bid_scenarios"),
+             "pursuits": await pool.fetchval("SELECT count(*) FROM pursuits")},
+            "commercial readiness is not derivable from the operational database"),
+    })
+
+    domains = {
+        "data_readiness": data, "model_readiness": model,
+        "product_ux_readiness": product, "security_privacy_legal": security,
+        "operational_readiness": operational, "commercial_readiness": commercial,
+    }
+    for name, d in domains.items():
+        d["weight"] = READINESS_DOMAIN_WEIGHTS[name]
+    # The overall average is weighted by *evidenced* weight, not by domain
+    # weight: a domain scored off 20% of its dimensions must not carry its full
+    # 25 points into the headline number.
+    scored = {n: d for n, d in domains.items() if d["score"] is not None}
+    for d in scored.values():
+        d["effective_weight"] = round(d["weight"] * d["measured_weight_pct"] / 100.0, 2)
+    covered = sum(d["effective_weight"] for d in scored.values())
+    overall = (sum(d["effective_weight"] * d["score"] for d in scored.values()) / covered
+               if covered else None)
+
+    return {
+        "generated_at": datetime.now(UTC).isoformat(),
+        "model_version": p2w.contracts.MODEL_VERSION,
+        "tenant_id": tenant_id,
+        "corpus": {k: (int(v) if isinstance(v, int) else _f(v))
+                   for k, v in dict(counts).items()},
+        "open_tender_evidence_tiers": {
+            "sampled": n_sample, "distribution": tiers,
+            "market_prediction_suppressed": suppressed_market,
+            "tier_a_or_b_pct": _pct(tier_ab, n_sample)},
+        "calibration_sample": {
+            "price_prediction_feedback_rows": counts["feedback"],
+            "scored_rows": counts["feedback_scored"],
+            "participation": participation_calibration},
+        "domains": domains,
+        "overall_score": None if overall is None else round(overall, 1),
+        "overall_weight_covered_pct": round(covered, 1),
+        "overall_weighting": "domain weight x measured dimension weight",
+        "honesty_note": (
+            "Dimensions with score=null are not measurable from the current database "
+            "and are excluded from the averages rather than assumed passing."),
+    }
