@@ -100,7 +100,16 @@ services:
       DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
       TYPESENSE_URL: http://typesense:8108
       TYPESENSE_KEY: thaqip_dev_search
-    ports: ["8091:8080"]
+    ports:
+      # Unauthenticated API: it will return a tenant's estimated_cost and bid
+      # scenarios to any caller. Published on 0.0.0.0 + [::] it was reachable
+      # on the LAN, over Tailscale, AND on this host's public IPv6 address,
+      # with ufw inactive (verified 2026-09-10). Docker publishes ports through
+      # its own iptables chain and bypasses ufw, so the firewall is not the
+      # control here — the bind address is. Loopback for local work, Tailscale
+      # for the owner's other devices, nothing else. Revisit once auth ships.
+      - "127.0.0.1:8091:8080"
+      - "100.86.158.23:8091:8080"   # tailscale0
     depends_on: [postgres]
     restart: unless-stopped
 
