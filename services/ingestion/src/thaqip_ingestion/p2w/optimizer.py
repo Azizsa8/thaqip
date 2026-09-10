@@ -103,10 +103,12 @@ BOUNDARY_REL_TOL = 1e-9
 #: wins more often for the same expected contribution.
 TIE_REL_TOL = 1e-12
 
-#: Upper bound on the ``nextafter`` nudges used to force the computed margin
-#: floor price to satisfy ``margin_pct`` exactly in floating point. A handful of
-#: ULPs is always enough; the loop is bounded so a pathological input cannot
-#: hang the optimizer.
+#: Upper bound on the number of upward nudges used to force the computed margin
+#: floor price to satisfy ``margin_pct`` in floating point. The nudge starts at
+#: one ULP and DOUBLES each step, so 64 steps span every increment that can
+#: matter (a single-ULP walk cannot close the gap when ``min_margin_pct`` is
+#: near 100%, where the residual is computed with ~1e-16 absolute error). The
+#: loop is bounded so a pathological input cannot hang the optimizer.
 MAX_FLOOR_NUDGE_STEPS = 64
 
 CONSTRAINT_HARD_COST_FLOOR = "hard_cost_floor"
@@ -425,10 +427,22 @@ def min_margin_price(cost: float, min_margin_pct_value: float) -> float | None:
         # Only reachable for a very negative min_margin_pct; such a floor does
         # not bind at all, so report "no floor" rather than a negative price.
         return 0.0
+    # Nudge upward until ``margin_pct`` actually reports a compliant margin.
+    # The step GROWS geometrically from one ULP: for a margin close to 100% the
+    # residual ``1 - cost/price`` is computed with an absolute error near
+    # 1e-16, which is many orders of magnitude larger than the change a handful
+    # of single-ULP steps can make, so a fixed ULP walk cannot converge there.
+    # Doubling reaches any needed increment in at most 64 steps while
+    # overshooting the true minimum floor by at most one step.
+    step = math.ulp(price)
     for _ in range(MAX_FLOOR_NUDGE_STEPS):
         if margin_pct(price, cost_value) >= margin:
             return price
-        price = math.nextafter(price, math.inf)
+        nudged = price + step
+        if not math.isfinite(nudged) or nudged <= price:
+            break
+        price = nudged
+        step *= 2.0
     raise OptimizerError(  # pragma: no cover - defensive; never seen in practice
         f"could not compute a margin-safe floor for cost={cost_value} margin={margin}"
     )

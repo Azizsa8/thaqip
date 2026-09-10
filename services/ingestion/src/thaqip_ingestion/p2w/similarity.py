@@ -126,6 +126,10 @@ DURATION_SPAN_DAYS = 60.0
 # Hard cap on rows pulled from the database for scoring, so retrieval stays
 # O(1) in database work as the corpus grows.  The corpus is ~1.7k rows today.
 CANDIDATE_POOL_LIMIT = 5000
+
+#: Facts about the SUBJECT tender that are only decided at or after its close.
+#: Dropped before scoring — see :func:`find_similar_tenders`.
+_SUBJECT_POST_CLOSE_FIELDS = frozenset({"award_value", "is_winner", "bidder_count"})
 # Tokens too generic to carry meaning in a tender name; dropped before Jaccard.
 _STOPWORDS_RAW = (
     "منافسة", "مشروع", "عقد", "كراسة", "رقم", "على", "في", "من", "الى", "إلى",
@@ -501,6 +505,14 @@ async def find_similar_tenders(
     if effective_as_of is None:
         effective_as_of = datetime.now(UTC)
 
+    # The subject is the thing being predicted, so nothing decided at or after
+    # its own close may describe it here. ``score_candidate`` will happily use a
+    # subject ``award_value`` as the scale reference if one is present, which
+    # turns the outcome into a retrieval input for any caller that hands over a
+    # joined row (a backtest harness, an analyst query). Strip it at the
+    # prediction-time entry point rather than trusting every caller.
+    subject = {k: v for k, v in tender.items() if k not in _SUBJECT_POST_CLOSE_FIELDS}
+
     rows = await conn.fetch(
         _CANDIDATE_SQL,
         int(tender["id"]),
@@ -508,7 +520,7 @@ async def find_similar_tenders(
         tender.get("agency_id"),
         CANDIDATE_POOL_LIMIT,
     )
-    scored = [score_candidate(tender, dict(row), as_of=effective_as_of) for row in rows]
+    scored = [score_candidate(subject, dict(row), as_of=effective_as_of) for row in rows]
 
     # Deterministic ordering: score desc, then tender_id asc to break ties.
     def _rank(item: SimilarTender) -> tuple[float, int]:

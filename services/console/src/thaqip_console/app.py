@@ -15,6 +15,7 @@ import math
 import os
 import re
 import sys
+from collections.abc import Iterable
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from pathlib import Path
@@ -960,22 +961,63 @@ async def update_settings(body: SettingsIn, tenant_id: int = Tenant):
 
 @app.get("/api/market/price-position")
 async def price_position():
-    """Market insight from the harvested corpus: how often does the lowest
-    technically-compliant bid win? Computed per multi-bidder awarded tender."""
+    """How often does the lowest bid win a multi-bidder tender?
+
+    HEADLINE = all multi-bidder awarded tenders, unfiltered.
+
+    A second, narrower figure filters to offers whose technical_pass is true.
+    That filter is NOT a compliance filter in this corpus: technical_pass is
+    true for ~1038 offers and NULL for ~109, and is never false — there is not
+    one recorded technical rejection. Filtering on it therefore discards offers
+    of UNKNOWN status as though they had been disqualified, which inflates the
+    result (measured 2026-09-10: 96.4% filtered vs 82.2% unfiltered). It is
+    returned only as `compliant_only`, explicitly caveated, and must never be
+    presented as the headline market fact.
+    """
     row = await app.state.pool.fetchrow(
         """WITH ranked AS (
              SELECT o.tender_id, o.is_winner,
                     rank() OVER (PARTITION BY o.tender_id ORDER BY o.offer_value) AS price_rank,
-                    count(*) OVER (PARTITION BY o.tender_id) AS n_compliant
+                    count(*) OVER (PARTITION BY o.tender_id) AS n_bidders
+             FROM offers o
+             WHERE o.offer_value IS NOT NULL
+           )
+           SELECT count(*) FILTER (WHERE is_winner)                    AS awards_n,
+                  count(*) FILTER (WHERE is_winner AND price_rank = 1) AS lowest_won,
+                  round(avg(price_rank) FILTER (WHERE is_winner), 2)   AS avg_winner_rank
+           FROM ranked WHERE n_bidders >= 2""")
+    filt = await app.state.pool.fetchrow(
+        """WITH ranked AS (
+             SELECT o.tender_id, o.is_winner,
+                    rank() OVER (PARTITION BY o.tender_id ORDER BY o.offer_value) AS price_rank,
+                    count(*) OVER (PARTITION BY o.tender_id) AS n_bidders
              FROM offers o
              WHERE o.technical_pass AND o.offer_value IS NOT NULL
            )
-           SELECT count(*) FILTER (WHERE is_winner)                             AS awards_n,
-                  count(*) FILTER (WHERE is_winner AND price_rank = 1)          AS lowest_won,
-                  round(avg(price_rank) FILTER (WHERE is_winner), 2)            AS avg_winner_rank
-           FROM ranked WHERE n_compliant >= 2""")
+           SELECT count(*) FILTER (WHERE is_winner)                    AS awards_n,
+                  count(*) FILTER (WHERE is_winner AND price_rank = 1) AS lowest_won
+           FROM ranked WHERE n_bidders >= 2""")
+    status = await app.state.pool.fetchrow(
+        """SELECT count(*) FILTER (WHERE technical_pass IS TRUE)  AS pass_true,
+                  count(*) FILTER (WHERE technical_pass IS FALSE) AS pass_false,
+                  count(*) FILTER (WHERE technical_pass IS NULL)  AS pass_unknown
+           FROM offers""")
     d = dict(row)
-    d["lowest_wins_pct"] = round(100 * d["lowest_won"] / d["awards_n"], 1) if d["awards_n"] else None
+    d["kind"] = "observed"
+    d["basis"] = "all multi-bidder awarded tenders, no technical filter"
+    d["lowest_wins_pct"] = (
+        round(100 * d["lowest_won"] / d["awards_n"], 1) if d["awards_n"] else None)
+    d["compliant_only"] = {
+        "awards_n": filt["awards_n"],
+        "lowest_won": filt["lowest_won"],
+        "lowest_wins_pct": (round(100 * filt["lowest_won"] / filt["awards_n"], 1)
+                            if filt["awards_n"] else None),
+        "caveat": ("technical_pass is never false in this corpus "
+                   f"(true={status['pass_true']}, false={status['pass_false']}, "
+                   f"unknown={status['pass_unknown']}); this figure treats unknown "
+                   "status as disqualified and is therefore an overestimate"),
+    }
+    d["technical_status_counts"] = dict(status)
     return d
 
 
@@ -1356,7 +1398,10 @@ async def vendor_compare(vid: int, tenant_id: int = Tenant):
 
 
 TYPESENSE_URL = os.environ.get("TYPESENSE_URL", "http://localhost:8108")
-TYPESENSE_KEY = os.environ.get("TYPESENSE_KEY", "thaqip_dev_search")
+# No default: a credential literal in source is a credential that ships. When
+# the env var is missing, search fails loudly at the index rather than quietly
+# authenticating with a value anyone can read out of this file.
+TYPESENSE_KEY = os.environ.get("TYPESENSE_KEY", "")
 
 
 @app.get("/api/search")
@@ -2698,6 +2743,34 @@ def _prediction_envelope(pred: Any, *, prediction_id: int | None = None) -> dict
     return envelope
 
 
+_OPTIMIZER_MONEY_SCALARS = ("recommended_bid", "expected_contribution")
+_OPTIMIZER_MONEY_RANGES = ("safe_range", "aggressive_range")
+_CONSTRAINT_MONEY_SCALARS = ("estimated_cost", "hard_cost_floor", "risk_reserve", "max_bid")
+
+
+def _money_fields(payload: dict[str, Any], keys: Iterable[str]) -> dict[str, Any]:
+    """Wrap named money scalars in the {amount, currency, vat_semantics} envelope.
+
+    The optimizer, its constraints and the simulation assumptions are produced
+    by pure engine dataclasses that (correctly) know nothing about currency, so
+    the console is the only place that can attach it. Shipping a bare float for
+    `recommended_bid` — the single number the whole product exists to produce —
+    is exactly the VAT bug `_amount` was written to prevent.
+    """
+    for key in keys:
+        if payload.get(key) is not None:
+            payload[key] = _amount(payload[key])
+    return payload
+
+
+def _money_ranges(payload: dict[str, Any], keys: Iterable[str]) -> dict[str, Any]:
+    for key in keys:
+        value = payload.get(key)
+        if value is not None:
+            payload[key] = [_amount(v) for v in value]
+    return payload
+
+
 def _observed(payload: dict[str, Any]) -> dict[str, Any]:
     """Tag a block of counted facts so the UI can never render it as a model
     output (house rule 1)."""
@@ -3131,6 +3204,8 @@ async def _scenario_curve(conn: Any, row: Any) -> dict[str, Any]:
             iterations=p2w.montecarlo.DEFAULT_ITERATIONS)
         simulation = sim.to_dict()
         simulation["price_to_beat"] = _amount(sim.price_to_beat)
+        simulation["assumptions"] = _money_fields(
+            dict(simulation["assumptions"]), ("user_bid",))
 
     curve = [{
         "price": _amount(p.price),
@@ -3142,7 +3217,9 @@ async def _scenario_curve(conn: Any, row: Any) -> dict[str, Any]:
 
     return {
         "curve": curve,
-        "optimizer": result.to_dict(),
+        "optimizer": _money_ranges(
+            _money_fields(result.to_dict(), _OPTIMIZER_MONEY_SCALARS),
+            _OPTIMIZER_MONEY_RANGES),
         "suppressed": False,
         "suppression_reason": None,
         "detail": None,
@@ -3150,7 +3227,8 @@ async def _scenario_curve(conn: Any, row: Any) -> dict[str, Any]:
         "market_prediction": market,
         "simulation": simulation,
         "simulated_competitors": [d.to_dict() for d in draws],
-        "constraints": constraints.to_dict(),
+        "constraints": _money_fields(
+            constraints.to_dict(), _CONSTRAINT_MONEY_SCALARS),
         "iterations": p2w.montecarlo.DEFAULT_CURVE_ITERATIONS,
         "evaluation_rule": p2w.montecarlo.EVALUATION_RULE_LOWEST_QUALIFIED,
     }
@@ -3627,10 +3705,14 @@ async def readiness(sample: int = Query(30, ge=5, le=120), tenant_id: int = Tena
                 "follows", "alert_profiles", "user_bid_scenarios", "user_calculator_prefs"],
              "tenant_header": TENANT_HEADER,
              "default_tenant": DEFAULT_TENANT_SLUG,
-             "automated_test_status": "placeholder — cross-tenant leak test not wired "
-                                      "into this endpoint"},
+             "automated_test_status": (
+                 "covered by services/ingestion/tests/test_battery_security.py: a "
+                 "second tenant's scenario is planted and every endpoint is grepped "
+                 "for it under forged/missing/empty/numeric/SQL tenant headers"),
+             "automated_test_path": "services/ingestion/tests/test_battery_security.py"},
             "hard red gate: must be evidenced by an automated cross-tenant test, "
-            "not by an API self-report"),
+            "not by an API self-report — this endpoint names the test rather than "
+            "scoring itself on it"),
         "private_input_containment": _dimension(
             30, 100.0,
             {"shared_endpoints_audited": [
@@ -3654,9 +3736,13 @@ async def readiness(sample: int = Query(30, ge=5, le=120), tenant_id: int = Tena
     commercial = _domain({
         "pilot_evidence": _dimension(
             100, None,
+            # Tenant-scoped on purpose: how many private scenarios and pursuits
+            # exist is user-private evidence. A global count here let any caller
+            # measure another tenant's activity from a per-tenant endpoint.
             {"tenant_scenarios": await pool.fetchval(
-                "SELECT count(*) FROM user_bid_scenarios"),
-             "pursuits": await pool.fetchval("SELECT count(*) FROM pursuits")},
+                "SELECT count(*) FROM user_bid_scenarios WHERE tenant_id=$1", tenant_id),
+             "pursuits": await pool.fetchval(
+                 "SELECT count(*) FROM pursuits WHERE tenant_id=$1", tenant_id)},
             "commercial readiness is not derivable from the operational database"),
     })
 

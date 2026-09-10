@@ -96,6 +96,7 @@ Honest limitations
 from __future__ import annotations
 
 import math
+import sys
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from random import Random
@@ -150,6 +151,19 @@ TIE_POLICY = "split_evenly"
 #: How `undercut_probabilities` is defined, reported in `assumptions`.
 UNDERCUT_DEFINITION = "P(user_bid < competitor_bid | competitor participates)"
 
+#: Largest exponent `math.exp` can represent - beyond it a sampled price
+#: overflows. A CompetitorDraw whose price distribution puts representable mass
+#: past this point is rejected at construction, so callers get this module's
+#: documented ValueError at the boundary instead of an OverflowError raised from
+#: inside the sampler after the run has already started.
+MAX_LOG_PRICE = math.log(sys.float_info.max)
+
+#: How far into the tail construction must stay representable. A |z| beyond 8 has
+#: probability ~1e-15 per draw, so at MAX_ITERATIONS the residual chance of an
+#: overflow surviving this check is ~1e-10 - and the sampler degrades even that
+#: case to an infinite (never-winning) bid rather than raising.
+LOG_PRICE_TAIL_SIGMAS = 8.0
+
 
 # --- Inputs ------------------------------------------------------------------
 
@@ -182,6 +196,14 @@ class CompetitorDraw:
         sigma = _require_finite("log_sigma", self.log_sigma)
         if sigma < 0.0:
             raise ValueError(f"log_sigma must be >= 0, got {sigma}")
+        # exp() overflows past MAX_LOG_PRICE. Catching it here keeps the promise
+        # made in `simulate`: invalid input raises ValueError, naming the field.
+        tail = self.log_mu + LOG_PRICE_TAIL_SIGMAS * sigma
+        if tail > MAX_LOG_PRICE:
+            raise ValueError(
+                f"log_mu + {LOG_PRICE_TAIL_SIGMAS} * log_sigma must be "
+                f"<= {MAX_LOG_PRICE} for the price to be representable, got {tail}"
+            )
 
     @property
     def median_bid(self) -> float:
@@ -355,6 +377,20 @@ _Participant = tuple[int, float, bool, bool]
 _Scenario = tuple[tuple[_Participant, ...], bool]
 
 
+def _sampled_price(exponent: float) -> float:
+    """``exp(exponent)``, degrading a beyond-8-sigma overflow to ``inf``.
+
+    Construction already rejects a draw whose 8-sigma tail is unrepresentable, so
+    reaching this branch takes a ~1e-15 draw. An infinite price is the truthful
+    outcome there - a bid that large loses to everything - and is far better than
+    an OverflowError that kills a simulation mid-flight.
+    """
+    try:
+        return math.exp(exponent)
+    except OverflowError:  # pragma: no cover - needs a |z| beyond 8
+        return math.inf
+
+
 def _draw_scenarios(
     competitors: Sequence[CompetitorDraw],
     *,
@@ -378,7 +414,7 @@ def _draw_scenarios(
             participates = rng.random() < competitor.participation_p
             z = rng.gauss(0.0, 1.0)
             qualifies = rng.random() < competitor.technical_pass_p
-            bid = math.exp(competitor.log_mu + competitor.log_sigma * z)
+            bid = _sampled_price(competitor.log_mu + competitor.log_sigma * z)
             participants.append((competitor.vendor_id, bid, participates, qualifies))
         user_qualified = rng.random() < user_technical_pass_p
         scenarios.append((tuple(participants), user_qualified))
@@ -711,7 +747,9 @@ __all__ = [
     "DEFAULT_USER_TECHNICAL_PASS_P",
     "EVALUATION_RULES",
     "EVALUATION_RULE_LOWEST_QUALIFIED",
+    "LOG_PRICE_TAIL_SIGMAS",
     "MAX_ITERATIONS",
+    "MAX_LOG_PRICE",
     "MAX_STANDARD_ERROR",
     "RANK_DISQUALIFIED",
     "TIE_POLICY",

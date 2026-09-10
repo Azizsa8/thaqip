@@ -5092,3 +5092,24 @@ ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5433)
 2026-09-10 04:05:08,395 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
 2026-09-10 04:05:09,977 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
 2026-09-10 04:05:11,501 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}
+2026-09-10 05:05:03,846 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-10 05:05:06,733 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-10 05:05:09,679 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-10 05:05:12,848 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-10 05:05:15,544 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-10 05:05:18,398 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-10 05:05:19,947 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 6}
+2026-09-10 06:05:02,428 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-10 06:05:04,012 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-10 06:05:05,714 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-10 06:05:07,327 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-10 06:05:09,007 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-10 06:05:10,583 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-10 06:05:12,111 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 0}
+2026-09-10 07:05:03,118 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=1&size=25 "HTTP/1.1 200 OK"
+2026-09-10 07:05:06,006 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=2&size=25 "HTTP/1.1 200 OK"
+2026-09-10 07:05:09,056 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=3&size=25 "HTTP/1.1 200 OK"
+2026-09-10 07:05:12,070 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=4&size=25 "HTTP/1.1 200 OK"
+2026-09-10 07:05:14,924 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=5&size=25 "HTTP/1.1 200 OK"
+2026-09-10 07:05:17,980 httpx INFO HTTP Request: GET https://forsah-api.910ths.sa/api/v1/opportunities?page=6&size=25 "HTTP/1.1 200 OK"
+2026-09-10 07:05:19,501 thaqip.forsah INFO forsah pull done: {'seen': 72, 'created': 0, 'updated': 2}

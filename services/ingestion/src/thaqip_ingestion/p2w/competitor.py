@@ -179,6 +179,12 @@ _KNOWABLE_AT = "COALESCE(a.awarded_at, a.created_at)"
 
 #: A vendor's offers on tenders whose award was knowable before the cutoff,
 #: expressed as log ratios against that tender's winning price.
+#:
+#: ``$4`` is the subject tender, excluded explicitly. The point-in-time cutoff
+#: alone is NOT sufficient: a caller may legitimately pass an ``as_of`` later
+#: than the subject's own award became knowable (a re-run on a closed tender, or
+#: a tender with no dates where the cutoff falls back to ``now``), and the
+#: subject's own bid/award pair would then train the model that predicts it.
 VENDOR_RATIO_SQL = f"""
 SELECT ln(o.offer_value::float8 / a.award_value::float8) AS log_ratio,
        {_KNOWABLE_AT} AS knowable_at,
@@ -190,6 +196,7 @@ WHERE o.vendor_id = $1
   AND o.offer_value >= {MIN_PLAUSIBLE_VALUE}
   AND a.award_value >= {MIN_PLAUSIBLE_VALUE}
   AND {_KNOWABLE_AT} < $2
+  AND ($4::bigint IS NULL OR t.id <> $4)
 """
 
 #: Every vendor's log ratios inside one activity category — the pooling prior.
@@ -205,6 +212,7 @@ WHERE o.offer_value >= {MIN_PLAUSIBLE_VALUE}
   AND a.award_value >= {MIN_PLAUSIBLE_VALUE}
   AND {_KNOWABLE_AT} < $2
   AND ($1::int IS NULL OR t.activity_id = $1)
+  AND ($3::bigint IS NULL OR t.id <> $3)
 """
 
 
@@ -436,6 +444,7 @@ async def competitor_ratio_sample(
     vendor_id: int,
     activity_id: int | None,
     as_of: datetime | None = None,
+    tender_id: int | None = None,
 ) -> list[tuple[float, float]]:
     """``[(log_ratio, recency_weight)]`` for one vendor, before ``as_of``.
 
@@ -445,11 +454,14 @@ async def competitor_ratio_sample(
     ``CROSS_ACTIVITY_WEIGHT``. When ``activity_id`` is None no category is known,
     so nothing is down-weighted.
 
-    The target tender is excluded implicitly: its own award is not knowable
-    before its own cutoff, so the point-in-time gate drops it.
+    ``tender_id`` is the subject tender and is excluded from the sample
+    explicitly. Do not rely on the point-in-time gate to do it: that only drops
+    the subject while the cutoff is derived from the subject's own dates, and an
+    explicit ``as_of`` later than its award was ingested (a re-run on a closed
+    tender) would otherwise feed the outcome back in as training evidence.
     """
     cutoff = _resolve_as_of({}, as_of)
-    rows = await conn.fetch(VENDOR_RATIO_SQL, vendor_id, cutoff, activity_id)
+    rows = await conn.fetch(VENDOR_RATIO_SQL, vendor_id, cutoff, activity_id, tender_id)
 
     sample: list[tuple[float, float]] = []
     for row in rows:
@@ -468,6 +480,7 @@ async def category_prior_sample(
     *,
     activity_id: int | None,
     as_of: datetime | None = None,
+    tender_id: int | None = None,
 ) -> list[tuple[float, float]]:
     """``[(log_ratio, recency_weight)]`` for a whole activity category.
 
@@ -476,11 +489,14 @@ async def category_prior_sample(
     a broad one, and the fallback is visible to the caller as the sample size it
     gets back. Returns the category sample unchanged when ``activity_id`` is
     None (the query is already corpus-wide in that case).
+
+    ``tender_id`` is the subject tender, excluded explicitly for the same reason
+    as in :func:`competitor_ratio_sample`.
     """
     cutoff = _resolve_as_of({}, as_of)
-    rows = await conn.fetch(CATEGORY_RATIO_SQL, activity_id, cutoff)
+    rows = await conn.fetch(CATEGORY_RATIO_SQL, activity_id, cutoff, tender_id)
     if activity_id is not None and len(rows) < MIN_PRIOR_OBSERVATIONS:
-        rows = await conn.fetch(CATEGORY_RATIO_SQL, None, cutoff)
+        rows = await conn.fetch(CATEGORY_RATIO_SQL, None, cutoff, tender_id)
 
     sample: list[tuple[float, float]] = []
     for row in rows:
@@ -496,6 +512,7 @@ async def category_prior(
     *,
     activity_id: int | None,
     as_of: datetime | None = None,
+    tender_id: int | None = None,
 ) -> tuple[float, float]:
     """``(mu, sigma)`` of log bid ratios in one activity category.
 
@@ -504,7 +521,9 @@ async def category_prior(
     function instead, because it must gate on how many observations the prior
     rests on and that count is not recoverable from ``(mu, sigma)``.
     """
-    sample = await category_prior_sample(conn, activity_id=activity_id, as_of=as_of)
+    sample = await category_prior_sample(
+        conn, activity_id=activity_id, as_of=as_of, tender_id=tender_id
+    )
     mu, sigma, _ = fit_log_ratios(sample)
     return mu, sigma
 
@@ -685,12 +704,14 @@ async def competitor_quantiles(
 
     # --- Gate 3: the samples. ---------------------------------------------
     vendor_sample = await competitor_ratio_sample(
-        conn, vendor_id=vendor_id, activity_id=activity_id, as_of=cutoff
+        conn, vendor_id=vendor_id, activity_id=activity_id, as_of=cutoff, tender_id=tender_id
     )
     if not vendor_sample:
         return _suppress(SuppressionReason.INSUFFICIENT_EVIDENCE)
 
-    prior_sample = await category_prior_sample(conn, activity_id=activity_id, as_of=cutoff)
+    prior_sample = await category_prior_sample(
+        conn, activity_id=activity_id, as_of=cutoff, tender_id=tender_id
+    )
     if len(prior_sample) < MIN_PRIOR_OBSERVATIONS:
         return _suppress(SuppressionReason.NO_COMPARABLE_TENDERS)
 

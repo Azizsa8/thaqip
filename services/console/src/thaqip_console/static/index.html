@@ -75,7 +75,7 @@ tailwind.config = {
 </head>
 <body class="bg-paper text-ink font-sans text-[14px] leading-relaxed min-h-screen mobile-shell lg:pb-0">
 
-<div class="flex min-h-screen">
+<div id="appShell" class="flex min-h-screen">
 
   <!-- ======================= SIDEBAR (right in RTL) ======================= -->
   <aside class="w-64 shrink-0 hidden lg:flex flex-col border-l border-line bg-card/70 backdrop-blur sticky top-0 h-screen">
@@ -383,7 +383,7 @@ tailwind.config = {
           </div>
         </div>
         <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
-          <input id="p2wSearch" type="search" placeholder="ابحث عن منافسة بالاسم أو الرقم المرجعي…"
+          <input id="p2wSearch" type="search" aria-label="ابحث عن منافسة بالاسم أو الرقم المرجعي" placeholder="ابحث عن منافسة بالاسم أو الرقم المرجعي…"
             class="flex-1 min-w-0 bg-card border border-line rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-deep/30">
           <button id="p2wSearchBtn" class="focus-ring bg-card border border-line hover:bg-tint text-deep rounded-xl px-4 py-2.5 text-[13px] font-medium transition shrink-0">ابحث</button>
         </div>
@@ -459,7 +459,7 @@ tailwind.config = {
 
 <!-- ================= WAR-ROOM DRAWER ================= -->
 <div id="overlay" class="hidden fixed inset-0 bg-ink/30 backdrop-blur-[2px] z-30"></div>
-<aside id="drawer" class="fixed top-0 left-0 h-[100dvh] w-full sm:w-[min(720px,96vw)] bg-paper z-40 shadow-lift overflow-y-auto transition-transform duration-300 ease-out -translate-x-full" aria-hidden="true">
+<aside id="drawer" class="fixed top-0 left-0 h-[100dvh] w-full sm:w-[min(720px,96vw)] bg-paper z-40 shadow-lift overflow-y-auto transition-transform duration-300 ease-out -translate-x-full" aria-hidden="true" role="dialog" aria-modal="true" aria-label="بطاقة المنافسة" tabindex="-1" inert>
   <div id="detail" class="p-4 sm:p-6 lg:p-8"></div>
 </aside>
 
@@ -837,8 +837,8 @@ async function loadLanes(){
       </div>`}).join('');
   const m = $('#mktRow');
   if(m && mkt.awards_n){
-    m.innerHTML = pulseRow('أقل عرض مطابق يفوز',
-      `${mkt.lowest_wins_pct}% <span class="text-[10.5px] text-mut">(من ${mkt.awards_n} ترسية متعددة العروض)</span>`);
+    m.innerHTML = pulseRow('أقل عرض يفوز <span class="text-[9.5px] font-normal bg-tint text-deep rounded px-1">مُلاحظ</span>',
+      `${mkt.lowest_wins_pct}% <span class="text-[10.5px] text-mut">(من ${mkt.awards_n} ترسية متعددة العروض · متوسط ترتيب الفائز ${mkt.avg_winner_rank})</span>`);
   }
 }
 async function loadCalibration(){
@@ -1701,9 +1701,19 @@ async function openDetail(id){
     </div>
     ${competitionBlock(t)}<div id="p2wDrawerCard"></div>${awards}${offers}${competitorPricesBlock(t)}${boq}${benchmarkBlock(t)}
     ${t.documents.length?`<div class="mt-6 text-[12px] text-mut">${t.documents.length} ملف في خزنة الوثائق</div>`:''}`;
+  /* The drawer is a modal surface: it covers the page and the overlay makes
+     the page behind it inert to the mouse. Keyboard has to agree with that.
+     Before this, focus was never moved in and Tab walked 32 stops through the
+     content hidden behind the overlay, so a keyboard user opening a tender card
+     was tabbing an invisible page. `inert` on the shell removes that content
+     from the tab order and from the accessibility tree at once. */
+  drawerOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  $('#drawer').removeAttribute('inert');
+  $('#appShell').setAttribute('inert','');
   $('#drawer').classList.remove('-translate-x-full');
   $('#drawer').setAttribute('aria-hidden','false');
   $('#overlay').classList.remove('hidden');
+  $('#drawer').focus();
   loadDrawerP2W(t.id);
 }
 function competitionBlock(t){
@@ -1862,10 +1872,21 @@ async function loadPriceCurve(tenderId, mode='awards'){
     </div>
   </div>`;
 }
+let drawerOpener = null;
 function closeDrawer(){
-  $('#drawer').classList.add('-translate-x-full');
-  $('#drawer').setAttribute('aria-hidden','true');
+  const drawer = $('#drawer');
+  /* A closed drawer is only translated off-screen, so its 7 controls stayed in
+     the tab order while sitting inside an aria-hidden subtree -- an explicit
+     aria-hidden-focus violation, and in practice the user's focus disappeared
+     into a panel they could not see. `inert` is what actually removes them. */
+  const wasOpen = drawer.getAttribute('aria-hidden') === 'false';
+  drawer.classList.add('-translate-x-full');
+  drawer.setAttribute('aria-hidden','true');
+  drawer.setAttribute('inert','');
+  $('#appShell').removeAttribute('inert');
   $('#overlay').classList.add('hidden');
+  if(wasOpen && drawerOpener && document.contains(drawerOpener)) drawerOpener.focus();
+  drawerOpener = null;
 }
 $('#overlay').onclick = closeDrawer;
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeDrawer(); });
@@ -1940,7 +1961,16 @@ function p2wConfidence(p){
 function p2wEvidenceChips(ev, pred){
   const bits = [];
   if(ev){
-    bits.push(['حجم العيّنة', nf.format(ev.comparable_count ?? 0) + ' منافسة']);
+    /* Two different quantities used to share the label "حجم العيّنة": the
+       evidence module's comparable POOL (awarded tenders in the activity/agency)
+       and the number of comparables that actually entered the quantile fit
+       (prediction.evidence_count). They routinely differ — 9 vs 20 on tender
+       1006 — and the "لماذا؟" panel reports the second one, so the two surfaces
+       contradicted each other about the same prediction. The sample size is the
+       prediction's own evidence_count; the pool gets its own label. */
+    if(pred && pred.evidence_count != null)
+      bits.push(['حجم العيّنة المحتسبة', nf.format(pred.evidence_count) + ' منافسة']);
+    bits.push(['العقود المقارنة المتاحة', nf.format(ev.comparable_count ?? 0) + ' منافسة']);
     bits.push(['وسيط عمر الأدلة', ev.median_age_days == null ? '—'
       : nf.format(Math.round(ev.median_age_days)) + ' يوم']);
     bits.push(['حداثة البيانات', (ev.freshness ?? 0) + '/100']);
@@ -2129,7 +2159,7 @@ function p2wRenderMarket(){
         <button onclick="p2wWhy(${pred.prediction_id}, 'نطاق السوق')" class="focus-ring bg-card border border-line hover:bg-tint text-deep rounded-lg px-3.5 py-1.5 text-[12px] font-medium transition">لماذا؟</button>
         <span class="text-[10.5px] text-mut num">${esc(pred.model_version || '')} · ${esc((mi.as_of || '').slice(0,10))}</span>
       </div>
-      <div id="p2wWhyPanel" class="mt-3"></div>
+      <div id="p2wWhyPanel" class="mt-3" role="region" aria-live="polite" aria-label="تفسير التوقع"></div>
       ${facts}
       ${p2wSimilarTable(used, excluded)}
     </div>`;
@@ -2202,7 +2232,17 @@ function p2wRenderCompetitors(){
   const comp = p2wState.comp;
   const marketPred = p2wState.mi.prediction;
   const tier = marketPred.evidence_tier;
-  const weakTier = tier === 'C' || tier === 'D';
+  /* Layer 2 must follow the COMPETITOR-scope decision the engine already made
+     per candidate, never the MARKET tier. market_evidence() enters
+     classify_tier() with effective_competitor_n = 0 by construction, so a
+     market-scope prediction can never be classified above Tier C; gating this
+     layer on `tier === 'C' || tier === 'D'` therefore fired on every tender that
+     will ever exist and hid Tier-A/B competitor quantiles the engine had
+     explicitly licensed (EvidenceTier.allows_competitor_prediction). The gate
+     here is only: did anything survive suppression at source? */
+  const candidates = (comp && comp.candidates) || [];
+  const anySpeakable = candidates.some(c =>
+    !((c.price_prediction || {}).is_suppressed) || !((c.participation || {}).is_suppressed));
   const head = p2wSectionHead(2, 'المنافسون',
     'من قد يتقدّم لهذه المنافسة، وما النطاق الذي يشير إليه سجلّهم المُلاحظ. لا شيء هنا معرفة بما سيقدمونه فعلاً.',
     'prov-predicted border');
@@ -2211,7 +2251,7 @@ function p2wRenderCompetitors(){
   if(comp && comp.error){
     body = p2wSuppressionPanel('MODEL_UNAVAILABLE', 'تعذّر قراءة المنافسين',
       `<div class="text-[12px] mt-1">${esc(comp.error)}</div>`);
-  }else if(weakTier || !comp || !comp.candidates || !comp.candidates.length){
+  }else if(!candidates.length || !anySpeakable){
     body = p2wSuppressionPanel(
       (comp && comp.market_prediction && comp.market_prediction.suppression_reason)
         || marketPred.suppression_reason || 'INSUFFICIENT_EVIDENCE',
@@ -2222,7 +2262,7 @@ function p2wRenderCompetitors(){
   }else{
     const undercut = (p2wState.curve && p2wState.curve.simulation
       && p2wState.curve.simulation.undercut_probabilities) || {};
-    body = `<div class="space-y-2">${comp.candidates.map(c => p2wCompetitorRow(c, undercut)).join('')}</div>
+    body = `<div class="space-y-2">${candidates.map(c => p2wCompetitorRow(c, undercut)).join('')}</div>
       <div class="text-[11.5px] text-mut mt-3 leading-relaxed">${esc(comp.disclaimer || '')}</div>`;
   }
 
@@ -2506,6 +2546,7 @@ function p2wDrawCurve(){
 /* ---------- "لماذا؟" drill-down ---------- */
 async function p2wWhy(predictionId, title){
   const panel = $('#p2wWhyPanel'); if(!panel || !predictionId) return;
+  p2wWhyOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   panel.innerHTML = `<div class="text-[12.5px] text-mut">جاري تحميل التفسير…</div>`;
   panel.scrollIntoView({block:'nearest', behavior:
     window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
@@ -2557,6 +2598,19 @@ async function p2wWhy(predictionId, title){
     panel.innerHTML = `<div class="text-[12.5px] text-danger">تعذّر تحميل التفسير: ${esc(err.message)}</div>`;
   }
 }
+/* The drill-down is opened from a button and had only a mouse-driven ✕, so a
+   keyboard user could open it and had no way out. Escape dismisses it and
+   returns focus to the control that opened it. */
+let p2wWhyOpener = null;
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  const panel = $('#p2wWhyPanel');
+  if(!panel || !panel.innerHTML.trim()) return;
+  panel.innerHTML = '';
+  if(p2wWhyOpener && document.contains(p2wWhyOpener)) p2wWhyOpener.focus();
+  p2wWhyOpener = null;
+});
+
 function p2wWhyComparables(){
   const used = (p2wState.mi && p2wState.mi.similar_tenders && p2wState.mi.similar_tenders.used) || [];
   if(!used.length) return '';

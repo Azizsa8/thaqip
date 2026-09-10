@@ -418,7 +418,16 @@ async def test_competitor_ratio_sample_does_not_downweight_when_no_activity_know
 async def test_competitor_ratio_sample_passes_the_point_in_time_cutoff_to_sql():
     conn = RowConn([], [])
     await comp.competitor_ratio_sample(conn, vendor_id=5, activity_id=111, as_of=AS_OF)
-    assert conn.calls[0] == (5, AS_OF, 111)
+    # $4 is the subject tender to exclude; None when the caller names none.
+    assert conn.calls[0] == (5, AS_OF, 111, None)
+
+
+async def test_competitor_ratio_sample_passes_the_subject_tender_to_exclude():
+    conn = RowConn([], [])
+    await comp.competitor_ratio_sample(
+        conn, vendor_id=5, activity_id=111, as_of=AS_OF, tender_id=42
+    )
+    assert conn.calls[0] == (5, AS_OF, 111, 42)
 
 
 async def test_competitor_ratio_sample_skips_unusable_rows():

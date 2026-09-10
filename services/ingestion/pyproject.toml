@@ -29,6 +29,9 @@ line-length = 100
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+markers = [
+    "live_api: drives the running console API on localhost; skips when it is not up",
+]
 
 [build-system]
 requires = ["hatchling"]
