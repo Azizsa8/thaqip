@@ -999,3 +999,66 @@ def test_login_error_does_not_reveal_whether_the_user_exists(live):
           f"AND username IN ('{probes[0]}', '{probes[1]}') "
           "AND created_at > now() - interval '1 minute'")
     assert bodies[0] == bodies[1], "login response differs for real vs unknown user"
+
+
+# --------------------------------------------------------------------------
+# analytics / Superset reader: shared corpus only, read-only
+# --------------------------------------------------------------------------
+def _as_superset_ro(sql: str) -> str:
+    """Run SQL exactly as Superset does: a real login as superset_ro, so the
+    role's login-time settings (default_transaction_read_only) apply too.
+    Falls back to SET ROLE when the password is not available."""
+    from _live_auth import credential
+    password = credential("SUPERSET_RO_PASSWORD")
+    if password:
+        cmd = ["docker", "exec", "-e", f"PGPASSWORD={password}", "thaqip-postgres-1",
+               "psql", "-h", "127.0.0.1", "-U", "superset_ro", "-d", "thaqip", "-t", "-A",
+               "-c", sql]
+    else:
+        cmd = ["docker", "exec", "thaqip-postgres-1", "psql", "-U", "thaqip", "-d", "thaqip",
+               "-t", "-A", "-c", "SET ROLE superset_ro", "-c", sql]
+    out = subprocess.run(cmd, capture_output=True, text=True, timeout=60, check=False)
+    return (out.stdout + out.stderr).replace("SET\n", "", 1).strip()
+
+
+@pytest.fixture(scope="module")
+def ro_role():
+    if not _db_up():
+        pytest.skip("database not reachable")
+    if _psql("SELECT count(*) FROM pg_roles WHERE rolname='superset_ro'") != "1":
+        pytest.skip("superset_ro not provisioned (migration 0017)")
+
+
+@pytest.mark.parametrize("table", (
+    "users", "sessions", "auth_events", "tenants", "user_bid_scenarios", "pursuits",
+    "pursuit_simulations", "alert_profiles", "notifications", "telegram_links",
+    "telegram_link_codes", "user_calculator_prefs", "tenders", "offers"))
+def test_superset_reader_cannot_read_any_public_table(ro_role, table):
+    """SQL Lab runs as this role for every Superset user, admins included, so
+    the only thing standing between a dashboard viewer and tenant-private
+    rows is this grant boundary."""
+    out = _as_superset_ro(f"SELECT count(*) FROM public.{table}")
+    assert "permission denied" in out, f"superset_ro read public.{table}: {out[:200]}"
+
+
+def test_superset_reader_sees_only_the_analytics_schema_and_cannot_write(ro_role):
+    assert _as_superset_ro("SELECT count(*) > 0 FROM analytics.tenders") == "t"
+    for sql in ("CREATE TABLE analytics.pwn(i int)", "CREATE TABLE public.pwn(i int)",
+                "CREATE TEMP TABLE pwn(i int)"):
+        out = _as_superset_ro(sql)
+        assert "denied" in out or "read-only" in out, f"{sql!r} was allowed: {out[:200]}"
+
+
+def test_only_owner_and_reader_may_connect_to_the_corpus_database(ro_role):
+    public = _psql("SELECT has_database_privilege('public', current_database(), 'CONNECT')")
+    assert public == "f", "PUBLIC can still connect to the corpus database"
+    if _psql("SELECT count(*) FROM pg_roles WHERE rolname='superset_meta'") == "1":
+        assert _psql("SELECT has_database_privilege('superset_meta', current_database(), "
+                     "'CONNECT')") == "f", "Superset's metadata role can reach the corpus db"
+
+
+def test_analytics_views_carry_no_tenant_columns(ro_role):
+    cols = _psql("SELECT string_agg(DISTINCT column_name, ',') FROM information_schema.columns "
+                 "WHERE table_schema='analytics'")
+    for private in ("tenant_id", "estimated_cost", "proposed_price", "user_id", "password_hash"):
+        assert private not in cols.split(","), f"analytics exposes {private}"

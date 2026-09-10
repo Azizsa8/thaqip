@@ -122,6 +122,27 @@ services:
     depends_on: [postgres]
     restart: unless-stopped
 
+  superset:
+    # Thaqip Analytics — Apache Superset 6.1 over the read-only analytics
+    # schema (db/migrations/0017). Own login and roles; published on the same
+    # two addresses as the console and nowhere else. First run:
+    # bin/bootstrap-superset.sh (creates secrets, metadata db, admin, content).
+    build: ./analytics/superset
+    env_file:
+      - path: var/superset.env
+        required: false
+    environment:
+      SUPERSET_REDIS_URL: redis://redis:6379
+      SERVER_WORKER_AMOUNT: "2"
+      SERVER_THREADS_AMOUNT: "8"
+      GUNICORN_TIMEOUT: "120"
+    ports:
+      - "127.0.0.1:8092:8088"
+      - "100.86.158.23:8092:8088"   # tailscale0
+    depends_on: [postgres, redis]
+    mem_limit: 1536m
+    restart: unless-stopped
+
 volumes:
   pgdata:
   miniodata:
