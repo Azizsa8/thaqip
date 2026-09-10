@@ -7,3 +7,6 @@ uv.lock
 .pytest_cache/
 deploy/netlify/.netlify/
 Thaqip_Price_to_Win_Documentation_Pack.zip
+var/credentials.env
+var/console.env
+var/telegram.env

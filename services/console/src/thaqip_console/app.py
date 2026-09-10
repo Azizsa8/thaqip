@@ -8,6 +8,7 @@ Run:  DATABASE_URL=... uv run uvicorn thaqip_console.app:app --port 8080
 """
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import inspect
 import json
@@ -23,9 +24,12 @@ from pathlib import Path
 from typing import Any
 
 import asyncpg
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
+
+from . import auth as auth_mod
+from .telegram import TelegramBot
 
 log = logging.getLogger("thaqip.console")
 
@@ -73,7 +77,14 @@ async def lifespan(app: FastAPI):
     )
     app.state.tenant_ids = {}
     app.state.scenario_curve_cache = {}
+    app.state.telegram = TelegramBot()
+    poller = None
+    if app.state.telegram.configured and os.environ.get("THAQIP_TELEGRAM_POLL", "1") == "1":
+        poller = asyncio.create_task(app.state.telegram.poll_forever(app.state.pool))
     yield
+    if poller:
+        poller.cancel()
+    await app.state.telegram.close()
     await app.state.pool.close()
 
 
@@ -107,15 +118,135 @@ async def _resolve_tenant(pool: asyncpg.Pool, slug: str) -> int:
 
 
 async def get_tenant_id(request: Request) -> int:
-    """FastAPI dependency: the caller's tenant id. Never returns another
-    tenant's id, and never invents one."""
-    slug = (request.headers.get(TENANT_HEADER) or DEFAULT_TENANT_SLUG).strip()
-    if not slug:
-        slug = DEFAULT_TENANT_SLUG
-    return await _resolve_tenant(request.app.state.pool, slug)
+    """FastAPI dependency: the caller's tenant id, from their CREDENTIAL.
+
+    This used to read the X-Thaqip-Tenant header and fall back to a default,
+    which meant an unauthenticated caller was served the default tenant's
+    private cost and bid rows. The tenant now comes from the authenticated
+    principal that the auth middleware attached to the request; the header is
+    accepted only from a service token, and only to select a tenant that token
+    is already entitled to act for.
+    """
+    who = getattr(request.state, "principal", None)
+    if who is None:
+        who = await auth_mod.require_principal(request)
+    if who.get("auth") == "service_token":
+        requested = (request.headers.get(TENANT_HEADER) or "").strip()
+        if requested and requested != who["tenant_slug"]:
+            return await _resolve_tenant(request.app.state.pool, requested)
+    return int(who["tenant_id"])
 
 
 Tenant = Depends(get_tenant_id)
+
+
+# --- authentication gate ----------------------------------------------------
+# Applied as middleware rather than per-endpoint so a newly added route is
+# protected by default. The failure mode of the previous design was a route
+# that simply forgot to depend on the tenant.
+PUBLIC_PATHS = frozenset({
+    "/", "/index.html", "/favicon.ico",
+    "/api/auth/login", "/api/auth/me", "/api/health",
+})  # /docs and /openapi.json map the whole API surface: session or token only.
+
+
+@app.middleware("http")
+async def _auth_gate(request: Request, call_next):
+    path = request.url.path
+    if request.method == "OPTIONS" or path in PUBLIC_PATHS or path.startswith("/static/"):
+        return await call_next(request)
+    who = await auth_mod.principal(request)
+    if who is None:
+        return JSONResponse(
+            status_code=401,
+            content={"detail": {
+                "error": "authentication_required",
+                "message_ar": "يلزم تسجيل الدخول للوصول إلى هذه البيانات.",
+                "login": "/api/auth/login"}},
+            headers={"WWW-Authenticate": "Bearer"})
+    request.state.principal = who
+    return await call_next(request)
+
+
+class LoginIn(BaseModel):
+    username: str = Field(min_length=1, max_length=120)
+    password: str = Field(min_length=1, max_length=400)
+
+
+LOGIN_WINDOW_MIN = 15
+LOGIN_MAX_FAILS_PER_USER = 8
+LOGIN_MAX_FAILS_PER_IP = 30
+
+
+@app.post("/api/auth/login")
+async def auth_login(body: LoginIn, request: Request, response: Response):
+    pool: asyncpg.Pool = app.state.pool
+    ip = auth_mod.client_ip(request)
+    # Throttle on recent failures from this address — per (username, ip) so a
+    # guesser cannot lock the real admin out from elsewhere, plus an ip-wide cap
+    # against spraying many usernames. Counted from the audit table, so a
+    # console restart does not reset it.
+    pair_fails, ip_fails = await pool.fetchrow(
+        """SELECT count(*) FILTER (WHERE lower(username) = lower($1)),
+                  count(*)
+           FROM auth_events
+           WHERE event = 'login_fail' AND ip = $2
+             AND created_at > now() - make_interval(mins => $3)""",
+        body.username, ip, LOGIN_WINDOW_MIN)
+    if pair_fails >= LOGIN_MAX_FAILS_PER_USER or ip_fails >= LOGIN_MAX_FAILS_PER_IP:
+        await auth_mod.log_auth_event(
+            pool, event="denied", username=body.username, detail="throttled", ip=ip)
+        raise HTTPException(429, detail={
+            "error": "too_many_attempts",
+            "message_ar": f"محاولات فاشلة كثيرة. حاول مرة أخرى بعد {LOGIN_WINDOW_MIN} دقيقة."})
+    who = await auth_mod.authenticate(pool, body.username, body.password)
+    if who is None:
+        await auth_mod.log_auth_event(
+            pool, event="login_fail", username=body.username, ip=ip)
+        raise HTTPException(401, detail={
+            "error": "invalid_credentials",
+            "message_ar": "اسم المستخدم أو كلمة المرور غير صحيحة."})
+    token, expires = await auth_mod.create_session(
+        pool, who["user_id"], user_agent=request.headers.get("user-agent", ""), ip=ip)
+    await pool.execute("UPDATE users SET last_login_at=now() WHERE id=$1", who["user_id"])
+    await auth_mod.log_auth_event(
+        pool, event="login_ok", username=who["username"], user_id=who["user_id"],
+        tenant_id=who["tenant_id"], ip=ip)
+    response.set_cookie(
+        auth_mod.COOKIE_NAME, token, httponly=True, samesite="lax",
+        secure=request.url.scheme == "https",
+        expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"), path="/")
+    return {"username": who["username"], "role": who["role"],
+            "tenant": who["tenant_slug"], "expires_at": expires.isoformat()}
+
+
+@app.post("/api/auth/logout")
+async def auth_logout(request: Request, response: Response):
+    token = request.cookies.get(auth_mod.COOKIE_NAME)
+    if token:
+        who = await auth_mod.session_principal(app.state.pool, token) or {}
+        await auth_mod.revoke_session(app.state.pool, token)
+        await auth_mod.log_auth_event(
+            app.state.pool, event="logout", username=who.get("username"),
+            user_id=who.get("user_id"), tenant_id=who.get("tenant_id"),
+            ip=auth_mod.client_ip(request))
+    response.delete_cookie(auth_mod.COOKIE_NAME, path="/")
+    return {"ok": True}
+
+
+@app.get("/api/auth/me")
+async def auth_me(request: Request):
+    """Who am I? Public so the UI can decide whether to show the login form."""
+    who = await auth_mod.principal(request)
+    if who is None:
+        return {"authenticated": False}
+    return {"authenticated": True, "username": who["username"], "role": who["role"],
+            "tenant": who["tenant_slug"], "auth": who["auth"]}
+
+
+@app.get("/api/health")
+async def health():
+    return {"ok": True}
 
 
 @app.get("/")
@@ -1098,21 +1229,37 @@ async def calibration(tenant_id: int = Tenant):
     return {**dict(row), "recent_pairs": [dict(r) for r in pairs]}
 
 
+# A pricing "prediction" is scored only if it is a system hypothesis (a
+# baseline_* simulation, never a what-if price a user typed into the
+# simulator) AND it was recorded before the award was first seen. Without both
+# rules the card scored typed probes like 50 or 1,000,000 SAR against awards
+# already known, and showed a 3825% MAPE that measured nothing.
+MIN_ACCURACY_SAMPLE = 10
+
+
 @app.get("/api/pricing/accuracy")
 async def pricing_accuracy(tenant_id: int = Tenant):
-    """M5: measured latest price prediction per pursuit versus announced awards."""
+    """M5: system price hypotheses versus the awards that followed them."""
     pool: asyncpg.Pool = app.state.pool
     refreshed = await _measure_all_pricing_predictions(pool, tenant_id)
     row = await pool.fetchrow(
-        """WITH latest AS (
-               SELECT DISTINCT ON (r.pursuit_id) r.*
-               FROM pricing_prediction_results r
-               JOIN pursuit_simulations s ON s.id = r.simulation_id
-               JOIN pursuits pu ON pu.id = r.pursuit_id AND pu.tenant_id = $1
-               ORDER BY r.pursuit_id, s.created_at DESC, r.id DESC
-             )
+        """WITH
+    first_award AS (
+        SELECT tender_id, min(created_at) AS first_seen
+        FROM awards WHERE award_value IS NOT NULL AND award_value > 0
+        GROUP BY tender_id),
+    latest AS (
+        SELECT DISTINCT ON (r.pursuit_id) r.*, s.created_at AS predicted_at,
+               s.win_pct, s.basis
+        FROM pricing_prediction_results r
+        JOIN pursuit_simulations s ON s.id = r.simulation_id
+        JOIN pursuits pu ON pu.id = r.pursuit_id AND pu.tenant_id = $1
+        JOIN first_award fa ON fa.tender_id = pu.tender_id
+        WHERE s.basis LIKE 'baseline\\_%' AND s.created_at < fa.first_seen
+        ORDER BY r.pursuit_id, s.created_at DESC, r.id DESC)
            SELECT count(*)::int AS measured,
                   round(avg(percentage_error)::numeric, 4)::float AS mape_all,
+                  round((percentile_cont(0.5) WITHIN GROUP (ORDER BY percentage_error))::numeric, 4)::float AS median_ape,
                   round(avg(percentage_error) FILTER (WHERE measured_at >= now() - interval '30 days')::numeric, 4)::float AS mape_30d,
                   round(avg(percentage_error) FILTER (WHERE measured_at >= now() - interval '90 days')::numeric, 4)::float AS mape_90d,
                   count(*) FILTER (WHERE measured_at >= now() - interval '30 days')::int AS sample_30d,
@@ -1123,38 +1270,61 @@ async def pricing_accuracy(tenant_id: int = Tenant):
            FROM latest""",
         tenant_id,
     )
-    total_measured = await pool.fetchval(
-        """SELECT count(*) FROM pricing_prediction_results r
-           JOIN pursuits pu ON pu.id = r.pursuit_id
-           WHERE pu.tenant_id = $1""", tenant_id)
+    excluded = await pool.fetchrow(
+        """SELECT count(*) FILTER (WHERE s.basis NOT LIKE 'baseline\\_%')::int AS what_if,
+                  count(*) FILTER (WHERE s.basis LIKE 'baseline\\_%'
+                                   AND s.created_at >= fa.first_seen)::int AS after_award
+           FROM pricing_prediction_results r
+           JOIN pursuit_simulations s ON s.id = r.simulation_id
+           JOIN pursuits pu ON pu.id = r.pursuit_id AND pu.tenant_id = $1
+           LEFT JOIN (SELECT tender_id, min(created_at) AS first_seen FROM awards
+                      GROUP BY tender_id) fa ON fa.tender_id = pu.tender_id""",
+        tenant_id)
     recent = await pool.fetch(
-        """WITH latest AS (
-               SELECT DISTINCT ON (r.pursuit_id) r.*
-               FROM pricing_prediction_results r
-               JOIN pursuit_simulations s ON s.id = r.simulation_id
-               JOIN pursuits pu ON pu.id = r.pursuit_id AND pu.tenant_id = $1
-               ORDER BY r.pursuit_id, s.created_at DESC, r.id DESC
-             )
+        """WITH
+    first_award AS (
+        SELECT tender_id, min(created_at) AS first_seen
+        FROM awards WHERE award_value IS NOT NULL AND award_value > 0
+        GROUP BY tender_id),
+    latest AS (
+        SELECT DISTINCT ON (r.pursuit_id) r.*, s.created_at AS predicted_at,
+               s.win_pct, s.basis
+        FROM pricing_prediction_results r
+        JOIN pursuit_simulations s ON s.id = r.simulation_id
+        JOIN pursuits pu ON pu.id = r.pursuit_id AND pu.tenant_id = $1
+        JOIN first_award fa ON fa.tender_id = pu.tender_id
+        WHERE s.basis LIKE 'baseline\\_%' AND s.created_at < fa.first_seen
+        ORDER BY r.pursuit_id, s.created_at DESC, r.id DESC)
            SELECT r.pursuit_id, left(t.name, 70) AS name,
                   r.predicted_price::float AS predicted_price,
                   r.actual_award_value::float AS actual_award_value,
                   r.absolute_error::float AS absolute_error,
                   round((r.percentage_error * 100)::numeric, 1)::float AS error_pct,
-                  s.win_pct::float AS win_pct,
-                  s.basis,
-                  r.measured_at
+                  r.win_pct::float AS win_pct, r.basis, r.predicted_at, r.measured_at
            FROM latest r
-           JOIN pursuit_simulations s ON s.id = r.simulation_id
            JOIN pursuits p ON p.id = r.pursuit_id
            JOIN tenders t ON t.id = p.tender_id
            ORDER BY r.measured_at DESC LIMIT 12""",
         tenant_id,
     )
     out = dict(row)
-    out["total_measured_simulations"] = total_measured
+    out["min_sample"] = MIN_ACCURACY_SAMPLE
+    out["excluded"] = {"what_if_simulations": excluded["what_if"],
+                       "recorded_after_award": excluded["after_award"]}
     out["refreshed"] = refreshed
-    out["status"] = "measured" if out["measured"] else "awaiting_awards"
-    out["confidence"] = "high" if out["sample_90d"] >= 50 else "medium" if out["sample_90d"] >= 10 else "low"
+    if not out["measured"]:
+        out["status"] = "awaiting_awards"
+    elif out["measured"] < MIN_ACCURACY_SAMPLE:
+        out["status"] = "insufficient_sample"
+    else:
+        out["status"] = "measured"
+    if out["status"] != "measured":
+        # Below the floor a percentage is an anecdote, not an accuracy figure.
+        for key in ("mape_all", "median_ape", "mape_30d", "mape_90d",
+                    "within_10_pct", "within_20_pct", "within_30_pct"):
+            out[key] = None
+    out["confidence"] = ("high" if out["sample_90d"] >= 50 else
+                         "medium" if out["sample_90d"] >= MIN_ACCURACY_SAMPLE else "low")
     out["recent"] = [dict(r) for r in recent]
     return out
 
@@ -1536,6 +1706,70 @@ async def agency_detail(aid: int):
     return out
 
 
+# ------------------------------------------------------------ telegram
+@app.get("/api/telegram")
+async def telegram_status(tenant_id: int = Tenant):
+    bot: TelegramBot = app.state.telegram
+    username = None
+    if bot.configured:
+        try:
+            username = await bot.ensure_identity()
+        except Exception as exc:
+            bot.last_error = str(exc).replace(bot.token, "***")[:200]
+    links = await app.state.pool.fetch(
+        """SELECT id, chat_id, chat_type, chat_title, tg_username, first_name, linked_at
+           FROM telegram_links WHERE tenant_id=$1 AND active ORDER BY linked_at DESC""",
+        tenant_id)
+    return {"configured": bot.configured, "bot_username": username,
+            "polling": bot.last_poll_at is not None and bot.last_error is None,
+            "last_poll_at": bot.last_poll_at, "last_error": bot.last_error,
+            "links": [dict(r) for r in links]}
+
+
+@app.post("/api/telegram/link")
+async def telegram_link(request: Request, tenant_id: int = Tenant):
+    bot: TelegramBot = app.state.telegram
+    if not bot.configured:
+        raise HTTPException(409, detail={
+            "error": "telegram_not_configured",
+            "message_ar": "لم يُضبط رمز البوت بعد. شغّل bin/set-telegram-token.sh على الخادم."})
+    who = getattr(request.state, "principal", None) or {}
+    try:
+        return await bot.new_link(app.state.pool, tenant_id, who.get("user_id"))
+    except RuntimeError as exc:
+        raise HTTPException(502, detail={"error": "telegram_unreachable", "detail": str(exc)})
+
+
+@app.post("/api/telegram/test")
+async def telegram_test(tenant_id: int = Tenant):
+    bot: TelegramBot = app.state.telegram
+    if not bot.configured:
+        raise HTTPException(409, detail={"error": "telegram_not_configured"})
+    links = await app.state.pool.fetch(
+        "SELECT chat_id FROM telegram_links WHERE tenant_id=$1 AND active", tenant_id)
+    if not links:
+        raise HTTPException(422, detail={"error": "telegram_not_linked",
+                                         "message_ar": "لا توجد محادثة مربوطة بعد."})
+    results = []
+    for link in links:
+        try:
+            await bot.send(link["chat_id"], "🔔 رسالة تجريبية من ثاقب — التنبيهات تعمل.")
+            results.append({"chat_id": link["chat_id"], "ok": True})
+        except RuntimeError as exc:
+            results.append({"chat_id": link["chat_id"], "ok": False, "error": str(exc)})
+    return {"results": results}
+
+
+@app.delete("/api/telegram/links/{link_id}")
+async def telegram_unlink(link_id: int, tenant_id: int = Tenant):
+    done = await app.state.pool.fetchval(
+        """UPDATE telegram_links SET active=false WHERE id=$1 AND tenant_id=$2
+           RETURNING id""", link_id, tenant_id)
+    if done is None:
+        raise HTTPException(404)
+    return {"ok": True}
+
+
 class ProfileIn(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     channel: str = Field(default="log", pattern="^(log|telegram|email)$")
@@ -1572,8 +1806,26 @@ async def profiles(tenant_id: int = Tenant):
     return [dict(r) for r in rows]
 
 
+async def _telegram_default_target(tenant_id: int, target: str | None) -> str:
+    """A Telegram profile with no real chat id goes to the tenant's most
+    recently linked chat; with no linked chat it is refused, not silently
+    parked as 'pending' forever."""
+    if target and target.strip() and target.strip() != "dev-console":
+        return target.strip()
+    chat = await app.state.pool.fetchval(
+        """SELECT chat_id FROM telegram_links WHERE tenant_id=$1 AND active
+           ORDER BY linked_at DESC LIMIT 1""", tenant_id)
+    if chat is None:
+        raise HTTPException(422, detail={
+            "error": "telegram_not_linked",
+            "message_ar": "اربط حساب تيليجرام أولاً من بطاقة «ربط تيليجرام» أعلى الصفحة."})
+    return chat
+
+
 @app.post("/api/profiles")
 async def create_profile(p: ProfileIn, tenant_id: int = Tenant):
+    if p.channel == "telegram":
+        p.target = await _telegram_default_target(tenant_id, p.target)
     row = await app.state.pool.fetchrow(
         """INSERT INTO alert_profiles (name, channel, target, keywords, activity_ids,
                                        agency_ids, sources, event_types, digest_interval,
@@ -1600,6 +1852,8 @@ async def update_profile(pid: int, patch: ProfilePatch, tenant_id: int = Tenant)
         raise HTTPException(422, "sources must include etimad and/or forsah")
     if not data["event_types"]:
         raise HTTPException(422, "event_types must not be empty")
+    if data["channel"] == "telegram":
+        data["target"] = await _telegram_default_target(tenant_id, data["target"])
     row = await app.state.pool.fetchrow(
         """UPDATE alert_profiles
            SET name=$2, channel=$3, target=$4, keywords=$5, activity_ids=$6,

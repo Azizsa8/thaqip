@@ -16,6 +16,7 @@ import os
 
 import pytest
 
+from thaqip_console import auth as auth_mod
 from thaqip_console.app import (
     LABEL_AR,
     LINEAGE_FACT_TABLES,
@@ -129,8 +130,12 @@ def client():
     pytest.importorskip("thaqip_ingestion.p2w.contracts")
     fastapi_testclient = pytest.importorskip("fastapi.testclient")
     os.environ["DATABASE_URL"] = DSN
+    # The auth gate refuses anonymous callers; act as a service token, the
+    # one credential that may select a tenant with the header these tests use.
+    auth_mod.SERVICE_TOKEN = "p2w-api-test-token"
     try:
-        with fastapi_testclient.TestClient(app) as c:
+        with fastapi_testclient.TestClient(
+                app, headers={"Authorization": "Bearer p2w-api-test-token"}) as c:
             if c.get("/api/stats").status_code != 200:
                 pytest.skip("console database is not reachable")
             yield c

@@ -27,6 +27,7 @@ tailwind.config = {
 }
 </script>
 <style>
+  [hidden]{display:none!important}
   :root{color-scheme:light;--safe-bottom:env(safe-area-inset-bottom,0px)}
   html{background:radial-gradient(circle at 18% 8%,rgba(36,121,138,.10),transparent 34%),radial-gradient(circle at 88% 2%,rgba(166,106,18,.12),transparent 28%),#F5F1E8;scroll-behavior:smooth}
   body{background:transparent;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
@@ -36,7 +37,7 @@ tailwind.config = {
   .soft-card{background:linear-gradient(180deg,rgba(255,254,250,.98),rgba(255,254,250,.92));box-shadow:0 1px 2px rgba(16,37,31,.05),0 16px 42px rgba(16,37,31,.08);backdrop-filter:blur(16px)}
   .text-mut{color:#4F5F57!important}.text-deep{color:#075E46!important}.bg-tint{background-color:#DDECE4!important}.border-line{border-color:#D8D0C1!important}
   .theme-dark,.theme-dark.bg-paper{background:#0D1714!important;color:#F4EFE6}.theme-dark .bg-paper{background-color:#0D1714!important}.theme-dark [class*="bg-paper/"]{background-color:rgba(16,30,25,.82)!important}.theme-dark .bg-card,.theme-dark .soft-card{background:linear-gradient(180deg,rgba(20,34,29,.98),rgba(15,27,23,.96))!important}.theme-dark .text-ink{color:#F4EFE6!important}.theme-dark .text-mut{color:#B7C3BC!important}.theme-dark .border-line{border-color:#2B4139!important}.theme-dark .bg-tint{background-color:#17382D!important}.theme-dark .text-deep{color:#76D6B0!important}.theme-dark .text-bronze{color:#E4B45F!important}.theme-dark input,.theme-dark select{background:#13231E!important;color:#F4EFE6!important}.theme-dark table thead{background:rgba(19,35,30,.92)!important}.theme-dark tr:hover{background:rgba(23,56,45,.45)!important}
-  .density-compact #view-dash{max-width:1560px;margin-inline:auto}.density-compact #chartMonthly{height:12.5rem}.density-compact .dashboard-chart-card{align-self:start}.dashboard-panel{min-height:0}
+  section[id^="view-"],.header-inner{max-width:1600px;margin-inline:auto}#view-dash.density-compact #chartMonthly{height:12.5rem}.dashboard-panel{min-height:0}
   .tap-card{touch-action:manipulation;transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s ease,background .22s ease,border-color .22s ease}
   .tap-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(16,37,31,.08),0 22px 52px rgba(16,37,31,.12)}
   .tap-card:active{transform:translateY(0) scale(.985)}
@@ -74,6 +75,32 @@ tailwind.config = {
 </style>
 </head>
 <body class="bg-paper text-ink font-sans text-[14px] leading-relaxed min-h-screen mobile-shell lg:pb-0">
+
+<!-- ======================= LOGIN GATE ======================= -->
+<div id="loginGate" class="fixed inset-0 z-[80] grid place-items-center px-4 bg-paper" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <form id="loginForm" class="soft-card w-full max-w-sm rounded-3xl border border-line p-7" autocomplete="on" novalidate>
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-11 h-11 rounded-xl bg-deep grid place-items-center shadow-card">
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <div>
+        <div id="loginTitle" class="text-[20px] font-bold tracking-tight">ثاقب</div>
+        <div class="text-[12px] text-mut">تسجيل الدخول إلى وحدة التحكم</div>
+      </div>
+    </div>
+    <div class="ledger-rule rounded-full mb-6"></div>
+    <label class="block text-[12.5px] font-medium mb-1.5" for="loginUser">اسم المستخدم</label>
+    <input id="loginUser" name="username" autocomplete="username" required dir="ltr"
+      class="focus-ring w-full rounded-xl border border-line bg-card px-3.5 py-2.5 mb-4 text-[14px]">
+    <label class="block text-[12.5px] font-medium mb-1.5" for="loginPass">كلمة المرور</label>
+    <input id="loginPass" name="password" type="password" autocomplete="current-password" required dir="ltr"
+      class="focus-ring w-full rounded-xl border border-line bg-card px-3.5 py-2.5 mb-2 text-[14px]">
+    <div id="loginErr" class="min-h-[20px] text-[12.5px] text-[#A84032] mb-3" role="alert" aria-live="polite"></div>
+    <button id="loginBtn" type="submit"
+      class="focus-ring w-full bg-deep hover:bg-deepd text-white rounded-xl px-4 py-3 text-[14px] font-semibold transition disabled:opacity-60">دخول</button>
+    <p class="text-[11px] text-mut mt-4 leading-relaxed">الجلسة محفوظة على هذا الجهاز لمدة ١٤ يومًا، ويمكن إنهاؤها من زر الخروج.</p>
+  </form>
+</div>
 
 <div id="appShell" class="flex min-h-screen">
 
@@ -124,9 +151,12 @@ tailwind.config = {
         <span class="text-mut">مُرسّاة</span><span id="scWon" class="num text-[12px] text-mut">—</span></div>
     </div>
     <div class="mt-auto px-5 py-5 border-t border-line flex items-center gap-3">
-      <div class="w-9 h-9 rounded-full bg-deep/10 text-deep grid place-items-center font-bold">ع</div>
-      <div class="leading-tight"><div class="font-medium text-[13px]">وحدة تحكم داخلية</div>
-      <div class="text-[11px] text-mut">بيانات اعتماد الحيّة</div></div>
+      <div id="whoAvatar" class="w-9 h-9 rounded-full bg-deep/10 text-deep grid place-items-center font-bold num">—</div>
+      <div class="leading-tight min-w-0 flex-1"><div id="whoName" class="font-medium text-[13px] truncate" dir="ltr">—</div>
+      <div id="whoRole" class="text-[11px] text-mut">—</div></div>
+      <button id="logoutBtn" type="button" title="تسجيل الخروج" aria-label="تسجيل الخروج"
+        class="focus-ring shrink-0 w-9 h-9 rounded-lg grid place-items-center text-mut hover:bg-tint hover:text-deep transition">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h11"/></svg></button>
     </div>
   </aside>
 
@@ -139,13 +169,14 @@ tailwind.config = {
       <button data-view="intel" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">▥</span><span>منافسين</span></button>
       <button data-view="p2w" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">◑</span><span>التسعير</span></button>
       <button data-view="settings" class="navbtn focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">⚙</span><span>ضبط</span></button>
+      <button id="logoutBtnMobile" type="button" class="focus-ring shrink-0 min-w-[64px] snap-start flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-mut active:scale-95 transition"><span class="text-[17px]">⎋</span><span>خروج</span></button>
     </div>
   </nav>
 
   <!-- ======================= MAIN ======================= -->
   <div class="flex-1 min-w-0">
     <header class="sticky top-0 z-20 bg-paper/88 backdrop-blur-xl border-b border-line">
-      <div class="grid grid-cols-[1fr_auto] sm:flex sm:flex-nowrap items-center gap-3 sm:gap-4 px-4 lg:px-8 min-h-16 py-3 sm:py-0">
+      <div class="header-inner grid grid-cols-[1fr_auto] sm:flex sm:flex-nowrap items-center gap-3 sm:gap-4 px-4 lg:px-8 min-h-16 py-3 sm:py-0">
         <h1 id="viewTitle" class="text-[17px] font-semibold">لوحة القيادة</h1>
         <span id="freshChip" class="hidden sm:inline-flex items-center gap-2 text-[12px] text-deep bg-tint rounded-full px-3 py-1">
           <span class="w-1.5 h-1.5 rounded-full bg-deep animate-pulse"></span><span id="freshTxt">…</span></span>
@@ -169,7 +200,8 @@ tailwind.config = {
       <div id="commandMetrics" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4"></div>
 
       <div class="grid xl:grid-cols-12 gap-4 lg:gap-5 items-start">
-        <div class="dashboard-panel dashboard-chart-card xl:col-span-7 soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up" style="animation-delay:.05s">
+        <div class="xl:col-span-7 space-y-4 lg:space-y-5 min-w-0">
+        <div class="dashboard-panel dashboard-chart-card soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up" style="animation-delay:.05s">
           <div class="flex items-baseline justify-between mb-1">
             <h2 id="monthlyTitle" class="font-semibold text-[15px]">العروض حسب شهر الإغلاق</h2>
             <div class="flex items-center gap-4 text-[12px] text-mut">
@@ -180,6 +212,12 @@ tailwind.config = {
           <p id="monthlySub" class="text-[12px] text-mut mb-3">اضغط على أي شهر لعرض المنافسات المُرسّاة في جدول الاستكشاف.</p>
           <div id="chartMonthly" class="h-48 lg:h-52 max-h-[220px]"></div>
         </div>
+        <div class="soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up" style="animation-delay:.14s">
+          <h2 id="moneyTitle" class="font-semibold text-[15px] mb-1">أين المال؟</h2>
+          <p id="moneySub" class="text-[12px] text-mut mb-4">شرائح قيم الترسيات المحصودة. اضغط على الشريحة لفتح الترسيات.</p>
+          <div id="awardBandsChart"></div>
+        </div>
+        </div>
 
         <div class="dashboard-panel xl:col-span-5 soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up self-start" style="animation-delay:.1s">
           <h2 id="pulseTitle" class="font-semibold text-[15px] mb-1">نبض المصدر</h2>
@@ -189,7 +227,7 @@ tailwind.config = {
       </div>
 
       <div class="grid xl:grid-cols-12 gap-4 lg:gap-5 items-start">
-        <div class="xl:col-span-8 soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up" style="animation-delay:.12s">
+        <div class="xl:col-span-12 soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up" style="animation-delay:.12s">
           <div class="flex items-start justify-between gap-3 mb-4">
             <div>
               <h2 id="marketTitle" class="font-semibold text-[15px]">خريطة أين نلعب؟</h2>
@@ -198,11 +236,6 @@ tailwind.config = {
             <span class="text-[10.5px] bg-tint text-deep rounded-full px-2.5 py-1">تفاعلية</span>
           </div>
           <div id="marketHeat" class="grid md:grid-cols-2 gap-4"></div>
-        </div>
-        <div class="xl:col-span-4 soft-card border border-line rounded-3xl p-5 lg:p-6 fade-up" style="animation-delay:.14s">
-          <h2 id="moneyTitle" class="font-semibold text-[15px] mb-1">أين المال؟</h2>
-          <p id="moneySub" class="text-[12px] text-mut mb-4">شرائح قيم الترسيات المحصودة. اضغط على الشريحة لفتح الترسيات.</p>
-          <div id="awardBandsChart"></div>
         </div>
       </div>
 
@@ -284,6 +317,14 @@ tailwind.config = {
     <section id="view-alerts" class="hidden px-5 lg:px-8 py-7">
       <div class="grid xl:grid-cols-5 gap-5">
         <div class="xl:col-span-2 space-y-5">
+          <div id="tgCard" class="bg-card border border-line rounded-2xl shadow-card p-6">
+            <div class="flex items-center gap-2 mb-1">
+              <svg class="w-5 h-5 text-[#229ED9]" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3l-3.3 15.6c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6 13.4l-5-1.6c-1.1-.3-1.1-1.1.2-1.6L20.6 2.8c.9-.3 1.7.2 1.3 1.5z"/></svg>
+              <h2 class="font-semibold text-[15px]">تيليجرام</h2>
+              <span id="tgBadge" class="ms-auto text-[10.5px] rounded-full px-2 py-0.5 bg-paper text-mut">…</span>
+            </div>
+            <div id="tgBody" class="text-[12.5px] text-mut leading-relaxed">جارٍ التحقق…</div>
+          </div>
           <div class="bg-card border border-line rounded-2xl shadow-card p-6">
             <h2 class="font-semibold text-[15px] mb-4">ملف تنبيه جديد</h2>
             <div class="space-y-3">
@@ -292,13 +333,13 @@ tailwind.config = {
               <input id="pKeywords" placeholder="كلمات مفتاحية مفصولة بفواصل (اختياري)"
                 class="w-full bg-paper border border-line rounded-lg px-3.5 py-2 text-[13px]">
               <div class="flex gap-2">
-                <select id="pChannel" class="flex-1 bg-paper border border-line rounded-lg px-3 py-2 text-[13px]">
+                <select id="pChannel" class="flex-1 min-w-0 bg-paper border border-line rounded-lg px-3 py-2 text-[13px]">
                   <option value="log">سجل النظام (تجريبي)</option>
                   <option value="telegram">تيليجرام</option>
                   <option value="email">بريد (قريباً)</option>
                 </select>
-                <input id="pTarget" placeholder="الوجهة (chat id / بريد)" value="dev-console"
-                  class="flex-1 bg-paper border border-line rounded-lg px-3.5 py-2 text-[13px]">
+                <input id="pTarget" placeholder="الوجهة (فارغ = حساب تيليجرام المربوط)" value="dev-console"
+                  class="flex-1 min-w-0 bg-paper border border-line rounded-lg px-3.5 py-2 text-[13px]">
               </div>
               <select id="pDigest" class="w-full bg-paper border border-line rounded-lg px-3 py-2 text-[13px]">
                 <option value="instant">فوري</option>
@@ -468,6 +509,81 @@ tailwind.config = {
 <script>
 const $ = s => document.querySelector(s);
 const API = '';
+
+/* ---------- authentication ----------
+   Every /api call goes through window.fetch, so one wrapper covers them all:
+   any 401 from a protected endpoint drops the user back on the login gate
+   instead of rendering half-empty cards from error bodies. */
+const ROLE_AR = {admin:'مدير النظام', member:'عضو', viewer:'مشاهد'};
+let authUser = null, appStarted = false;
+const _fetch = window.fetch.bind(window);
+window.fetch = async (input, init) => {
+  const r = await _fetch(input, {credentials:'same-origin', ...(init||{})});
+  const url = typeof input === 'string' ? input : (input && input.url) || '';
+  if(r.status === 401 && url.includes('/api/') && !url.includes('/api/auth/')){
+    showLogin('انتهت الجلسة، يرجى تسجيل الدخول مجددًا.');
+    // Abort the caller: rendering a 401 body as data is how cards end up
+    // blank or throwing. The handler below keeps this out of the console.
+    throw new AuthRequired();
+  }
+  return r;
+};
+class AuthRequired extends Error { constructor(){ super('authentication_required'); this.name = 'AuthRequired'; } }
+window.addEventListener('unhandledrejection', e => { if(e.reason instanceof AuthRequired) e.preventDefault(); });
+function showLogin(msg){
+  authUser = null;
+  const g = document.getElementById('loginGate');
+  g.hidden = false;
+  document.getElementById('appShell')?.setAttribute('inert','');
+  document.getElementById('loginErr').textContent = msg || '';
+  setTimeout(() => document.getElementById(document.getElementById('loginUser').value ? 'loginPass' : 'loginUser').focus(), 30);
+}
+function hideLogin(){
+  document.getElementById('loginGate').hidden = true;
+  document.getElementById('appShell')?.removeAttribute('inert');
+  document.getElementById('loginPass').value = '';
+}
+function paintWho(u){
+  document.getElementById('whoName').textContent = u.username;
+  document.getElementById('whoRole').textContent = (ROLE_AR[u.role] || u.role) + ' · ' + u.tenant;
+  document.getElementById('whoAvatar').textContent = (u.username[0] || '?').toUpperCase();
+}
+async function authCheck(){
+  try{
+    const me = await (await _fetch(API+'/api/auth/me', {credentials:'same-origin'})).json();
+    if(me && me.authenticated){ authUser = me; paintWho(me); hideLogin(); return true; }
+  }catch(_){}
+  showLogin(''); return false;
+}
+async function doLogin(ev){
+  ev.preventDefault();
+  const btn = document.getElementById('loginBtn'), err = document.getElementById('loginErr');
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  if(!username || !password){ err.textContent = 'أدخل اسم المستخدم وكلمة المرور.'; return; }
+  btn.disabled = true; btn.textContent = 'جارٍ التحقق…'; err.textContent = '';
+  try{
+    const r = await _fetch(API+'/api/auth/login', {method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'}, body: JSON.stringify({username, password})});
+    const body = await r.json().catch(() => ({}));
+    if(!r.ok){
+      err.textContent = (body.detail && body.detail.message_ar) || (r.status === 429 ? 'محاولات كثيرة، انتظر قليلًا.' : 'تعذّر تسجيل الدخول.');
+      document.getElementById('loginPass').select();
+      return;
+    }
+    await authCheck();
+    startApp();
+  }catch(_){ err.textContent = 'تعذّر الاتصال بالخادم.'; }
+  finally{ btn.disabled = false; btn.textContent = 'دخول'; }
+}
+async function doLogout(){
+  try{ await _fetch(API+'/api/auth/logout', {method:'POST', credentials:'same-origin'}); }catch(_){}
+  document.getElementById('loginUser').value = '';
+  showLogin('تم تسجيل الخروج.');
+}
+document.getElementById('loginForm').addEventListener('submit', doLogin);
+document.getElementById('logoutBtn')?.addEventListener('click', doLogout);
+document.getElementById('logoutBtnMobile')?.addEventListener('click', doLogout);
 let offset = 0; const LIMIT = 25;
 
 const nf = new Intl.NumberFormat('en-US');
@@ -682,16 +798,32 @@ function pulse(d){
 const pulseRow = (k,v) => `<div class="flex items-baseline justify-between">
   <span class="text-[13px] text-mut">${k}</span><span class="num font-semibold">${v}</span></div>`;
 function pricingAccuracyCard(acc){
-  if(!acc || acc.measured === 0){
+  // Only system hypotheses recorded BEFORE the award count, and no percentage
+  // is shown below the minimum sample — a single outlier is not an accuracy.
+  const n = acc?.measured || 0, min = acc?.min_sample || 10;
+  const ex = acc?.excluded || {};
+  const exNote = (ex.what_if_simulations || ex.recorded_after_award)
+    ? `<div class="text-[10.5px] text-mut mt-2 leading-relaxed">مستبعد من القياس:
+         <span class="num">${nf.format(ex.what_if_simulations||0)}</span> محاكاة يدوية (مدخلاتك، لا توقعات النظام) ·
+         <span class="num">${nf.format(ex.recorded_after_award||0)}</span> فرضية سُجلت بعد إعلان الترسية</div>` : '';
+  const seedBtn = `<button onclick="seedPricingBaselines()" class="mt-2.5 text-[10.5px] text-deep font-semibold bg-tint hover:bg-deep hover:text-white rounded-lg px-2.5 py-1 transition">بذر فرضيات للمنافسات المفتوحة</button>`;
+  if(!acc || acc.status !== 'measured'){
+    const pct = Math.min(100, Math.round(100 * n / min));
     return `<div class="rounded-xl border border-line bg-paper/70 p-3">
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between gap-2">
         <span class="text-[12px] text-mut">دقة توقع السعر</span>
-        <span class="text-[10px] bg-bronzet text-bronze rounded-full px-2 py-0.5">بانتظار القياس</span>
+        <span class="text-[10px] bg-bronzet text-bronze rounded-full px-2 py-0.5">${n ? 'عينة غير كافية' : 'بانتظار القياس'}</span>
       </div>
-      <div class="text-[11.5px] text-mut mt-2 leading-relaxed">ستظهر MAPE بعد ربط محاكاة تسعير بترسية فعلية.</div>
-      <button onclick="seedPricingBaselines()" class="mt-2 text-[10.5px] text-deep font-semibold bg-tint hover:bg-deep hover:text-white rounded-lg px-2.5 py-1 transition">بذر فرضيات ناقصة</button>
+      <div class="text-[13px] font-semibold mt-2">لا توجد دقة موثّقة بعد</div>
+      <div class="text-[11.5px] text-mut mt-1 leading-relaxed">تُحسب الدقة من فرضيات تسعير سجّلها النظام <b>قبل</b> إعلان الترسية، وتظهر النسبة عند اكتمال <span class="num">${nf.format(min)}</span> قياسات.</div>
+      <div class="mt-2.5 flex items-center gap-2">
+        <div class="flex-1 h-1.5 rounded-full bg-line/70 overflow-hidden"><div class="h-full bg-deep rounded-full" style="width:${pct}%"></div></div>
+        <span class="num text-[11px] text-ink">${nf.format(n)}/${nf.format(min)}</span>
+      </div>
+      ${exNote}${seedBtn}
     </div>`;
   }
+  const median = Math.round(acc.median_ape * 1000) / 10;
   const mape = Math.round((acc.mape_90d ?? acc.mape_all) * 1000) / 10;
   const recent = (acc.recent || [])[0];
   const conf = {high:'ثقة عالية', medium:'ثقة متوسطة', low:'ثقة منخفضة'}[acc.confidence] || 'ثقة منخفضة';
@@ -700,21 +832,21 @@ function pricingAccuracyCard(acc){
       <span class="text-[12px] text-mut">دقة توقع السعر</span>
       <span class="text-[10px] ${acc.confidence==='low'?'bg-bronzet text-bronze':'bg-tint text-deep'} rounded-full px-2 py-0.5">${conf}</span>
     </div>
-    <div class="flex items-end justify-between mt-2">
+    <div class="flex items-end justify-between mt-2 gap-3">
       <div>
-        <div class="num text-[24px] font-bold text-deep leading-none">${mape}%</div>
-        <div class="text-[10.5px] text-mut mt-1">MAPE آخر 90 يوم · ${nf.format(acc.measured)} pursuit</div>
+        <div class="num text-[24px] font-bold text-deep leading-none">±${median}%</div>
+        <div class="text-[10.5px] text-mut mt-1">وسيط الخطأ · ${nf.format(n)} قياس · MAPE <span class="num">${mape}%</span></div>
       </div>
       <div class="text-left text-[10.5px] text-mut leading-relaxed">
         <div>داخل 10%: <span class="num text-ink">${acc.within_10_pct ?? 0}%</span></div>
         <div>داخل 20%: <span class="num text-ink">${acc.within_20_pct ?? 0}%</span></div>
-        <div>كل القياسات: <span class="num text-ink">${nf.format(acc.total_measured_simulations || acc.measured)}</span></div>
+        <div>داخل 30%: <span class="num text-ink">${acc.within_30_pct ?? 0}%</span></div>
       </div>
     </div>
     ${recent?`<div class="mt-3 pt-2 border-t border-line/70 text-[11px] text-mut leading-relaxed">
-      آخر قياس: توقع <span class="num text-ink">${money(recent.predicted_price)}</span> مقابل ترسية <span class="num text-ink">${money(recent.actual_award_value)}</span> · خطأ <span class="num text-deep">${recent.error_pct}%</span>
+      آخر قياس: فرضية <span class="num text-ink">${money(recent.predicted_price)}</span> مقابل ترسية <span class="num text-ink">${money(recent.actual_award_value)}</span> · خطأ <span class="num text-deep">${recent.error_pct}%</span>
     </div>`:''}
-    <button onclick="seedPricingBaselines()" class="mt-3 text-[10.5px] text-deep font-semibold bg-tint hover:bg-deep hover:text-white rounded-lg px-2.5 py-1 transition">بذر فرضيات ناقصة</button>
+    ${exNote}${seedBtn}
   </div>`;
 }
 async function seedPricingBaselines(){
@@ -847,7 +979,7 @@ async function loadCalibration(){
     (await fetch(API+'/api/pricing/accuracy')).json(),
   ]);
   const el = $('#calRow'); if(!el) return;
-  el.innerHTML = pulseRow('عيّنة معايرة التوقعات',
+  el.innerHTML = pulseRow('توقعات فوز حُسمت نتيجتها',
     `${nf.format(c.resolved)}/${nf.format(c.predictions)}` +
     (c.resolved>0 && c.avg_predicted!=null
       ? ` <span class="text-[10.5px] text-mut">(متوقع ${Math.round(c.avg_predicted*100)}% · فعلي ${Math.round(c.actual_win_rate*100)}%)</span>`
@@ -1532,7 +1664,69 @@ async function saveSettings(){
 const CH_LABEL = {log:'سجل', telegram:'تيليجرام', email:'بريد'};
 const DIGEST_LABEL = {instant:'فوري', hourly:'كل ساعة', daily:'يومي'};
 let notifProfile = null, notifProfileName = '', alertProfiles = [];
+/* ---------- telegram linking ---------- */
+async function loadTelegram(){
+  const body = $('#tgBody'), badge = $('#tgBadge'); if(!body) return;
+  let t;
+  try{ t = await (await fetch(API+'/api/telegram')).json(); }catch(_){ return; }
+  const setBadge = (txt, cls) => { badge.textContent = txt; badge.className = 'ms-auto text-[10.5px] rounded-full px-2 py-0.5 ' + cls; };
+  if(!t.configured){
+    setBadge('غير مُفعّل', 'bg-bronzet text-bronze');
+    body.innerHTML = `<ol class="list-decimal ps-5 space-y-1">
+      <li>في تيليجرام افتح <span dir="ltr" class="num text-ink">@BotFather</span> وأرسل <span dir="ltr" class="num text-ink">/newbot</span> ثم اختر اسمًا.</li>
+      <li>على الخادم شغّل <span dir="ltr" class="num text-ink">bin/set-telegram-token.sh</span> والصق الرمز (لا يظهر أثناء الكتابة).</li>
+      <li>عد إلى هنا واضغط «ربط تيليجرام».</li></ol>`;
+    return;
+  }
+  if(t.last_error) setBadge('خطأ في الاتصال', 'bg-dangert text-danger');
+  else setBadge(t.links.length ? 'مربوط' : 'جاهز للربط', t.links.length ? 'bg-tint text-deep' : 'bg-paper text-mut');
+  const links = t.links.map(l => `<div class="flex items-center justify-between gap-2 py-1.5 border-b border-line/60 last:border-0">
+      <span class="text-ink truncate">${esc(l.chat_title || l.first_name || '')} ${l.tg_username ? `<span dir="ltr" class="text-mut">@${esc(l.tg_username)}</span>` : ''}</span>
+      <button onclick="tgUnlink(${l.id})" class="text-[11px] text-mut hover:text-danger">إلغاء الربط</button></div>`).join('');
+  body.innerHTML = `
+    <div class="text-[12px]">البوت: <a dir="ltr" class="text-deep num" target="_blank" rel="noopener" href="https://t.me/${esc(t.bot_username||'')}">@${esc(t.bot_username || '—')}</a></div>
+    ${t.last_error ? `<div class="text-[11.5px] text-danger mt-1">${esc(t.last_error)}</div>` : ''}
+    <div class="mt-2">${links || '<div class="text-[12px]">لا توجد محادثة مربوطة بعد.</div>'}</div>
+    <div id="tgLinkBox" class="mt-3"></div>
+    <div class="flex gap-2 mt-3">
+      <button onclick="tgLink()" class="focus-ring flex-1 bg-[#229ED9] hover:opacity-90 text-white rounded-lg px-3 py-2 text-[12.5px] font-semibold">ربط تيليجرام</button>
+      ${t.links.length ? `<button onclick="tgTest(this)" class="focus-ring bg-tint text-deep rounded-lg px-3 py-2 text-[12.5px] font-semibold">رسالة تجريبية</button>` : ''}
+    </div>`;
+}
+let tgWatch = null;
+async function tgLink(){
+  const r = await fetch(API+'/api/telegram/link', {method:'POST'});
+  const d = await r.json().catch(() => ({}));
+  const box = $('#tgLinkBox');
+  if(!r.ok){ box.innerHTML = `<div class="text-danger text-[12px]">${esc((d.detail && (d.detail.message_ar || d.detail.detail)) || 'تعذّر إنشاء رابط')}</div>`; return; }
+  window.open(d.url, '_blank', 'noopener');
+  box.innerHTML = `<div class="rounded-lg bg-paper border border-line p-3 text-[12px]">
+    فُتح تيليجرام في نافذة جديدة — اضغط <b>Start</b> هناك. إن لم يُفتح:
+    <a class="text-deep break-all" dir="ltr" target="_blank" rel="noopener" href="${esc(d.url)}">${esc(d.url)}</a>
+    <div class="text-mut mt-1">صالح لمدة 10 دقائق ولمرة واحدة.</div></div>`;
+  const before = (await (await fetch(API+'/api/telegram')).json()).links.length;
+  clearInterval(tgWatch);
+  let tries = 0;
+  tgWatch = setInterval(async () => {
+    if(++tries > 120){ clearInterval(tgWatch); return; }
+    const t = await (await fetch(API+'/api/telegram')).json();
+    if(t.links.length > before){ clearInterval(tgWatch); loadTelegram(); }
+  }, 5000);
+}
+async function tgTest(btn){
+  btn.disabled = true;
+  const r = await fetch(API+'/api/telegram/test', {method:'POST'});
+  const d = await r.json().catch(() => ({}));
+  btn.textContent = r.ok && d.results.every(x => x.ok) ? 'أُرسلت ✓' : 'فشل الإرسال';
+  setTimeout(() => { btn.disabled = false; btn.textContent = 'رسالة تجريبية'; }, 4000);
+}
+async function tgUnlink(id){
+  await fetch(API+`/api/telegram/links/${id}`, {method:'DELETE'});
+  loadTelegram();
+}
+
 async function loadAlerts(){
+  loadTelegram();
   const params = new URLSearchParams({limit:'60'});
   if(notifProfile) params.set('profile_id', notifProfile);
   const q = $('#notifSearch')?.value?.trim();
@@ -1602,7 +1796,13 @@ $('#pCreate').onclick = async () => {
     digest_interval: $('#pDigest').value || 'instant',
   };
   if(!body.name || !events.length || !sources.length) return;
-  await fetch(API+'/api/profiles', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  if(body.channel === 'telegram' && body.target === 'dev-console') body.target = '';
+  const r = await fetch(API+'/api/profiles', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  if(!r.ok){
+    const e = await r.json().catch(() => ({}));
+    alert((e.detail && e.detail.message_ar) || 'تعذّر حفظ الملف.');
+    return;
+  }
   $('#pName').value = $('#pKeywords').value = '';
   loadAlerts();
 };
@@ -2672,8 +2872,13 @@ applyChrome();
 $('#themeToggle')?.addEventListener('click', toggleTheme);
 $('#themeToggleMobile')?.addEventListener('click', toggleTheme);
 $('#langToggle')?.addEventListener('click', toggleLang);
-show('dash'); loadDash(); loadFilters();
-setInterval(loadDash, 90_000);
+function startApp(){
+  if(appStarted){ loadDash(); return; }
+  appStarted = true;
+  show('dash'); loadDash(); loadFilters();
+  setInterval(() => { if(authUser) loadDash(); }, 90_000);
+}
+authCheck().then(ok => { if(ok) startApp(); });
 </script>
 </body>
 </html>

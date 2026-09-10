@@ -94,10 +94,11 @@ def test_migrations_dir_env_override(monkeypatch, tmp_path: Path):
     assert migrations_dir().name == "migrations"
 
 
-def test_the_p2w_canonical_migration_is_discoverable_and_last():
+def test_the_p2w_canonical_migration_is_discoverable_and_ordered():
     names = [p.name for p in discover_migrations(migrations_dir())]
     assert "0015_p2w_canonical.sql" in names
-    assert names[-1] == "0015_p2w_canonical.sql"
+    assert names == sorted(names), "migrations must apply in filename order"
+    assert names.index("0015_p2w_canonical.sql") > names.index("0014_alert_profile_digest_interval.sql")
 
 
 def test_every_repo_migration_is_idempotent_by_construction():

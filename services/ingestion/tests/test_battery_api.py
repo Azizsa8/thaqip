@@ -19,6 +19,7 @@ from typing import Any
 
 import httpx
 import pytest
+from _live_auth import auth_headers
 
 BASE_URL = os.environ.get("THAQIP_CONSOLE_URL", "http://localhost:8091")
 TIMEOUT = 30.0
@@ -71,7 +72,7 @@ FORBIDDEN_CERTAINTY_AR = (
 @pytest.fixture(scope="session")
 def client() -> Any:
     try:
-        with httpx.Client(base_url=BASE_URL, timeout=TIMEOUT) as c:
+        with httpx.Client(base_url=BASE_URL, timeout=TIMEOUT, headers=auth_headers()) as c:
             c.get("/api/stats").raise_for_status()
             yield c
     except (httpx.HTTPError, OSError) as exc:  # pragma: no cover - env dependent
@@ -396,6 +397,12 @@ def test_high_confidence_does_not_imply_high_win_probability(curve):
     market = curve["market_prediction"]
     if market["is_suppressed"]:
         pytest.skip("market suppressed for the scenario tender")
+    if curve["suppressed"]:
+        # The competition layer can refuse on its own evidence even when the
+        # market layer has enough; that refusal is covered by the suppression
+        # tests. No curve means nothing to measure here.
+        assert curve["suppression_reason"] and curve["curve"] == []
+        pytest.skip(f"curve suppressed: {curve['suppression_reason']}")
     conf = market["confidence_score"]
     assert conf is not None
     probs = [p["win_probability"] for p in curve["curve"]]
@@ -709,3 +716,23 @@ def test_explanation_separates_factor_kinds(prediction_payloads):
     for f in factors:
         assert f["direction"] in ("increases", "decreases", "neutral"), f
         assert f["name"] and isinstance(f["weight"], (int, float))
+
+
+@pytest.mark.live_api
+def test_pricing_accuracy_never_reports_a_percentage_below_the_sample_floor(client):
+    """The dashboard once showed a 3825% MAPE scored from typed what-if prices
+    against awards already known. Below the floor there is no percentage at
+    all, and the exclusions are counted so the empty state is explainable."""
+    body = client.get("/api/pricing/accuracy").json()
+    assert body["min_sample"] >= 10
+    assert set(body["excluded"]) == {"what_if_simulations", "recorded_after_award"}
+    if body["measured"] < body["min_sample"]:
+        assert body["status"] in ("awaiting_awards", "insufficient_sample")
+        for key in ("mape_all", "median_ape", "mape_30d", "mape_90d",
+                    "within_10_pct", "within_20_pct", "within_30_pct"):
+            assert body[key] is None, f"{key} shown from {body['measured']} measurements"
+    else:
+        assert body["status"] == "measured"
+    for row in body["recent"]:
+        assert row["basis"].startswith("baseline_"), "a user what-if was scored as a prediction"
+        assert row["predicted_at"] < row["measured_at"]

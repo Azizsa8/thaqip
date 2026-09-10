@@ -56,6 +56,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from _live_auth import auth_headers, credential
 
 API = os.environ.get("THAQIP_CONSOLE_URL", "http://localhost:8091").rstrip("/")
 SHOTS = Path(
@@ -83,7 +84,7 @@ AR_USER = "إدخالك"
 def _http_json(path: str, payload: dict | None = None, timeout: float = 60.0) -> Any:
     url = API + path
     data = None
-    headers = {}
+    headers = auth_headers()
     if payload is not None:
         data = json.dumps(payload).encode()
         headers["Content-Type"] = "application/json"
@@ -94,7 +95,10 @@ def _http_json(path: str, payload: dict | None = None, timeout: float = 60.0) ->
 
 def _console_up() -> bool:
     try:
-        urllib.request.urlopen(API + "/api/settings", timeout=5).read()
+        urllib.request.urlopen(urllib.request.Request(
+            API + "/api/settings", headers=auth_headers()), timeout=5).read()
+    except urllib.error.HTTPError as exc:
+        pytest.fail(f"console refused the battery's credential: HTTP {exc.code}")
     except (urllib.error.URLError, OSError, TimeoutError):
         return False
     return True
@@ -261,9 +265,22 @@ def _pw() -> Iterator[Any]:
             browser.close()
 
 
+def _signed_in_context(browser, **kwargs):
+    """A browser context holding a real session cookie, obtained through the
+    same /api/auth/login call the login form makes."""
+    user, password = credential("THAQIP_ADMIN_USER"), credential("THAQIP_ADMIN_PASSWORD")
+    if not (user and password):
+        pytest.skip("no admin credential (var/credentials.env) for the browser battery")
+    ctx = browser.new_context(**kwargs)
+    resp = ctx.request.post(API + "/api/auth/login",
+                            data={"username": user, "password": password})
+    assert resp.ok, f"login failed: {resp.status} {resp.text()[:200]}"
+    return ctx
+
+
 @pytest.fixture
 def session(_pw) -> Iterator[tuple[Any, ConsoleLog]]:
-    ctx = _pw.new_context(viewport=DESKTOP, locale="ar-SA")
+    ctx = _signed_in_context(_pw, viewport=DESKTOP, locale="ar-SA")
     page = ctx.new_page()
     log = ConsoleLog()
     log.attach(page)
@@ -572,7 +589,7 @@ def test_why_drilldown_numbers_match_the_explanation_endpoint(session, rich):
 # --------------------------------------------------------------------------
 @pytest.mark.parametrize("size,name", [(DESKTOP, "desktop-1440x900"), (MOBILE, "mobile-390x844")])
 def test_rtl_layout_has_no_horizontal_overflow(_pw, rich, size, name):
-    ctx = _pw.new_context(viewport=size, locale="ar-SA")
+    ctx = _signed_in_context(_pw, viewport=size, locale="ar-SA")
     page = ctx.new_page()
     log = ConsoleLog()
     log.attach(page)
@@ -641,7 +658,7 @@ def test_rtl_layout_has_no_horizontal_overflow(_pw, rich, size, name):
 
 
 def test_desktop_sidebar_sits_on_the_right(_pw):
-    ctx = _pw.new_context(viewport=DESKTOP, locale="ar-SA")
+    ctx = _signed_in_context(_pw, viewport=DESKTOP, locale="ar-SA")
     page = ctx.new_page()
     try:
         page.goto(API + "/", wait_until="networkidle")
@@ -656,7 +673,7 @@ def test_desktop_sidebar_sits_on_the_right(_pw):
 
 
 def test_mobile_hides_the_desktop_sidebar_and_shows_the_bottom_nav(_pw):
-    ctx = _pw.new_context(viewport=MOBILE, locale="ar-SA")
+    ctx = _signed_in_context(_pw, viewport=MOBILE, locale="ar-SA")
     page = ctx.new_page()
     try:
         page.goto(API + "/", wait_until="networkidle")
@@ -1028,3 +1045,49 @@ def test_every_number_on_every_layer_carries_a_provenance_badge(session, rich):
            }"""
     )
     assert orphans == [], f"numbers with no provenance attribution anywhere above them: {orphans}"
+
+
+# --------------------------------------------------------------------------
+# authentication gate
+# --------------------------------------------------------------------------
+def test_login_gate_blocks_data_until_signed_in_and_logout_ends_it(_pw):
+    """Fresh browser: the gate is up and no data endpoint answers 200. Signing
+    in through the form loads the dashboard; logging out puts the gate back and
+    the old cookie no longer works."""
+    user, password = credential("THAQIP_ADMIN_USER"), credential("THAQIP_ADMIN_PASSWORD")
+    if not (user and password):
+        pytest.skip("no admin credential (var/credentials.env)")
+    ctx = _pw.new_context(viewport=DESKTOP, locale="ar-SA")
+    page = ctx.new_page()
+    data_ok: list[str] = []
+    page.on("response", lambda r: data_ok.append(r.url) if (
+        "/api/" in r.url and "/api/auth/" not in r.url and r.status == 200) else None)
+    try:
+        page.goto(API + "/", wait_until="networkidle")
+        assert page.is_visible("#loginForm")
+        assert data_ok == [], f"data served before login: {data_ok}"
+
+        page.fill("#loginUser", user)
+        page.fill("#loginPass", "definitely-wrong")
+        page.click("#loginBtn")
+        page.wait_for_function("document.getElementById('loginErr').textContent.length > 0")
+        assert page.is_visible("#loginForm")
+
+        page.fill("#loginPass", password)
+        page.click("#loginBtn")
+        page.wait_for_function(
+            "document.getElementById('scOpen').textContent.trim() !== '—'", timeout=20000)
+        assert page.is_hidden("#loginGate")
+        assert page.text_content("#whoName") == user
+        cookie = next(c for c in ctx.cookies() if c["name"] == "thaqip_session")
+        assert cookie["httpOnly"]
+
+        page.click("#logoutBtn")
+        page.wait_for_selector("#loginGate:not([hidden])")
+        replay = urllib.request.Request(
+            API + "/api/stats", headers={"Cookie": f"thaqip_session={cookie['value']}"})
+        with pytest.raises(urllib.error.HTTPError) as exc:
+            urllib.request.urlopen(replay, timeout=10)
+        assert exc.value.code == 401, "a logged-out session cookie still works"
+    finally:
+        ctx.close()

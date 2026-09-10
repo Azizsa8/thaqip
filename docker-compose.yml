@@ -58,10 +58,14 @@ services:
   alerts:
     build: ./services/ingestion
     command: ["python", "-m", "thaqip_ingestion.alerts"]
+    # TELEGRAM_BOT_TOKEN comes from var/telegram.env (bin/set-telegram-token.sh).
+    # Not listed under environment: an empty ${VAR:-} there would override it.
+    env_file:
+      - path: var/telegram.env
+        required: false
     environment:
       DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
       REDIS_URL: redis://redis:6379/0
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
     depends_on: [postgres, redis]
     restart: unless-stopped
 
@@ -96,6 +100,11 @@ services:
     build:
       context: .
       dockerfile: services/console/Dockerfile
+    # Only the service token — never the admin password — reaches this process.
+    env_file:
+      - var/console.env
+      - path: var/telegram.env   # the console owns the bot's /start linking poller
+        required: false
     environment:
       DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
       TYPESENSE_URL: http://typesense:8108

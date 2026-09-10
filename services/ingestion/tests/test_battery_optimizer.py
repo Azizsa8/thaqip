@@ -37,6 +37,7 @@ import urllib.error
 import urllib.request
 
 import pytest
+from _live_auth import auth_headers
 
 from thaqip_ingestion.p2w.optimizer import (
     CONSTRAINT_GRID_LOWER,
@@ -906,7 +907,8 @@ def test_margin_pct_rejects_impossible_inputs():
 
 
 def _console_get(path: str, timeout: float = 20.0):
-    with urllib.request.urlopen(f"{CONSOLE_BASE}{path}", timeout=timeout) as response:
+    request = urllib.request.Request(f"{CONSOLE_BASE}{path}", headers=auth_headers())
+    with urllib.request.urlopen(request, timeout=timeout) as response:
         return json.loads(response.read().decode())
 
 
@@ -914,16 +916,29 @@ def _console_post(path: str, payload: dict, timeout: float = 60.0):
     request = urllib.request.Request(
         f"{CONSOLE_BASE}{path}",
         data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json"},
+        headers=auth_headers({"Content-Type": "application/json"}),
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=timeout) as response:
         return response.status, json.loads(response.read().decode())
 
 
+def _amount(value) -> float:
+    """Money crosses the API as {amount, currency, vat_semantics}; a bare
+    number is accepted too so the red gate cannot be dodged by a format."""
+    if isinstance(value, dict):
+        assert value.get("currency") == "SAR", f"unexpected currency in {value}"
+        return float(value["amount"])
+    return float(value)
+
+
 def _live_console_or_skip() -> None:
     try:
         _console_get("/api/settings", timeout=5.0)
+    except urllib.error.HTTPError as exc:
+        # The console answered, so it is up: a 401 means the credential is
+        # missing or wrong, and skipping would hide the whole live layer.
+        pytest.fail(f"console refused the battery's credential: HTTP {exc.code}")
     except (urllib.error.URLError, OSError, TimeoutError) as exc:  # pragma: no cover
         pytest.skip(f"console API not reachable at {CONSOLE_BASE}: {exc}")
 
@@ -996,13 +1011,13 @@ def test_live_scenario_endpoint_surfaces_infeasibility_instead_of_a_number():
 
         optimizer = curve["optimizer"]
         assert optimizer is not None
-        cost = float(curve["constraints"]["estimated_cost"])
+        cost = _amount(curve["constraints"]["estimated_cost"])
         min_margin = float(curve["constraints"]["min_margin_pct"])
         if optimizer["recommended_bid"] is None:
             assert optimizer["infeasible_reason"], "infeasible without a reason"
             assert optimizer["is_feasible"] is False
         else:
-            bid = float(optimizer["recommended_bid"])
+            bid = _amount(optimizer["recommended_bid"])
             assert margin_pct(bid, cost) >= min_margin, (
                 f"RED GATE: live API recommended {bid} on tender {tender_id}, "
                 f"margin {margin_pct(bid, cost)}% < {min_margin}%"

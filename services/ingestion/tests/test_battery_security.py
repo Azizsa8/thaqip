@@ -46,6 +46,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from _live_auth import auth_headers
 
 # --------------------------------------------------------------------------
 # Locations. Resolved from this file so the battery does not depend on cwd.
@@ -140,10 +141,14 @@ class Response:
 
 
 def _request(path: str, *, tenant: str | None = DEFAULT_SLUG, method: str = "GET",
-             body: dict | None = None, timeout: float = 60.0) -> Response:
+             body: dict | None = None, timeout: float = 60.0,
+             authenticated: bool = True) -> Response:
+    """Tenant-header probes run as the service token — the one credential that
+    may select a tenant by header — so they test the header path itself. Pass
+    authenticated=False to probe the gate."""
     url = CONSOLE_BASE + path
     data = None
-    headers: dict[str, str] = {}
+    headers: dict[str, str] = auth_headers() if authenticated else {}
     if body is not None:
         data = json.dumps(body).encode()
         headers["Content-Type"] = "application/json"
@@ -161,9 +166,13 @@ def _console_up() -> bool:
     try:
         # Generous: a transient timeout here would SKIP the whole live layer of a
         # security battery, which is a far worse failure than waiting.
-        return _request("/api/stats", timeout=20).status == 200
+        status = _request("/api/stats", timeout=20).status
     except (urllib.error.URLError, OSError, TimeoutError):
         return False
+    if status == 401:
+        pytest.fail("console refused the battery's service token (HTTP 401); "
+                    "a skipped security layer would read as a pass")
+    return status == 200
 
 
 def _psql(sql: str) -> str:
@@ -921,3 +930,72 @@ def test_injected_scenario_text_round_trips_as_inert_data(redteam):
     finally:
         _psql(f"UPDATE user_bid_scenarios SET superseded_by=NULL WHERE superseded_by = {sid}")
         _psql(f"DELETE FROM user_bid_scenarios WHERE id = {sid}")
+
+
+# --------------------------------------------------------------------------
+# authentication gate: no credential, no data
+# --------------------------------------------------------------------------
+GATED_PATHS = (
+    "/api/stats", "/api/dashboard", "/api/tenders?limit=1", "/api/scenarios",
+    "/api/settings", "/api/pursuits", "/api/readiness", "/api/vendors?limit=1",
+    "/api/market/price-position", "/api/pricing/accuracy", "/docs", "/openapi.json",
+)
+
+
+@pytest.mark.live_api
+@pytest.mark.parametrize("path", GATED_PATHS)
+def test_every_data_path_refuses_an_anonymous_caller(live, path):
+    resp = _request(path, tenant=None, authenticated=False)
+    assert resp.status == 401, f"{path} answered {resp.status} with no credential"
+    _assert_no_canary(resp, f"anonymous GET {path}")
+
+
+@pytest.mark.live_api
+@pytest.mark.parametrize("label,header", FORGED_HEADERS, ids=[h[0] for h in FORGED_HEADERS])
+def test_a_tenant_header_is_not_a_credential(redteam, label, header):
+    """The pre-auth hole: the header alone used to select a tenant. Without a
+    credential every header value must be refused at the door."""
+    resp = _request("/api/scenarios", tenant=header, authenticated=False)
+    # 400 is the HTTP server refusing a malformed header (e.g. a null byte)
+    # before the app runs; either way nothing is served.
+    assert resp.status in (400, 401), f"{label!r} header alone got {resp.status}"
+    _assert_no_canary(resp, f"anonymous with {label} header")
+
+
+@pytest.mark.live_api
+@pytest.mark.parametrize("bearer", ("", "x", "Bearer", "null", "' OR 1=1--"))
+def test_a_wrong_bearer_token_is_refused(live, bearer):
+    req = urllib.request.Request(CONSOLE_BASE + "/api/scenarios",
+                                 headers={"Authorization": f"Bearer {bearer}"})
+    with pytest.raises(urllib.error.HTTPError) as exc:
+        urllib.request.urlopen(req, timeout=20)
+    assert exc.value.code == 401
+
+
+@pytest.mark.live_api
+def test_a_forged_session_cookie_is_refused(live):
+    req = urllib.request.Request(CONSOLE_BASE + "/api/scenarios",
+                                 headers={"Cookie": "thaqip_session=" + "A" * 43})
+    with pytest.raises(urllib.error.HTTPError) as exc:
+        urllib.request.urlopen(req, timeout=20)
+    assert exc.value.code == 401
+
+
+@pytest.mark.live_api
+def test_login_error_does_not_reveal_whether_the_user_exists(live):
+    bodies = []
+    probes = ("admin", "no-such-user-" + os.urandom(4).hex())
+    for user in probes:
+        req = urllib.request.Request(
+            CONSOLE_BASE + "/api/auth/login", method="POST",
+            data=json.dumps({"username": user, "password": "wrong-" + os.urandom(4).hex()}).encode(),
+            headers={"Content-Type": "application/json"})
+        with pytest.raises(urllib.error.HTTPError) as exc:
+            urllib.request.urlopen(req, timeout=20)
+        bodies.append((exc.value.code, exc.value.read()))
+    # Remove only this probe's own failures so repeated runs never trip the
+    # login throttle for the real admin account.
+    _psql("DELETE FROM auth_events WHERE event='login_fail' "
+          f"AND username IN ('{probes[0]}', '{probes[1]}') "
+          "AND created_at > now() - interval '1 minute'")
+    assert bodies[0] == bodies[1], "login response differs for real vs unknown user"
