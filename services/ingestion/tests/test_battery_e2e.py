@@ -584,6 +584,13 @@ def test_rtl_layout_has_no_horizontal_overflow(_pw, rich, size, name):
         page.fill("#p2wCost", "50000")
         page.click("#p2wCalcBtn")
         page.wait_for_selector("#p2wCurve svg", timeout=60_000)
+        # Layout width is only meaningful once webfonts have settled: IBM Plex
+        # Arabic arrives from a CDN and pre-swap fallback metrics transiently
+        # widen RTL rows. Without this the assertion below flakes under load.
+        page.wait_for_function(
+            "() => document.fonts && document.fonts.status === 'loaded'", timeout=30_000
+        )
+        page.wait_for_timeout(150)
 
         metrics = page.evaluate(
             """() => ({
