@@ -817,6 +817,22 @@ function pricingAccuracyCard(acc){
     ? `<div class="text-[10.5px] text-mut mt-2 leading-relaxed">مستبعد من القياس:
          <span class="num">${nf.format(ex.what_if_simulations||0)}</span> محاكاة يدوية (مدخلاتك، لا توقعات النظام) ·
          <span class="num">${nf.format(ex.recorded_after_award||0)}</span> فرضية سُجلت بعد إعلان الترسية</div>` : '';
+  const mc = acc?.market_clock;
+  const clockRow = (mc && mc.status && mc.status !== 'not_installed') ? `
+    <div class="mt-3 pt-2.5 border-t border-line/70">
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-[11.5px] font-semibold">ساعة التوقعات العمياء للسوق</span>
+        <span class="num text-[10.5px] text-mut">${nf.format(mc.tenders_tracked || 0)} منافسة مفتوحة تحت الرصد</span>
+      </div>
+      <div class="text-[10.5px] text-mut mt-1 leading-relaxed">يُسجَّل نطاق سعر لكل منافسة مفتوحة يوميًا قبل فتح العروض، ويُقاس بعد إعلان الترسية.</div>
+      <div class="mt-2 flex items-center gap-2">
+        <div class="flex-1 h-1.5 rounded-full bg-line/70 overflow-hidden"><div class="h-full bg-[#2E7C8C] rounded-full" style="width:${Math.min(100, Math.round(100 * (mc.scored || 0) / (mc.first_reportable_sample || 150)))}%"></div></div>
+        <span class="num text-[11px] text-ink">${nf.format(mc.scored || 0)}/${nf.format(mc.first_reportable_sample || 150)}</span>
+      </div>
+      <div class="text-[10.5px] text-mut mt-1">${mc.status === 'reportable'
+        ? `النطاق احتوى سعر الترسية في <span class="num text-ink">${mc.interval_hit_pct}%</span> من الحالات (الهدف الاسمي ${mc.nominal_interval_pct}%) · وسيط الخطأ <span class="num text-ink">${mc.median_abs_pct_error}%</span>`
+        : `لا تُعرض نسبة قبل اكتمال ${nf.format(mc.first_reportable_sample || 150)} قياسًا · امتنع النموذج عن التوقع في <span class="num">${nf.format(mc.refused || 0)}</span> حالة مُرسّاة`}</div>
+    </div>` : '';
   const seedBtn = `<button onclick="seedPricingBaselines()" class="mt-2.5 text-[10.5px] text-deep font-semibold bg-tint hover:bg-deep hover:text-white rounded-lg px-2.5 py-1 transition">بذر فرضيات للمنافسات المفتوحة</button>`;
   if(!acc || acc.status !== 'measured'){
     const pct = Math.min(100, Math.round(100 * n / min));
@@ -831,7 +847,7 @@ function pricingAccuracyCard(acc){
         <div class="flex-1 h-1.5 rounded-full bg-line/70 overflow-hidden"><div class="h-full bg-deep rounded-full" style="width:${pct}%"></div></div>
         <span class="num text-[11px] text-ink">${nf.format(n)}/${nf.format(min)}</span>
       </div>
-      ${exNote}${seedBtn}
+      ${exNote}${clockRow}${seedBtn}
     </div>`;
   }
   const median = Math.round(acc.median_ape * 1000) / 10;
@@ -857,7 +873,7 @@ function pricingAccuracyCard(acc){
     ${recent?`<div class="mt-3 pt-2 border-t border-line/70 text-[11px] text-mut leading-relaxed">
       آخر قياس: فرضية <span class="num text-ink">${money(recent.predicted_price)}</span> مقابل ترسية <span class="num text-ink">${money(recent.actual_award_value)}</span> · خطأ <span class="num text-deep">${recent.error_pct}%</span>
     </div>`:''}
-    ${exNote}${seedBtn}
+    ${exNote}${clockRow}${seedBtn}
   </div>`;
 }
 async function seedPricingBaselines(){
@@ -868,7 +884,7 @@ async function seedPricingBaselines(){
   await loadCalibration();
 }
 const LANE_AR = {'etimad.listing':'الراصد اللحظي','etimad.reconcile':'المطابقة الليلية',
-  'etimad.awards_harvest':'حصاد الترسيات','pricing.seed':'بذر فرضيات السعر',
+  'etimad.awards_harvest':'حصاد الترسيات','pricing.seed':'بذر فرضيات السعر','pricing.clock':'ساعة التوقعات العمياء',
   'ops.health':'حارس التشغيل','etimad.backfill.all':'التعبئة التاريخية',
   'etimad.backfill.awarded':'تعبئة المُرسّاة'};
 function laneHealth(l){

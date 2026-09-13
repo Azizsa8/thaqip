@@ -112,10 +112,10 @@ INSERT INTO price_predictions (
     tender_id, prediction_scope, subject_vendor_id, p10, p50, p90, expected_value,
     win_probability, confidence_score, similarity_confidence, data_freshness_score,
     evidence_count, evidence_tier, model_version, feature_snapshot_id, seed,
-    suppression_reason, explanation_factors, generated_at
+    suppression_reason, explanation_factors, generated_at, origin, snapshot_date
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
-    $18::jsonb, $19
+    $18::jsonb, $19, $20, $21
 )
 RETURNING id
 """
@@ -539,7 +539,13 @@ async def _competitor_field(
 # --------------------------------------------------------------------------
 
 
-async def persist_prediction(conn: Any, prediction: PricePrediction) -> int | None:
+async def persist_prediction(
+    conn: Any,
+    prediction: PricePrediction,
+    *,
+    origin: str = "interactive",
+    snapshot_date: Any = None,
+) -> int | None:
     """Insert one ``PricePrediction`` and return its row id (None on failure).
 
     Never raises: a scenario the user can see but that we failed to record is a
@@ -568,6 +574,8 @@ async def persist_prediction(conn: Any, prediction: PricePrediction) -> int | No
             prediction.suppression_reason.value if prediction.suppression_reason else None,
             json.dumps([f.to_dict() for f in prediction.explanation_factors], ensure_ascii=False),
             prediction.generated_at,
+            origin,
+            snapshot_date,
         )
     except Exception:
         log.exception("failed to persist prediction")

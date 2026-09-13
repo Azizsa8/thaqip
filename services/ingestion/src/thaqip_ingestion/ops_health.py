@@ -25,6 +25,7 @@ DEFAULT_STALL_MINUTES = {
     "etimad.backfill.all": 180,
     "etimad.backfill.awarded": 180,
     "pricing.seed": 30,
+    "pricing.clock": 45,
 }
 
 

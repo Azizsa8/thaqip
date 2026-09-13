@@ -861,6 +861,7 @@ async def lanes():
         "etimad.reconcile": 26 * 60,
         "etimad.awards_harvest": 7 * 60,
         "pricing.seed": 7 * 60,
+        "pricing.clock": 7 * 60,
         "ops.health": 90,
     }
     running_grace_minutes = {
@@ -1326,7 +1327,45 @@ async def pricing_accuracy(tenant_id: int = Tenant):
     out["confidence"] = ("high" if out["sample_90d"] >= 50 else
                          "medium" if out["sample_90d"] >= MIN_ACCURACY_SAMPLE else "low")
     out["recent"] = [dict(r) for r in recent]
+    out["market_clock"] = await _market_clock(pool)
     return out
+
+
+MARKET_CLOCK_FIRST_SAMPLE = 150
+
+
+async def _market_clock(pool: asyncpg.Pool) -> dict[str, Any]:
+    """System-wide blind market predictions (accuracy Stage 1, migration 0019).
+
+    Shared-corpus only, no tenant data: every open Etimad tender gets a daily
+    snapshot; scoring happens in prediction_scorecard. No hit rate is returned
+    until the first reportable sample exists.
+    """
+    try:
+        row = dict(await pool.fetchrow(
+            """SELECT
+                 (SELECT count(DISTINCT tender_id) FROM price_predictions
+                   WHERE origin = 'daily_snapshot' AND prediction_scope = 'MARKET') AS tenders_tracked,
+                 (SELECT max(generated_at) FROM price_predictions
+                   WHERE origin = 'daily_snapshot')                                  AS last_snapshot_at,
+                 (SELECT count(*) FROM prediction_scorecard)                          AS blind_awarded,
+                 (SELECT count(*) FROM prediction_scorecard WHERE scorable)           AS scored,
+                 (SELECT count(*) FROM prediction_scorecard WHERE suppressed)         AS refused,
+                 (SELECT round(100.0 * avg(interval_hit::int), 1)
+                    FROM prediction_scorecard WHERE scorable)::float                  AS interval_hit_pct,
+                 (SELECT round((percentile_cont(0.5) WITHIN GROUP (ORDER BY abs_pct_error) * 100)::numeric, 1)
+                    FROM prediction_scorecard WHERE scorable)::float                  AS median_abs_pct_error"""))
+    except asyncpg.UndefinedTableError:
+        return {"status": "not_installed"}
+    row["first_reportable_sample"] = MARKET_CLOCK_FIRST_SAMPLE
+    row["nominal_interval_pct"] = 80
+    if (row["scored"] or 0) < MARKET_CLOCK_FIRST_SAMPLE:
+        row["interval_hit_pct"] = None
+        row["median_abs_pct_error"] = None
+        row["status"] = "collecting"
+    else:
+        row["status"] = "reportable"
+    return row
 
 
 @app.post("/api/pricing/seed-baselines")

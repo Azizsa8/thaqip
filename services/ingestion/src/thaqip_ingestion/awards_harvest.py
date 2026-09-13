@@ -73,6 +73,17 @@ async def store_awarding(pool: asyncpg.Pool, tender_pk: int, result: AwardingRes
                 tender_pk, vid, a.award_value if a.award_value is not None else a.offer_value,
             )
 
+        if result.awardees:
+            # awards rows are replaced on every pass, so their created_at is
+            # "last harvested". This row is written once and never moved: it is
+            # the blindness cutoff for prediction scoring (migration 0019).
+            await conn.execute(
+                """INSERT INTO tender_award_first_seen (tender_id, first_seen)
+                       VALUES ($1, now())
+                   ON CONFLICT (tender_id) DO NOTHING""",
+                tender_pk,
+            )
+
         emit = bool(result.awardees) and had_awards == 0
         if emit:
             await conn.execute(

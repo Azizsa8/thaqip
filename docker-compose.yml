@@ -88,6 +88,18 @@ services:
     depends_on: [postgres]
     restart: unless-stopped
 
+  prediction-clock:
+    # Accuracy Stage 1: a blind market prediction for every open Etimad tender,
+    # once per day (re-runs within a day are no-ops), then scores any whose
+    # award has since appeared. Every 3h so short tenders are caught before
+    # their offers open.
+    build: ./services/ingestion
+    command: ["sh", "-c", "while true; do python -m thaqip_ingestion.prediction_clock; sleep $${THAQIP_PREDICTION_CLOCK_INTERVAL:-10800}; done"]
+    environment:
+      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
+    depends_on: [postgres]
+    restart: unless-stopped
+
   ops-health:
     build: ./services/ingestion
     command: ["sh", "-c", "while true; do python -m thaqip_ingestion.ops_health --close-stalled; sleep $${THAQIP_OPS_HEALTH_INTERVAL:-3600}; done"]
