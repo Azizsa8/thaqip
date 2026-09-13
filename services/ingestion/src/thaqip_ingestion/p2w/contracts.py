@@ -20,7 +20,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-MODEL_VERSION = "p2w-0.1.0"
+MODEL_VERSION = "p2w-0.2.0"  # 0.2.0: GASTAT CPI time adjustment
 
 #: A prediction older than this contributes nothing to the freshness score.
 FRESHNESS_HORIZON_DAYS = 730.0

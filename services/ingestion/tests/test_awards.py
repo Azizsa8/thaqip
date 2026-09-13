@@ -88,3 +88,95 @@ async def test_awards_harvest_treats_waf_cooloff_as_scheduled_cooldown(monkeypat
     assert finish_updates
     _, args = finish_updates[-1]
     assert args == (123, True, "waf cool-off")
+
+
+# --------------------------------------------------------------------------
+# fresh vs backfill lanes
+# --------------------------------------------------------------------------
+class _CursorPool(_FakePool):
+    """Serves a stored checkpoint and records every page the harvester asks for."""
+
+    def __init__(self, last_page):
+        super().__init__()
+        self.last_page = last_page
+
+    async def fetchval(self, query, *args):
+        if "INSERT INTO ingest_runs" in query:
+            return 123
+        raise AssertionError(query)
+
+    async def fetchrow(self, query, *args):
+        if "SELECT checkpoint" in query:
+            return {"checkpoint": {"last_page": self.last_page}}
+        raise AssertionError(query)
+
+
+def _cooloff():
+    request = httpx.Request("GET", "https://tenders.etimad.sa/x")
+    return httpx.HTTPStatusError("waf cool-off", request=request,
+                                 response=httpx.Response(400, request=request))
+
+
+@pytest.mark.asyncio
+async def test_fresh_lane_always_starts_at_the_newest_page(monkeypatch):
+    asked = []
+
+    async def _empty(self, client, page, page_size, extra):
+        asked.append(page)
+        return []
+
+    monkeypatch.setattr(AwardsHarvester, "_fetch_awarded_page", _empty)
+    await AwardsHarvester(_CursorPool(last_page=4000), _FakeSession()).run(pages=5)
+    assert asked == [1], "fresh harvest resumed deep and would miss new awards"
+
+
+@pytest.mark.asyncio
+async def test_backfill_resumes_and_a_cooloff_keeps_completed_pages(monkeypatch):
+    """The old code rewrote the checkpoint to start_page-1 on cool-off, so every
+    WAF pause rewound the walk and history never grew."""
+    asked = []
+
+    async def _rows(self, client, page, page_size, extra):
+        asked.append(page)
+        if page >= 43:
+            raise _cooloff()
+        return [_Row()]
+
+    class _Row:
+        tender_id = 1
+        tender_id_string = ""   # no awarding fetch
+
+    async def _upsert(pool, row, detected_by):
+        return None
+
+    monkeypatch.setattr(AwardsHarvester, "_fetch_awarded_page", _rows)
+    monkeypatch.setattr("thaqip_ingestion.awards_harvest.db.upsert_tender", _upsert)
+
+    class _Pool(_CursorPool):
+        async def fetchval(self, query, *args):
+            if "SELECT id FROM tenders" in query:
+                return 99
+            return await super().fetchval(query, *args)
+
+    pool = _Pool(last_page=40)
+    stats = await AwardsHarvester(pool, _FakeSession()).run(pages=10, mode="backfill")
+
+    assert asked[0] == 41, "backfill did not resume from its checkpoint"
+    assert stats["cooldown"] is True and stats["pages"] == 2
+    final = [u for u in pool.updates if "checkpoint=$2::jsonb" in u[0]][-1]
+    assert '"last_page": 42' in final[1][1], f"cool-off rewound the cursor: {final[1][1]}"
+
+
+@pytest.mark.asyncio
+async def test_backfilled_awards_never_reach_customer_alerts():
+    from thaqip_ingestion import alerts
+
+    class _NoDbPool:
+        async def fetchrow(self, *a, **k):  # pragma: no cover - must not be reached
+            raise AssertionError("historical event was processed for alerts")
+
+        fetch = fetchval = fetchrow
+
+    fields = {"event_type": "tender.awarded", "entity_type": "tender", "event_id": "1",
+              "entity_id": "5", "data": '{"backfill": true, "awardees": ["x"]}'}
+    assert await alerts.handle(_NoDbPool(), sender=None, fields=fields) == 0

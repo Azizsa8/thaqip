@@ -94,7 +94,9 @@ services:
     # award has since appeared. Every 3h so short tenders are caught before
     # their offers open.
     build: ./services/ingestion
-    command: ["sh", "-c", "while true; do python -m thaqip_ingestion.prediction_clock; sleep $${THAQIP_PREDICTION_CLOCK_INTERVAL:-10800}; done"]
+    # GASTAT indices (DataSaudi public API) refresh at most daily, before the
+    # snapshot, so predictions restate old awards with the latest CPI.
+    command: ["sh", "-c", "while true; do python -m thaqip_ingestion.price_indices --min-hours 20 || true; python -m thaqip_ingestion.prediction_clock; sleep $${THAQIP_PREDICTION_CLOCK_INTERVAL:-10800}; done"]
     environment:
       DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
     depends_on: [postgres]

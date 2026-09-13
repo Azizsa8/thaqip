@@ -862,10 +862,13 @@ async def lanes():
         "etimad.awards_harvest": 7 * 60,
         "pricing.seed": 7 * 60,
         "pricing.clock": 7 * 60,
+        "etimad.awards_backfill": 3 * 60,
+        "gastat.price_indices": 50 * 60,
         "ops.health": 90,
     }
     running_grace_minutes = {
         "etimad.awards_harvest": 90,
+        "etimad.awards_backfill": 90,
         "etimad.backfill.all": 180,
         "etimad.backfill.awarded": 180,
     }

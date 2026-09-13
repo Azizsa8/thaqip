@@ -4,9 +4,20 @@ Pipeline: awarded-tenders listing (TenderCategory=6) -> upsert tender rows ->
 fetch awarding view component -> parse bidders/awardees -> upsert vendors,
 replace offers/awards -> emit `tender.awarded` outbox event (once per tender).
 
+Two lanes share this code:
+
+  fresh     (default) newest awarded pages 1..N every run, for timely awards.
+            Connector etimad.awards_harvest. Never resumes deep.
+  backfill  walks history with a persistent page cursor, a time budget per
+            session, and progress kept across WAF cool-offs. Connector
+            etimad.awards_backfill. Its events are marked historical so they
+            never trigger customer alerts.
+
 Run:
   DATABASE_URL=... uv run --extra db --extra browser \
       python -m thaqip_ingestion.awards_harvest --pages 2
+  DATABASE_URL=... uv run --extra db --extra browser \
+      python -m thaqip_ingestion.awards_harvest --mode backfill --pages 500 --max-minutes 45
 """
 from __future__ import annotations
 
@@ -15,6 +26,7 @@ import asyncio
 import json
 import logging
 import os
+import time
 
 import asyncpg
 import httpx
@@ -45,7 +57,8 @@ async def get_or_create_vendor(conn: asyncpg.Connection, name: str) -> int:
     return row["id"]
 
 
-async def store_awarding(pool: asyncpg.Pool, tender_pk: int, result: AwardingResult) -> bool:
+async def store_awarding(pool: asyncpg.Pool, tender_pk: int, result: AwardingResult,
+                         *, historical: bool = False) -> bool:
     """Replace offers/awards for a tender. Returns True if a new award event was emitted."""
     async with pool.acquire() as conn, conn.transaction():
         had_awards = await conn.fetchval(
@@ -93,6 +106,9 @@ async def store_awarding(pool: asyncpg.Pool, tender_pk: int, result: AwardingRes
                 json.dumps({
                     "awardees": [a.name for a in result.awardees],
                     "bidder_count": len(result.bidders),
+                    # alerts.handle drops historical events: an award from last
+                    # year is corpus, not news.
+                    "backfill": historical,
                 }, ensure_ascii=False),
             )
         return emit
@@ -133,8 +149,13 @@ class AwardsHarvester:
             return parse_awarding_fragment(resp.text)
         raise RuntimeError("awarding component kept hitting bot challenge")
 
-    async def run(self, *, pages: int, page_size: int = 20) -> dict:
-        connector = "etimad.awards_harvest"
+    async def run(self, *, pages: int, page_size: int = 20, mode: str = "fresh",
+                  max_minutes: float | None = None) -> dict:
+        if mode not in ("fresh", "backfill"):
+            raise ValueError(f"unknown mode {mode!r}")
+        backfill = mode == "backfill"
+        connector = "etimad.awards_backfill" if backfill else "etimad.awards_harvest"
+        deadline = time.monotonic() + max_minutes * 60 if max_minutes else None
         stats = {"pages": 0, "tenders": 0, "skipped": 0, "announced": 0,
                  "offers": 0, "awards": 0, "events": 0, "cooldown": False}
         max_retries = int(os.environ.get("THAQIP_AWARDS_MAX_RETRIES", "5"))
@@ -142,11 +163,16 @@ class AwardsHarvester:
         run_id = await self._pool.fetchval(
             "INSERT INTO ingest_runs (connector) VALUES ($1) RETURNING id", connector
         )
-        start_page = await self._load_checkpoint(connector) + 1
-        log.info("awards harvest resuming at listing page %d", start_page)
+        # fresh always re-reads the newest pages; only the backfill lane resumes.
+        start_page = (await self._load_checkpoint(connector) + 1) if backfill else 1
+        last_completed = start_page - 1
+        log.info("awards %s starting at listing page %d", mode, start_page)
         error: str | None = None
         try:
             for page in range(start_page, start_page + pages):
+                if deadline and time.monotonic() > deadline:
+                    log.info("awards %s: time budget reached after page %d", mode, last_completed)
+                    break
                 listing = await self._fetch_awarded_page(
                     client, page, page_size, dict(AWARDED_CATEGORY_PARAM)
                 )
@@ -172,10 +198,11 @@ class AwardsHarvester:
                         stats["announced"] += 1
                         stats["offers"] += len(result.bidders)
                         stats["awards"] += len(result.awardees)
-                        if await store_awarding(self._pool, pk, result):
+                        if await store_awarding(self._pool, pk, result, historical=backfill):
                             stats["events"] += 1
                     await asyncio.sleep(self._delay)
                 stats["pages"] += 1
+                last_completed = page
                 await self._pool.execute(
                     """UPDATE ingest_runs SET pages=$2, items_seen=$3, checkpoint=$4::jsonb
                        WHERE id=$1""",
@@ -191,7 +218,9 @@ class AwardsHarvester:
                     """UPDATE ingest_runs SET checkpoint=$2::jsonb WHERE id=$1""",
                     run_id,
                     json.dumps({
-                        "last_page": max(start_page - 1, 0),
+                        # keep what this session completed; the old code wrote
+                        # start_page - 1 here, so every cool-off rewound the walk.
+                        "last_page": last_completed,
                         "page_size": page_size,
                         "cooldown": True,
                         "reason": error,
@@ -235,13 +264,17 @@ async def main() -> None:
     parser = argparse.ArgumentParser(description="Thaqip awards harvester")
     parser.add_argument("--pages", type=int, default=1)
     parser.add_argument("--page-size", type=int, default=20)
+    parser.add_argument("--mode", choices=("fresh", "backfill"), default="fresh")
+    parser.add_argument("--max-minutes", type=float, default=None,
+                        help="stop cleanly after this long (backfill sessions)")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
     pool = await db.connect(os.environ["DATABASE_URL"])
     harvester = AwardsHarvester(pool, PlaywrightSessionProvider())
     try:
-        stats = await harvester.run(pages=args.pages, page_size=args.page_size)
+        stats = await harvester.run(pages=args.pages, page_size=args.page_size,
+                                    mode=args.mode, max_minutes=args.max_minutes)
         log.info("harvest complete: %s", stats)
     finally:
         await harvester.aclose()

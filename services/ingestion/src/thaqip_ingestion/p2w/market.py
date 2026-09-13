@@ -14,10 +14,12 @@ How it works
 2. Weighting: each comparable contributes ``similarity_score * recency_weight``
    with ``recency_weight = 0.5 ** (age_days / RECENCY_HALF_LIFE_DAYS)``. A
    two-year-old award therefore counts a quarter of a same-week one.
-3. Time adjustment: each historical award is multiplied by
-   ``(1 + DEFAULT_ANNUAL_INFLATION) ** (age_years)`` to express it in
-   ``as_of``-equivalent money. The factor actually used is recorded in the
-   explanation factors, because it is an assumption, not an observation.
+3. Time adjustment: each historical award is restated in ``as_of`` money with
+   GASTAT's national CPI (``p2w.indices``): level at as_of / level at the award
+   date, using only index months already published by as_of. A comparable the
+   index cannot cover falls back to ``(1 + DEFAULT_ANNUAL_INFLATION) **
+   age_years``. How many comparables used each method is recorded in the
+   ``time_adjustment`` explanation factor.
 4. Quantiles: ``weighted_quantile`` over the adjusted values.
 5. Gating: ``p2w.evidence.market_evidence`` grades the evidence. If the tier
    forbids a market statement, a suppressed ``PricePrediction`` is returned with
@@ -25,11 +27,10 @@ How it works
 
 Honest limitations
 ------------------
-* ``DEFAULT_ANNUAL_INFLATION`` is a flat 2%/yr placeholder. It is **not** a
-  Saudi construction/services cost index; it is a documented assumption that
-  must be replaced with a real published index before this number is used to
-  price a large bid. Its effect is visible: it is the ``time_adjustment``
-  explanation factor.
+* CPI is an economy-wide price level, not a sector cost index. GASTAT's
+  construction cost index starts only in June 2025 and its wholesale index has
+  an apparent base-year break in January 2018, so neither is used yet. The
+  flat 2%/yr remains only as the fallback for dates outside the CPI series.
 * The sample is awarded *contract values*, not bids. It describes where winning
   prices landed, which — given that ~96% of multi-bidder awards in this corpus
   went to the lowest technically-compliant offer — is close to the market's
@@ -131,6 +132,8 @@ class MarketSampleItem:
     similarity: float
     recency_weight: float
     weight: float
+    #: "index:<series>" when a published index restated the value, else "flat".
+    adjustment: str = "flat"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -142,6 +145,7 @@ class MarketSampleItem:
             "similarity": self.similarity,
             "recency_weight": self.recency_weight,
             "weight": self.weight,
+            "adjustment": self.adjustment,
         }
 
 
@@ -189,6 +193,8 @@ def build_sample(
     *,
     annual_rate: float = DEFAULT_ANNUAL_INFLATION,
     min_similarity: float = MIN_CONTRIBUTING_SIMILARITY,
+    index: Any = None,
+    as_of: datetime | None = None,
 ) -> list[MarketSampleItem]:
     """Turn scored comparables into weighted, time-adjusted sample points.
 
@@ -221,16 +227,22 @@ def build_sample(
         weight = score * rec
         if weight <= 0.0:
             continue
+        restated = index.factor(age, as_of) if (index is not None and as_of is not None) else None
+        if restated is not None:
+            factor, adjustment = restated[0], f"index:{index.name}"
+        else:
+            factor, adjustment = inflation_factor(age, annual_rate), "flat"
         sample.append(
             MarketSampleItem(
                 tender_id=int(_field(item, "tender_id")),
                 name=str(_field(item, "name") or ""),
                 observed_value=value,
-                adjusted_value=value * inflation_factor(age, annual_rate),
+                adjusted_value=value * factor,
                 age_days=age,
                 similarity=score,
                 recency_weight=rec,
                 weight=weight,
+                adjustment=adjustment,
             )
         )
     sample.sort(key=lambda s: s.tender_id)
@@ -367,6 +379,28 @@ def feature_snapshot_id(
 # --------------------------------------------------------------------------
 
 
+def _time_adjustment_factor(
+    sample: Sequence[MarketSampleItem], *, annual_rate: float, median_factor: float
+) -> ExplanationFactor:
+    indexed = [s for s in sample if s.adjustment.startswith("index:")]
+    flat = len(sample) - len(indexed)
+    direction = ("increases" if median_factor > 1.0
+                 else "decreases" if median_factor < 1.0 else "neutral")
+    if not indexed:
+        detail = (f"تعديل زمني بافتراض مؤشر سنوي {annual_rate:.1%}؛ "
+                  f"معامل الوسيط {median_factor:.4f} (افتراض، وليس مؤشر تكلفة حقيقي)")
+    else:
+        series = indexed[0].adjustment.split(":", 1)[1]
+        label = "مؤشر أسعار المستهلك الوطني" if series == "cpi.general" else series
+        detail = (f"تعديل زمني بـ{label} (الهيئة العامة للإحصاء) لـ{len(indexed)} عقدًا؛ "
+                  f"معامل الوسيط {median_factor:.4f}")
+        if flat:
+            detail += f"؛ {flat} خارج نطاق المؤشر عُدّلت بافتراض {annual_rate:.1%} سنويًا"
+    return ExplanationFactor(
+        name="time_adjustment", direction=direction, weight=round(median_factor - 1.0, 6),
+        kind="derived", detail=detail)
+
+
 def _explanation_factors(
     sample: Sequence[MarketSampleItem],
     *,
@@ -387,16 +421,7 @@ def _explanation_factors(
                 f"(كل الأرقام مُلاحظة من عقود سابقة)"
             ),
         ),
-        ExplanationFactor(
-            name="time_adjustment",
-            direction="increases" if median_factor > 1.0 else "neutral",
-            weight=round(median_factor - 1.0, 6),
-            kind="derived",
-            detail=(
-                f"تعديل زمني بافتراض مؤشر سنوي {annual_rate:.1%}؛ "
-                f"معامل الوسيط {median_factor:.4f} (افتراض، وليس مؤشر تكلفة حقيقي)"
-            ),
-        ),
+        _time_adjustment_factor(sample, annual_rate=annual_rate, median_factor=median_factor),
         ExplanationFactor(
             name="recency_weighting",
             direction="neutral",
@@ -492,6 +517,7 @@ async def market_quantiles(
     as_of: datetime | None = None,
     similar: Sequence[Any] | None = None,
     annual_rate: float = DEFAULT_ANNUAL_INFLATION,
+    index: Any = None,
 ) -> PricePrediction:
     """Inflation- and recency-adjusted P10/P50/P90 of comparable awarded values.
 
@@ -525,7 +551,11 @@ async def market_quantiles(
         return _suppress(market_ev.suppression or SuppressionReason.INSUFFICIENT_EVIDENCE)
 
     comparables = await _comparables(conn, tender=tender, as_of=cutoff, similar=similar)
-    sample = build_sample(comparables, annual_rate=annual_rate)
+    if index is None:
+        from . import indices as indices_mod  # local import: patchable seam
+
+        index = await indices_mod.load_series(conn)
+    sample = build_sample(comparables, annual_rate=annual_rate, index=index, as_of=cutoff)
     if not sample:
         # The evidence module counted awarded comparables in the same activity;
         # retrieval scores them and may find none of them actually comparable.

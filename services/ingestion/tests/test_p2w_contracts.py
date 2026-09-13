@@ -27,7 +27,7 @@ from thaqip_ingestion.p2w.contracts import (
 # --------------------------------------------------------------------------
 
 def test_model_version_constant():
-    assert MODEL_VERSION == "p2w-0.1.0"
+    assert MODEL_VERSION == "p2w-0.2.0"
 
 
 def test_evidence_tier_values_and_str_behaviour():

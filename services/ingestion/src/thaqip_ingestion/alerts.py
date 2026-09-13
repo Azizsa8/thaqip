@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import logging
 import os
 
@@ -106,6 +107,12 @@ async def handle(pool: asyncpg.Pool, sender: Sender, fields: dict) -> int:
     event_type = fields["event_type"]
     if fields.get("entity_type") != "tender" or event_type not in EVENT_LABEL:
         return 0
+    try:
+        data = json.loads(fields.get("data") or "{}")
+    except (TypeError, ValueError):
+        data = {}
+    if isinstance(data, dict) and data.get("backfill"):
+        return 0  # historical award found by the backfill lane: corpus, not news
     event_id, tender_id = int(fields["event_id"]), int(fields["entity_id"])
     t = await pool.fetchrow("SELECT * FROM tenders WHERE id=$1", tender_id)
     if t is None:

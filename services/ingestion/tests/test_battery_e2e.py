@@ -139,6 +139,7 @@ pytestmark = [
 class Subject:
     tender_id: int
     tier: str | None
+    allowed_level: str | None
     suppressed: bool
     reason: str | None
     comparable_count: int
@@ -156,6 +157,7 @@ def _probe(tender_id: int) -> Subject | None:
     return Subject(
         tender_id=tender_id,
         tier=p.get("evidence_tier"),
+        allowed_level=d.get("allowed_level"),
         suppressed=bool(p["is_suppressed"]),
         reason=p.get("suppression_reason"),
         comparable_count=(d.get("evidence") or {}).get("comparable_count") or 0,
@@ -185,7 +187,11 @@ def subjects() -> dict[str, Subject]:
         s = _probe(tid)
         if s is None:
             continue
-        if not s.suppressed and rich is None:
+        # "Rich" must be able to draw the whole page, including the bid curve,
+        # which needs competitor-level prices: capability level L3 or above.
+        # Picking the first unsuppressed market (often tier C) made the curve
+        # tests depend on which awards the harvester found most recently.
+        if not s.suppressed and s.allowed_level in ("L3", "L4") and rich is None:
             rich = s
         # A thin subject is only interesting if it still has observed
         # comparables to show: that is exactly the state the house rules say

@@ -22,6 +22,7 @@ log = logging.getLogger("thaqip.ops_health")
 
 DEFAULT_STALL_MINUTES = {
     "etimad.awards_harvest": 90,
+    "etimad.awards_backfill": 90,
     "etimad.backfill.all": 180,
     "etimad.backfill.awarded": 180,
     "pricing.seed": 30,
