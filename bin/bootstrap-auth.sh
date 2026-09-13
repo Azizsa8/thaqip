@@ -3,9 +3,8 @@
 # var/credentials.env (gitignored). Safe to re-run: it will not overwrite an
 # existing credentials file or duplicate the user.
 set -euo pipefail
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
+source "$(cd "$(dirname "$0")" && pwd)/_env.sh"
 CRED="$REPO/var/credentials.env"
-export DATABASE_URL="${DATABASE_URL:-postgres://thaqip:thaqip_dev@localhost:5433/thaqip}"
 mkdir -p "$REPO/var"
 
 if [ -f "$CRED" ]; then
@@ -14,11 +13,11 @@ if [ -f "$CRED" ]; then
 fi
 
 ADMIN_USER="${THAQIP_ADMIN_USER:-admin}"
-ADMIN_PASS="${THAQIP_ADMIN_PASSWORD:-$(/home/ais04/.local/bin/uv run --project "$REPO/services/console" python -c 'import secrets;print(secrets.token_urlsafe(18))')}"
-API_TOKEN="$(/home/ais04/.local/bin/uv run --project "$REPO/services/console" python -c 'import secrets;print(secrets.token_urlsafe(32))')"
+ADMIN_PASS="${THAQIP_ADMIN_PASSWORD:-$("$UV" run --project "$REPO/services/console" python -c 'import secrets;print(secrets.token_urlsafe(18))')}"
+API_TOKEN="$("$UV" run --project "$REPO/services/console" python -c 'import secrets;print(secrets.token_urlsafe(32))')"
 
 cd "$REPO/services/console"
-/home/ais04/.local/bin/uv run python - "$ADMIN_USER" "$ADMIN_PASS" <<'PYEOF'
+"$UV" run python - "$ADMIN_USER" "$ADMIN_PASS" <<'PYEOF'
 import asyncio, os, sys
 sys.path.insert(0, "src")
 import asyncpg
@@ -53,6 +52,9 @@ THAQIP_ADMIN_PASSWORD=$ADMIN_PASS
 THAQIP_API_TOKEN=$API_TOKEN
 EOF
 chmod 600 "$CRED"
+# The console container reads only the service token (never the admin password).
+printf 'THAQIP_API_TOKEN=%s\n' "$API_TOKEN" > "$REPO/var/console.env"
+chmod 600 "$REPO/var/console.env"
 echo
 echo "  console login : $ADMIN_USER / $ADMIN_PASS"
 echo "  service token : $API_TOKEN"

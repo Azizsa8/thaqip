@@ -3,11 +3,10 @@
 # - flock prevents overlapping runs
 # - the module is idempotent: it only seeds pursuits with no simulation yet
 set -euo pipefail
+source "$(cd "$(dirname "$0")" && pwd)/_env.sh"
 
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
 LOCK="$REPO/var/pricing_seed.lock"
 LOG="$REPO/var/pricing_seed.log"
-export DATABASE_URL="${DATABASE_URL:-postgres://thaqip:thaqip_dev@localhost:5433/thaqip}"
 export THAQIP_PRICING_SEED_LIMIT="${THAQIP_PRICING_SEED_LIMIT:-100}"
 
 mkdir -p "$REPO/var"
@@ -19,5 +18,5 @@ fi
 
 echo "$(date -Is) pricing seed session starting" >> "$LOG"
 cd "$REPO/services/ingestion"
-exec /home/ais04/.local/bin/uv run --extra db \
+exec "$UV" run --extra db \
   python -m thaqip_ingestion.pricing_seed --limit "$THAQIP_PRICING_SEED_LIMIT" >> "$LOG" 2>&1

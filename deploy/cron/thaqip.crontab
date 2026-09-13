@@ -1,0 +1,11 @@
+# Thaqip host jobs. Installed by bin/provision-vm.sh (__REPO__ substituted).
+CRON_TZ=Asia/Riyadh
+15 */6 * * * __REPO__/bin/awards-harvest.sh
+45 * * * *   __REPO__/bin/awards-backfill.sh
+30 3 * * *   __REPO__/bin/reconcile.sh
+5 * * * *    __REPO__/bin/forsah-pull.sh
+0 7 * * *    __REPO__/bin/digest.sh
+40 * * * *   __REPO__/bin/reminders.sh
+50 */4 * * * __REPO__/bin/award-watch.sh
+10 2 * * *   __REPO__/bin/backup.sh >> __REPO__/var/backup.log 2>&1
+30 3 * * 0   __REPO__/bin/restore-drill.sh >> __REPO__/var/restore_drill.log 2>&1

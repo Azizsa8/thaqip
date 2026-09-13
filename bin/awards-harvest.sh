@@ -3,12 +3,11 @@
 # - flock prevents overlapping runs (a long run simply keeps the lock)
 # - checkpointing in the harvester resumes from the last completed page
 set -euo pipefail
+source "$(cd "$(dirname "$0")" && pwd)/_env.sh"
 
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
 # Shared with awards-backfill.sh: one Etimad scraper at a time.
 LOCK="$REPO/var/etimad_scrape.lock"
 LOG="$REPO/var/awards_harvest.log"
-export DATABASE_URL="${DATABASE_URL:-postgres://thaqip:thaqip_dev@localhost:5433/thaqip}"
 
 mkdir -p "$REPO/var"
 exec 9>"$LOCK"
@@ -21,5 +20,5 @@ fi
 
 echo "$(date -Is) cron harvest session starting" >> "$LOG"
 cd "$REPO/services/ingestion"
-exec /home/ais04/.local/bin/uv run --extra db --extra browser \
+exec "$UV" run --extra db --extra browser \
   python -m thaqip_ingestion.awards_harvest --mode fresh --pages 10 --page-size 20 >> "$LOG" 2>&1

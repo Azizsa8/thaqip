@@ -18,3 +18,4 @@ var/*.lock
 agent-fleet/
 var/*.log
 node_modules/
+docker-compose.override.yml

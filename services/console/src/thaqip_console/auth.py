@@ -141,8 +141,29 @@ async def log_auth_event(pool: asyncpg.Pool, *, event: str, username: str | None
 
 # --- request principal ------------------------------------------------------
 
+#: Set to "cloudflare" only when the console is reachable solely through a
+#: Cloudflare Tunnel. Then every request arrives from the cloudflared container
+#: and the real visitor is in CF-Connecting-IP; without this, the per-IP login
+#: throttle would treat all users as one address and one attacker could lock
+#: everyone out. Never enable it when the port is reachable directly: the
+#: header would then be attacker-controlled.
+TRUSTED_PROXY = os.environ.get("THAQIP_TRUSTED_PROXY", "").strip().lower()
+
+#: Force the Secure cookie flag. Behind a tunnel the app sees plain HTTP even
+#: though the visitor is on HTTPS, so the scheme cannot be trusted to decide.
+COOKIE_SECURE = os.environ.get("THAQIP_COOKIE_SECURE", "") == "1"
+
+
 def client_ip(request: Request) -> str:
+    if TRUSTED_PROXY == "cloudflare":
+        forwarded = (request.headers.get("cf-connecting-ip") or "").strip()
+        if forwarded:
+            return forwarded[:64]
     return (request.client.host if request.client else "") or ""
+
+
+def cookie_secure(request: Request) -> bool:
+    return COOKIE_SECURE or request.url.scheme == "https"
 
 
 async def principal(request: Request) -> dict[str, Any] | None:

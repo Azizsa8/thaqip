@@ -7,7 +7,7 @@
 #   2. Run this script and paste the token when asked (input is hidden).
 #   3. In the console: التنبيهات ← «ربط تيليجرام» ← press Start in Telegram.
 set -euo pipefail
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
+source "$(cd "$(dirname "$0")" && pwd)/_env.sh"
 OUT="$REPO/var/telegram.env"
 mkdir -p "$REPO/var"
 

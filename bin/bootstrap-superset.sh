@@ -6,7 +6,7 @@
 #   var/superset.env     -> container env: SECRET_KEY + metadata DB URI (600)
 #   var/credentials.env  -> appended: Superset admin login + read-only DB password
 set -euo pipefail
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
+source "$(cd "$(dirname "$0")" && pwd)/_env.sh"
 ENVF="$REPO/var/superset.env"
 CRED="$REPO/var/credentials.env"
 PSQL=(docker exec -i thaqip-postgres-1 psql -U thaqip -d thaqip -v ON_ERROR_STOP=1 -q)
@@ -77,5 +77,5 @@ curl -sf -o /dev/null "$SUPERSET_URL/health" || { echo "superset did not become 
 
 echo "== content (datasets, charts, dashboards)"
 cd "$REPO/services/ingestion"
-/home/ais04/.local/bin/uv run python "$REPO/analytics/superset/provision.py"
+"$UV" run python "$REPO/analytics/superset/provision.py"
 echo "done: $SUPERSET_URL  (login: $SUPERSET_ADMIN_USER, password in var/credentials.env)"

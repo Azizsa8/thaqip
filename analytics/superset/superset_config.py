@@ -118,8 +118,10 @@ EXTRA_SEQUENTIAL_COLOR_SCHEMES = [
 ]
 
 # ------------------------------------------------------------------ web
-# Plain HTTP over loopback / Tailscale: a Secure cookie would never be sent.
-SESSION_COOKIE_SECURE = False
+# Laptop: plain HTTP over loopback / Tailscale, where a Secure cookie would
+# never be sent. Production sits behind Cloudflare (TLS at the edge) and sets
+# SUPERSET_COOKIE_SECURE=1 in docker-compose.prod.yml.
+SESSION_COOKIE_SECURE = os.environ.get("SUPERSET_COOKIE_SECURE", "0") == "1"
 SESSION_COOKIE_SAMESITE = "Lax"
 TALISMAN_ENABLED = True
 TALISMAN_CONFIG = {
@@ -136,6 +138,6 @@ TALISMAN_CONFIG = {
     },
     "content_security_policy_nonce_in": ["script-src"],
     "force_https": False,
-    "session_cookie_secure": False,
+    "session_cookie_secure": SESSION_COOKIE_SECURE,
 }
 PREVENT_UNSAFE_DB_CONNECTIONS = True

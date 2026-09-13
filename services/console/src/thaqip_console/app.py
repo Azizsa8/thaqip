@@ -214,7 +214,7 @@ async def auth_login(body: LoginIn, request: Request, response: Response):
         tenant_id=who["tenant_id"], ip=ip)
     response.set_cookie(
         auth_mod.COOKIE_NAME, token, httponly=True, samesite="lax",
-        secure=request.url.scheme == "https",
+        secure=auth_mod.cookie_secure(request),
         expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"), path="/")
     return {"username": who["username"], "role": who["role"],
             "tenant": who["tenant_slug"], "expires_at": expires.isoformat()}
@@ -230,7 +230,8 @@ async def auth_logout(request: Request, response: Response):
             app.state.pool, event="logout", username=who.get("username"),
             user_id=who.get("user_id"), tenant_id=who.get("tenant_id"),
             ip=auth_mod.client_ip(request))
-    response.delete_cookie(auth_mod.COOKIE_NAME, path="/")
+    response.delete_cookie(auth_mod.COOKIE_NAME, path="/", httponly=True, samesite="lax",
+                           secure=auth_mod.cookie_secure(request))
     return {"ok": True}
 
 
@@ -864,6 +865,8 @@ async def lanes():
         "pricing.clock": 7 * 60,
         "etimad.awards_backfill": 3 * 60,
         "gastat.price_indices": 50 * 60,
+        "ops.backup": 26 * 60,
+        "ops.restore_drill": 8 * 24 * 60,
         "ops.health": 90,
     }
     running_grace_minutes = {
@@ -932,7 +935,7 @@ async def ops_summary(tenant_id: int = Tenant):
     attention = [r for r in lane_rows if r.get("needs_attention")]
     running = [r for r in lane_rows if r.get("status") == "running"]
     healthy = [r for r in lane_rows if r.get("status") == "healthy"]
-    critical_connectors = {"etimad.listing", "pricing.seed", "ops.health"}
+    critical_connectors = {"etimad.listing", "pricing.seed", "ops.health", "ops.backup"}
     critical_attention = [r for r in attention if r.get("connector") in critical_connectors]
     if critical_attention:
         verdict = "down"

@@ -1,0 +1,100 @@
+# Production override. Use with:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# (bin/provision-vm.sh installs a systemd unit that does exactly this at boot.)
+#
+# What changes versus the base file:
+# - Nothing is published to the internet or the LAN. The console and analytics
+#   are reached only through Cloudflare Tunnel (outbound connection from the
+#   cloudflared container), so the VM needs no open inbound port except SSH.
+#   Postgres stays on 127.0.0.1 for the host cron jobs and backups.
+# - Postgres does not mount db/migrations as init scripts: a production
+#   database is created by restoring a backup or by bin/migrate.sh, never by
+#   re-running every migration on an empty volume.
+# - The console trusts CF-Connecting-IP (per-visitor login throttling) and
+#   always sets Secure cookies, because TLS ends at Cloudflare.
+# - Memory limits sized for a 12 GB Oracle Always Free A1 VM.
+
+# Every secret below is mandatory here (":?"): if .env lacks one, compose
+# refuses to start instead of silently falling back to the dev default.
+x-prod-db-url: &prod-db-url
+  DATABASE_URL: postgres://thaqip:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/thaqip
+
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes: !override   # NOT !reset: !reset drops the list, leaving Postgres with no volume
+      - pgdata:/var/lib/postgresql/data
+    mem_limit: 2g
+
+  redis:
+    ports: !reset []
+    mem_limit: 512m
+
+  minio:
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER in .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD in .env}
+    ports: !reset []
+    mem_limit: 768m
+
+  typesense:
+    command: !override ["--data-dir", "/data", "--api-key", "${TYPESENSE_API_KEY:?set TYPESENSE_API_KEY in .env}"]
+    ports: !reset []
+    mem_limit: 1g
+
+  console:
+    ports: !reset []
+    environment:
+      <<: *prod-db-url
+      TYPESENSE_KEY: ${TYPESENSE_API_KEY:?set TYPESENSE_API_KEY in .env}
+      THAQIP_TRUSTED_PROXY: cloudflare
+      THAQIP_COOKIE_SECURE: "1"
+      THAQIP_SESSION_DAYS: "7"
+    mem_limit: 1g
+
+  poller:
+    environment:
+      <<: *prod-db-url
+  relay:
+    environment:
+      <<: *prod-db-url
+  alerts:
+    environment:
+      <<: *prod-db-url
+  pricing-seed:
+    environment:
+      <<: *prod-db-url
+  prediction-clock:
+    environment:
+      <<: *prod-db-url
+  ops-health:
+    environment:
+      <<: *prod-db-url
+  indexer:
+    environment:
+      <<: *prod-db-url
+      TYPESENSE_KEY: ${TYPESENSE_API_KEY:?set TYPESENSE_API_KEY in .env}
+
+  superset:
+    ports: !reset []
+    environment:
+      SUPERSET_COOKIE_SECURE: "1"
+    mem_limit: 1536m
+
+  cloudflared:
+    # Outbound-only tunnel to Cloudflare. Public hostnames are configured in
+    # the Cloudflare dashboard (Zero Trust -> Networks -> Tunnels):
+    #   app.<domain>       -> http://console:8080     (behind an Access policy)
+    #   analytics.<domain> -> http://superset:8088    (Access: admins only)
+    image: cloudflare/cloudflared:2026.9.1
+    command: ["tunnel", "--no-autoupdate", "--metrics", "0.0.0.0:2000", "run"]
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN in .env}
+    depends_on:
+      console: {condition: service_healthy}
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    restart: unless-stopped

@@ -9,10 +9,9 @@
 #   bin/migrate.sh --dry-run       # show what would run
 #   bin/migrate.sh --baseline      # record pending files WITHOUT executing them
 set -euo pipefail
+source "$(cd "$(dirname "$0")" && pwd)/_env.sh"
 
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
-export DATABASE_URL="${DATABASE_URL:-postgres://thaqip:thaqip_dev@localhost:5433/thaqip}"
 
 cd "$REPO/services/ingestion"
-exec /home/ais04/.local/bin/uv run --extra db \
+exec "$UV" run --extra db \
   python -m thaqip_ingestion.migrate --dir "$REPO/db/migrations" "$@"

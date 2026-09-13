@@ -1,62 +1,111 @@
+# Thaqip stack. Base file = what every environment shares.
+#
+#   laptop / dev : docker compose up -d        (auto-loads docker-compose.override.yml if present)
+#   production   : docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Secrets come from ./.env (gitignored; bin/prod-secrets.sh writes it on a
+# server). Without it the dev defaults below apply, which is only acceptable
+# because every port here is published on 127.0.0.1 at most.
+
+x-logging: &logging
+  # Unbounded json-file logs are how a disk fills and takes Postgres down.
+  driver: json-file
+  options: {max-size: "10m", max-file: "3"}
+
+x-db-url: &db-url
+  DATABASE_URL: postgres://thaqip:${POSTGRES_PASSWORD:-thaqip_dev}@postgres:5432/thaqip
+
+x-needs-db: &needs-db
+  postgres: {condition: service_healthy, restart: true}
+
+x-needs-db-redis: &needs-db-redis
+  postgres: {condition: service_healthy, restart: true}
+  redis: {condition: service_healthy, restart: true}
+
+x-worker: &worker
+  build: ./services/ingestion
+  logging: *logging
+  restart: unless-stopped
+
 services:
   postgres:
     image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: thaqip
-      POSTGRES_PASSWORD: thaqip_dev
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-thaqip_dev}
       POSTGRES_DB: thaqip
-    ports: ["127.0.0.1:5433:5432"]   # loopback only: host scripts and tests; never LAN/IPv6
+    ports: ["127.0.0.1:${THAQIP_PG_HOST_PORT:-5433}:5432"]   # loopback only: host scripts and tests
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U thaqip -d thaqip"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    logging: *logging
     restart: unless-stopped
 
   redis:
     image: redis:7-alpine
     command: ["redis-server", "--appendonly", "yes"]
-    ports: ["127.0.0.1:6380:6379"]
+    ports: ["127.0.0.1:${THAQIP_REDIS_HOST_PORT:-6380}:6379"]
     volumes:
       - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    logging: *logging
     restart: unless-stopped
 
   minio:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: thaqip
-      MINIO_ROOT_PASSWORD: thaqip_dev_secret
-    ports: ["127.0.0.1:9002:9000", "127.0.0.1:9003:9001"]
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-thaqip}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-thaqip_dev_secret}
+    ports: ["127.0.0.1:${THAQIP_MINIO_HOST_PORT:-9002}:9000"]
     volumes:
       - miniodata:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    logging: *logging
     restart: unless-stopped
 
   typesense:
+    # No shell tools in this image for a healthcheck; its one dependant (the
+    # indexer) retries on its own.
     image: typesense/typesense:27.1
-    command: ["--data-dir", "/data", "--api-key", "thaqip_dev_search"]
-    ports: ["127.0.0.1:8108:8108"]
+    command: ["--data-dir", "/data", "--api-key", "${TYPESENSE_API_KEY:-thaqip_dev_search}"]
+    ports: ["127.0.0.1:${THAQIP_TYPESENSE_HOST_PORT:-8108}:8108"]
     volumes:
       - tsdata:/data
+    logging: *logging
     restart: unless-stopped
 
   poller:
-    build: ./services/ingestion
+    <<: *worker
     command: ["python", "-m", "thaqip_ingestion.main", "--loop", "--every", "300", "--pages", "6"]
     environment:
-      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
-    depends_on: [postgres]
-    restart: unless-stopped
+      <<: *db-url
+    depends_on: *needs-db
 
   relay:
-    build: ./services/ingestion
+    <<: *worker
     command: ["python", "-m", "thaqip_ingestion.relay", "--interval", "2"]
     environment:
-      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
+      <<: *db-url
       REDIS_URL: redis://redis:6379/0
-    depends_on: [postgres, redis]
-    restart: unless-stopped
+    depends_on: *needs-db-redis
 
   alerts:
-    build: ./services/ingestion
+    <<: *worker
     command: ["python", "-m", "thaqip_ingestion.alerts"]
     # TELEGRAM_BOT_TOKEN comes from var/telegram.env (bin/set-telegram-token.sh).
     # Not listed under environment: an empty ${VAR:-} there would override it.
@@ -64,51 +113,47 @@ services:
       - path: var/telegram.env
         required: false
     environment:
-      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
+      <<: *db-url
       REDIS_URL: redis://redis:6379/0
-    depends_on: [postgres, redis]
-    restart: unless-stopped
+    depends_on: *needs-db-redis
 
   indexer:
-    build: ./services/ingestion
+    <<: *worker
     command: ["python", "-m", "thaqip_ingestion.indexer"]
     environment:
-      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
+      <<: *db-url
       REDIS_URL: redis://redis:6379/0
       TYPESENSE_URL: http://typesense:8108
-      TYPESENSE_KEY: thaqip_dev_search
-    depends_on: [postgres, redis, typesense]
-    restart: unless-stopped
+      TYPESENSE_KEY: ${TYPESENSE_API_KEY:-thaqip_dev_search}
+    depends_on:
+      <<: *needs-db-redis
+      typesense: {condition: service_started}
 
   pricing-seed:
-    build: ./services/ingestion
+    <<: *worker
     command: ["sh", "-c", "while true; do python -m thaqip_ingestion.pricing_seed --limit $${THAQIP_PRICING_SEED_LIMIT:-100}; sleep $${THAQIP_PRICING_SEED_INTERVAL:-21600}; done"]
     environment:
-      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
-    depends_on: [postgres]
-    restart: unless-stopped
+      <<: *db-url
+    depends_on: *needs-db
 
   prediction-clock:
     # Accuracy Stage 1: a blind market prediction for every open Etimad tender,
     # once per day (re-runs within a day are no-ops), then scores any whose
     # award has since appeared. Every 3h so short tenders are caught before
-    # their offers open.
-    build: ./services/ingestion
-    # GASTAT indices (DataSaudi public API) refresh at most daily, before the
-    # snapshot, so predictions restate old awards with the latest CPI.
+    # their offers open. GASTAT indices (DataSaudi public API) refresh at most
+    # daily, before the snapshot, so old awards are restated with current CPI.
+    <<: *worker
     command: ["sh", "-c", "while true; do python -m thaqip_ingestion.price_indices --min-hours 20 || true; python -m thaqip_ingestion.prediction_clock; sleep $${THAQIP_PREDICTION_CLOCK_INTERVAL:-10800}; done"]
     environment:
-      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
-    depends_on: [postgres]
-    restart: unless-stopped
+      <<: *db-url
+    depends_on: *needs-db
 
   ops-health:
-    build: ./services/ingestion
+    <<: *worker
     command: ["sh", "-c", "while true; do python -m thaqip_ingestion.ops_health --close-stalled; sleep $${THAQIP_OPS_HEALTH_INTERVAL:-3600}; done"]
     environment:
-      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
-    depends_on: [postgres]
-    restart: unless-stopped
+      <<: *db-url
+    depends_on: *needs-db
 
   console:
     build:
@@ -116,30 +161,35 @@ services:
       dockerfile: services/console/Dockerfile
     # Only the service token — never the admin password — reaches this process.
     env_file:
-      - var/console.env
+      # Service token for workers and tests (bin/bootstrap-auth.sh). Optional so
+      # a brand-new server can start before credentials exist; browser logins
+      # do not need it.
+      - path: var/console.env
+        required: false
       - path: var/telegram.env   # the console owns the bot's /start linking poller
         required: false
     environment:
-      DATABASE_URL: postgres://thaqip:thaqip_dev@postgres:5432/thaqip
+      <<: *db-url
       TYPESENSE_URL: http://typesense:8108
-      TYPESENSE_KEY: thaqip_dev_search
-    ports:
-      # Unauthenticated API: it will return a tenant's estimated_cost and bid
-      # scenarios to any caller. Published on 0.0.0.0 + [::] it was reachable
-      # on the LAN, over Tailscale, AND on this host's public IPv6 address,
-      # with ufw inactive (verified 2026-09-10). Docker publishes ports through
-      # its own iptables chain and bypasses ufw, so the firewall is not the
-      # control here — the bind address is. Loopback for local work, Tailscale
-      # for the owner's other devices, nothing else. Revisit once auth ships.
-      - "127.0.0.1:8091:8080"
-      - "100.86.158.23:8091:8080"   # tailscale0
-    depends_on: [postgres]
+      TYPESENSE_KEY: ${TYPESENSE_API_KEY:-thaqip_dev_search}
+    # Docker publishes ports through its own iptables chain and bypasses ufw,
+    # so the bind address is the control. Loopback here; per-host extras (the
+    # laptop's Tailscale address) live in docker-compose.override.yml, and
+    # production publishes nothing (Cloudflare Tunnel, docker-compose.prod.yml).
+    ports: ["127.0.0.1:8091:8080"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/api/health', timeout=4).status == 200 else 1)"]
+      interval: 15s
+      timeout: 6s
+      retries: 5
+      start_period: 20s
+    depends_on: *needs-db
+    logging: *logging
     restart: unless-stopped
 
   superset:
     # Thaqip Analytics — Apache Superset 6.1 over the read-only analytics
-    # schema (db/migrations/0017). Own login and roles; published on the same
-    # two addresses as the console and nowhere else. First run:
+    # schema (db/migrations/0017). Own login and roles. First run:
     # bin/bootstrap-superset.sh (creates secrets, metadata db, admin, content).
     build: ./analytics/superset
     env_file:
@@ -150,11 +200,10 @@ services:
       SERVER_WORKER_AMOUNT: "2"
       SERVER_THREADS_AMOUNT: "8"
       GUNICORN_TIMEOUT: "120"
-    ports:
-      - "127.0.0.1:8092:8088"
-      - "100.86.158.23:8092:8088"   # tailscale0
-    depends_on: [postgres, redis]
+    ports: ["127.0.0.1:8092:8088"]
+    depends_on: *needs-db-redis
     mem_limit: 1536m
+    logging: *logging
     restart: unless-stopped
 
 volumes:

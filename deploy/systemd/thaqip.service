@@ -1,0 +1,21 @@
+# Brings the whole stack up in dependency order at boot (healthchecks gate
+# startup), so a reboot never leaves a container without its network, which
+# is what happened to the console on the laptop on 13 Sep.
+# Installed by bin/provision-vm.sh with __REPO__ and __USER__ substituted.
+[Unit]
+Description=Thaqip stack (docker compose)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=__USER__
+WorkingDirectory=__REPO__
+ExecStart=/usr/bin/docker compose up -d --remove-orphans --wait --wait-timeout 300
+ExecStop=/usr/bin/docker compose stop
+TimeoutStartSec=600
+
+[Install]
+WantedBy=multi-user.target
