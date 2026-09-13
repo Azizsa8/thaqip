@@ -13,3 +13,8 @@ var/telegram.env
 var/superset.env
 var/backups/
 var/*.lock
+
+# local agent tooling and runtime output: not part of the product
+agent-fleet/
+var/*.log
+node_modules/

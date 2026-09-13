@@ -1,2 +1,0 @@
-2026-09-08 18:14:15,386 WARNING agent.credential_pool: Copilot token exchange degraded to RAW token (exchange unavailable); enterprise-only models may 400 with model_not_available_for_integrator until exchange recovers.
-2026-09-08 18:14:15,458 WARNING agent.credential_pool: Ingested OPENROUTER_API_KEY from environment into the openrouter credential pool — this enables OpenRouter spend. Remove the key or run hermes auth remove openrouter <n> to suppress.
