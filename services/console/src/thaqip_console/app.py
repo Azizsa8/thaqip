@@ -4324,6 +4324,23 @@ def _boq_engine():
     return ns
 
 
+def _catalogue_engine():
+    """Lazy import of the deterministic catalogue matcher, same cached
+    pattern as `_boq_engine`/`_fit_engine` above."""
+    cached = getattr(app.state, "catalogue_engine", None)
+    if cached is not None:
+        return cached
+    try:
+        from thaqip_ingestion import catalogue_match as catalogue_match_mod
+    except ImportError as exc:  # pragma: no cover - depends on deployment
+        raise HTTPException(500, detail={
+            "error": "catalogue_engine_unavailable",
+            "message_ar": "محرك مطابقة الكتالوج غير متوفر في هذه النسخة من الخادم.",
+        }) from exc
+    app.state.catalogue_engine = catalogue_match_mod
+    return catalogue_match_mod
+
+
 def _boq_minio():
     """MinIO client for BoQ uploads, created lazily and cached on app.state.
 
@@ -4364,6 +4381,13 @@ def _boq_findings_json(rows) -> list[dict[str, Any]]:
         }
         for r in rows
     ]
+
+
+def _boq_line_json(row) -> dict[str, Any]:
+    d = dict(row)
+    if isinstance(d.get("match_candidates"), str):
+        d["match_candidates"] = json.loads(d["match_candidates"])
+    return d
 
 
 @app.post("/api/boq/upload")
@@ -4419,6 +4443,14 @@ async def upload_boq(
 
     findings = engine.review.review_boq(parsed.items)
 
+    catalogue_engine = _catalogue_engine()
+    catalogue_rows = await app.state.pool.fetch(
+        "SELECT id, code, name_ar, unit FROM catalogue_items")
+    catalogue_items = [
+        catalogue_engine.CatalogueItemLike(r["id"], r["code"], r["name_ar"], r["unit"])
+        for r in catalogue_rows
+    ]
+
     sha256 = hashlib.sha256(data).hexdigest()
     storage_key = f"boq/{tenant_id}/{uuid.uuid4()}.xlsx"
 
@@ -4452,12 +4484,23 @@ async def upload_boq(
 
         line_id_by_line_no: dict[int, int] = {}
         for it in parsed.items:
+            candidates = catalogue_engine.suggest_match(
+                it.description, it.spec, it.unit, catalogue_items)
+            top_id = candidates[0].catalogue_item_id if candidates else None
+            top_score = candidates[0].score if candidates else None
+            candidates_json = json.dumps([
+                {"kind": c.kind, "catalogue_item_id": c.catalogue_item_id, "code": c.code,
+                 "name_ar": c.name_ar, "unit": c.unit, "score": c.score}
+                for c in (candidates or [])
+            ])
             lid = await conn.fetchval(
                 """INSERT INTO boq_lines (document_id, line_no, category, item, description, spec,
-                                          unit_raw, unit, qty, unit_price, total, text_numbers)
-                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id""",
+                                          unit_raw, unit, qty, unit_price, total, text_numbers,
+                                          catalogue_item_id, match_confidence, match_candidates)
+                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15::jsonb) RETURNING id""",
                 doc_id, it.line_no, it.category, it.item_no, it.description, it.spec,
                 it.unit, it.unit, it.qty, it.unit_price, it.total, it.text_numbers,
+                top_id, top_score, candidates_json,
             )
             line_id_by_line_no[it.line_no] = lid
 
@@ -4505,7 +4548,7 @@ async def get_boq_document(document_id: int, tenant_id: int = Tenant):
         "SELECT * FROM boq_findings WHERE document_id=$1 ORDER BY id", document_id)
     return {
         "document": dict(doc),
-        "lines": [dict(r) for r in lines],
+        "lines": [_boq_line_json(r) for r in lines],
         "findings": _boq_findings_json(findings),
     }
 
@@ -4554,6 +4597,92 @@ async def delete_boq_document(document_id: int, tenant_id: int = Tenant):
     await pool.execute(
         "DELETE FROM boq_documents WHERE id=$1 AND tenant_id=$2", document_id, tenant_id)
     return {"deleted": True}
+
+
+# ---------------------------- Catalogue matching ----------------------------
+# PRD §5.3, T-MATCH-01. catalogue_items is shared platform-wide data (no
+# tenant_id — see 0022_boq_workbench.sql), same as tenders/agencies; only the
+# boq_lines being matched are tenant-private, so the match-confirm endpoint
+# below checks ownership through the line's parent document.
+
+class CatalogueItemIn(BaseModel):
+    name_ar: str = Field(min_length=1, max_length=300)
+    unit: str = Field(min_length=1, max_length=20)
+    code: str | None = None
+    family: str | None = None
+    capacity_key: str | None = None
+
+
+@app.get("/api/catalogue-items")
+async def search_catalogue_items(q: str | None = None, unit: str | None = None,
+                                  limit: int = Query(50, le=200)):
+    pool: asyncpg.Pool = app.state.pool
+    conditions, args = [], []
+    if q:
+        args.append(f"%{q}%")
+        conditions.append(f"name_ar ILIKE ${len(args)}")
+    if unit:
+        args.append(unit)
+        conditions.append(f"unit = ${len(args)}")
+    where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+    args.append(limit)
+    rows = await pool.fetch(
+        f"SELECT id, code, name_ar, unit, family, capacity_key FROM catalogue_items "
+        f"{where} ORDER BY name_ar LIMIT ${len(args)}",
+        *args,
+    )
+    return [dict(r) for r in rows]
+
+
+@app.post("/api/catalogue-items")
+async def create_catalogue_item(body: CatalogueItemIn, request: Request, tenant_id: int = Tenant):
+    who = getattr(request.state, "principal", None) or {}
+    created_by = who.get("user_id")
+    pool: asyncpg.Pool = app.state.pool
+    row = await pool.fetchrow(
+        """INSERT INTO catalogue_items (code, name_ar, unit, family, capacity_key, created_by)
+           VALUES ($1,$2,$3,$4,$5,$6) RETURNING id, code, name_ar, unit, family, capacity_key""",
+        body.code, body.name_ar, body.unit, body.family, body.capacity_key, created_by,
+    )
+    return dict(row)
+
+
+class LineMatchPatch(BaseModel):
+    catalogue_item_id: int | None
+
+
+@app.patch("/api/boq/{document_id}/lines/{line_id}/match")
+async def patch_line_match(document_id: int, line_id: int, body: LineMatchPatch,
+                            request: Request, tenant_id: int = Tenant):
+    """Confirm the suggested match, pick a different catalogue item (the PRD's
+    "estimator confirms or edits"), or clear it (catalogue_item_id: null).
+    Either way this is a human decision, so match_confirmed_by/at are always
+    set together with catalogue_item_id — there is no server-side path that
+    marks a line confirmed without an actual confirming user."""
+    pool: asyncpg.Pool = app.state.pool
+    owned = await pool.fetchval(
+        """SELECT 1 FROM boq_lines l JOIN boq_documents d ON d.id = l.document_id
+           WHERE l.id=$1 AND l.document_id=$2 AND d.tenant_id=$3""",
+        line_id, document_id, tenant_id)
+    if not owned:
+        raise HTTPException(404)
+    if body.catalogue_item_id is not None:
+        exists = await pool.fetchval(
+            "SELECT 1 FROM catalogue_items WHERE id=$1", body.catalogue_item_id)
+        if not exists:
+            raise HTTPException(422, detail={"error": "unknown_catalogue_item"})
+    who = getattr(request.state, "principal", None) or {}
+    confirmed_by = who.get("user_id")
+    row = await pool.fetchrow(
+        """UPDATE boq_lines SET
+             catalogue_item_id = $3::bigint,
+             match_confirmed_by = CASE WHEN $3::bigint IS NULL THEN NULL ELSE $4::bigint END,
+             match_confirmed_at = CASE WHEN $3::bigint IS NULL THEN NULL ELSE now() END
+           WHERE id=$1 AND document_id=$2
+           RETURNING *""",
+        line_id, document_id, body.catalogue_item_id, confirmed_by,
+    )
+    return _boq_line_json(row)
 
 
 # ---------------------------- Eligibility / fit scoring ----------------------------
