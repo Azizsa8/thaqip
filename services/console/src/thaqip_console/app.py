@@ -4459,3 +4459,126 @@ async def delete_boq_document(document_id: int, tenant_id: int = Tenant):
     await pool.execute(
         "DELETE FROM boq_documents WHERE id=$1 AND tenant_id=$2", document_id, tenant_id)
     return {"deleted": True}
+
+
+# ---------------------------- Eligibility / fit scoring ----------------------------
+# PRD "Thaqip for Contractors" §5.1, tests T-ELIG-01/T-ELIG-02. A tenant's
+# self-declared company profile (activities/regions/classification grades) is
+# private to that tenant, same as everywhere else in this file. Tenders
+# themselves carry no tenant_id (they are the shared market feed — see the
+# pre-existing /api/tenders/{tender_id} above, which is likewise unscoped by
+# tenant) so only the profile lookup below needs `tenant_id: int = Tenant`.
+
+
+def _fit_engine():
+    """Lazy import of the ingestion fit-scoring engine, same cached pattern
+    as `_p2w_engine`/`_boq_engine` above."""
+    cached = getattr(app.state, "fit_engine", None)
+    if cached is not None:
+        return cached
+    try:
+        from thaqip_ingestion import fit_score as fit_score_mod
+    except ImportError as exc:  # pragma: no cover - depends on deployment
+        raise HTTPException(500, detail={
+            "error": "fit_engine_unavailable",
+            "message_ar": "محرك حساب التوافق غير متوفر في هذه النسخة من الخادم.",
+        }) from exc
+    app.state.fit_engine = fit_score_mod
+    return fit_score_mod
+
+
+class CompanyProfileIn(BaseModel):
+    activity_ids: list[int] = []
+    regions: list[str] = []
+    classification_grades: list[str] = []
+    certifications: list[str] = []
+    min_project_value: float | None = None
+    max_project_value: float | None = None
+
+
+_EMPTY_COMPANY_PROFILE = {
+    "activity_ids": [], "regions": [], "classification_grades": [],
+    "certifications": [], "min_project_value": None, "max_project_value": None,
+    "updated_at": None,
+}
+
+
+@app.get("/api/company-profile")
+async def get_company_profile(tenant_id: int = Tenant):
+    pool: asyncpg.Pool = app.state.pool
+    row = await pool.fetchrow(
+        "SELECT * FROM company_profiles WHERE tenant_id=$1", tenant_id)
+    if row is None:
+        return _EMPTY_COMPANY_PROFILE
+    d = dict(row)
+    d.pop("tenant_id", None)
+    d.pop("updated_by", None)
+    return d
+
+
+@app.put("/api/company-profile")
+async def put_company_profile(body: CompanyProfileIn, request: Request, tenant_id: int = Tenant):
+    who = getattr(request.state, "principal", None) or {}
+    updated_by = who.get("user_id")
+    pool: asyncpg.Pool = app.state.pool
+    await pool.execute(
+        """INSERT INTO company_profiles
+             (tenant_id, activity_ids, regions, classification_grades, certifications,
+              min_project_value, max_project_value, updated_by, updated_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8, now())
+           ON CONFLICT (tenant_id) DO UPDATE SET
+             activity_ids = EXCLUDED.activity_ids,
+             regions = EXCLUDED.regions,
+             classification_grades = EXCLUDED.classification_grades,
+             certifications = EXCLUDED.certifications,
+             min_project_value = EXCLUDED.min_project_value,
+             max_project_value = EXCLUDED.max_project_value,
+             updated_by = EXCLUDED.updated_by,
+             updated_at = now()""",
+        tenant_id, body.activity_ids, body.regions, body.classification_grades,
+        body.certifications, body.min_project_value, body.max_project_value, updated_by,
+    )
+    return await get_company_profile(tenant_id=tenant_id)
+
+
+@app.get("/api/tenders/{tender_id}/fit")
+async def tender_fit(tender_id: int, tenant_id: int = Tenant):
+    pool: asyncpg.Pool = app.state.pool
+    tender = await pool.fetchrow(
+        "SELECT id, activity_id FROM tenders WHERE id=$1", tender_id)
+    if tender is None:
+        raise HTTPException(404)
+    profile_row = await pool.fetchrow(
+        "SELECT * FROM company_profiles WHERE tenant_id=$1", tenant_id)
+    detail_row = await pool.fetchrow(
+        "SELECT * FROM tender_details WHERE tender_id=$1", tender_id)
+
+    engine = _fit_engine()
+    profile = engine.CompanyProfile(
+        activity_ids=tuple(profile_row["activity_ids"]) if profile_row else (),
+        regions=tuple(profile_row["regions"]) if profile_row else (),
+        classification_grades=tuple(profile_row["classification_grades"]) if profile_row else (),
+    )
+    detail = None
+    if detail_row is not None:
+        detail = engine.TenderDetailLike(
+            classification_required=detail_row["classification_required"],
+            classification_text=detail_row["classification_text"],
+            execution_location=detail_row["execution_location"],
+        )
+    tender_ns = type("Tender", (), {"activity_id": tender["activity_id"]})
+    result = engine.score_fit(tender_ns, profile, detail)
+    return {
+        "tender_id": tender_id,
+        "score": result.score,
+        "max_possible_score": result.max_possible_score,
+        "label": result.label,
+        "classification_status": result.classification_status,
+        "not_built_factors": list(result.not_built_factors),
+        "reasons": [
+            {"factor": r.factor, "status": r.status, "weight": r.weight,
+             "points": r.points, "message_ar": r.message_ar}
+            for r in result.reasons
+        ],
+        "details_fetched": detail_row is not None,
+    }
