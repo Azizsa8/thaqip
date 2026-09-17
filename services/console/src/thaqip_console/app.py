@@ -4685,6 +4685,57 @@ async def patch_line_match(document_id: int, line_id: int, body: LineMatchPatch,
     return _boq_line_json(row)
 
 
+@app.post("/api/boq/{document_id}/consent/withdraw")
+async def withdraw_boq_consent(document_id: int, tenant_id: int = Tenant):
+    """Withdraw the 'item_pool' consent given at upload (PRD §5.3/§9): stops
+    the document's lines from feeding future item_benchmarks runs. Per the
+    terms already documented on boq_consents (0022_boq_workbench.sql) and
+    repeated on GET /api/catalogue-items/{id}/benchmark below, this does NOT
+    retroactively recompute or remove any benchmark snapshot already
+    published from an earlier, still-consented run."""
+    pool: asyncpg.Pool = app.state.pool
+    owned = await pool.fetchval(
+        "SELECT 1 FROM boq_documents WHERE id=$1 AND tenant_id=$2", document_id, tenant_id)
+    if not owned:
+        raise HTTPException(404)
+    n = await pool.execute(
+        """UPDATE boq_consents SET withdrawn_at = now()
+           WHERE document_id=$1 AND scope='item_pool' AND withdrawn_at IS NULL""",
+        document_id,
+    )
+    return {"withdrawn": not n.endswith("0")}
+
+
+NO_BENCHMARK_MESSAGE_AR = "لا توجد بيانات كافية"  # PRD T-FAKE-01's exact required copy
+
+
+@app.get("/api/catalogue-items/{catalogue_item_id}/benchmark")
+async def get_item_benchmark(catalogue_item_id: int):
+    """PRD §5.4, T-BENCH-02. catalogue_items/item_benchmarks are shared,
+    tenant-less data (same as tenders) — nothing here is per-tenant. The
+    `available: false` / message_ar shape below is deliberate: T-FAKE-01
+    requires the UI can never render a number when fewer than 5 tenants
+    contributed, and item_benchmarks itself can never even STORE such a row
+    (its own CHECK constraint), so "no row yet" and "not enough data" are
+    the same case here, both handled the same honest way."""
+    pool: asyncpg.Pool = app.state.pool
+    exists = await pool.fetchval("SELECT 1 FROM catalogue_items WHERE id=$1", catalogue_item_id)
+    if not exists:
+        raise HTTPException(404)
+    row = await pool.fetchrow(
+        """SELECT * FROM item_benchmarks WHERE catalogue_item_id=$1
+           ORDER BY period_end DESC LIMIT 1""",
+        catalogue_item_id,
+    )
+    if row is None:
+        return {"available": False, "message_ar": NO_BENCHMARK_MESSAGE_AR}
+    d = dict(row)
+    d["available"] = True
+    for k in ("p25", "p50", "p75"):
+        d[k] = float(d[k]) if d[k] is not None else None
+    return d
+
+
 # ---------------------------- Eligibility / fit scoring ----------------------------
 # PRD "Thaqip for Contractors" §5.1, tests T-ELIG-01/T-ELIG-02. A tenant's
 # self-declared company profile (activities/regions/classification grades) is
