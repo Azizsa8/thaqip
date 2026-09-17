@@ -11,20 +11,23 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import inspect
+import io
 import json
 import math
 import logging
 import os
 import re
 import sys
+import uuid
 from collections.abc import Iterable
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
 import asyncpg
-from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
@@ -4180,3 +4183,279 @@ async def readiness(sample: int = Query(30, ge=5, le=120), tenant_id: int = Tena
             "Dimensions with score=null are not measurable from the current database "
             "and are excluded from the averages rather than assumed passing."),
     }
+
+
+# ---------------------------- BoQ workbench ----------------------------
+# PRD "Thaqip for Contractors" §5.3/§5.4/§6. A contractor uploads a priced
+# bill-of-quantities workbook; we run a deterministic (non-AI) review engine
+# over it and, only with explicit per-upload consent, let confirmed lines
+# later feed a pooled item-price benchmark (db/migrations/0022_boq_workbench.sql
+# owns the schema and the privacy/consent rules — n_contributors >= 5 is a DB
+# CHECK constraint there, not application logic).
+#
+# Every route below sits behind the normal auth gate (not in PUBLIC_PATHS) and
+# every query is scoped by `tenant_id: int = Tenant`, exactly like the rest of
+# this file — a BoQ document belongs to the tenant that uploaded it and to no
+# one else (T-UPL-01/IDOR requirement in the PRD's contractor test plan).
+
+BOQ_BUCKET = "thaqip-boq"
+BOQ_MAX_BYTES = 10 * 1024 * 1024  # 10 MB
+_XLSX_MAGIC = b"PK\x03\x04"
+_XLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+def _boq_engine():
+    """Lazy import of the ingestion parser + deterministic review engine.
+
+    Mirrors `_p2w_engine`'s lazy-import-with-cache pattern above: the console
+    image does not depend on thaqip_ingestion as a wheel, but `_bootstrap_p2w`
+    already put the ingestion source tree on sys.path (when present), so
+    `thaqip_ingestion.boq` / `thaqip_ingestion.boq_review` are importable the
+    same way `thaqip_ingestion.p2w` is.
+    """
+    cached = getattr(app.state, "boq_engine", None)
+    if cached is not None:
+        return cached
+    try:
+        from thaqip_ingestion import boq as boq_mod
+        from thaqip_ingestion import boq_review as boq_review_mod
+    except ImportError as exc:  # pragma: no cover - depends on deployment
+        raise HTTPException(500, detail={
+            "error": "boq_engine_unavailable",
+            "message_ar": "محرك مراجعة جداول الكميات غير متوفر في هذه النسخة من الخادم.",
+        }) from exc
+    ns = type("BoqEngine", (), {"parser": boq_mod, "review": boq_review_mod})
+    app.state.boq_engine = ns
+    return ns
+
+
+def _boq_minio():
+    """MinIO client for BoQ uploads, created lazily and cached on app.state.
+
+    Follows the same env-var/bucket-per-client shape as
+    thaqip_ingestion.documents.make_minio (see services/ingestion/src/
+    thaqip_ingestion/documents.py), but with its own bucket so a BoQ workbook
+    is never mixed into the general `thaqip-docs` document bucket. Credentials
+    reuse docker-compose's MINIO_ROOT_USER/MINIO_ROOT_PASSWORD (see
+    docker-compose.yml's `minio` service) rather than inventing a second
+    secret; the endpoint defaults to the in-network host:port from that same
+    compose file.
+    """
+    client = getattr(app.state, "boq_minio", None)
+    if client is not None:
+        return client
+    from minio import Minio
+
+    endpoint = os.environ.get("MINIO_ENDPOINT", "minio:9000")
+    access_key = os.environ["MINIO_ROOT_USER"]
+    secret_key = os.environ["MINIO_ROOT_PASSWORD"]
+    secure = os.environ.get("MINIO_SECURE", "0") == "1"
+    client = Minio(endpoint, access_key=access_key, secret_key=secret_key, secure=secure)
+    if not client.bucket_exists(BOQ_BUCKET):
+        client.make_bucket(BOQ_BUCKET)
+    app.state.boq_minio = client
+    return client
+
+
+def _boq_findings_json(rows) -> list[dict[str, Any]]:
+    return [
+        {
+            "id": r["id"] if "id" in r else None,
+            "line_id": r["line_id"],
+            "rule": r["rule"],
+            "severity": r["severity"],
+            "message_ar": r["message_ar"],
+            "suggestion_ar": r["suggestion_ar"],
+        }
+        for r in rows
+    ]
+
+
+@app.post("/api/boq/upload")
+async def upload_boq(
+    request: Request,
+    file: UploadFile = File(...),
+    consent_pool: bool = Form(False),
+    tender_id: int | None = Form(None),
+    tenant_id: int = Tenant,
+):
+    """Upload + parse + deterministically review one priced BoQ workbook.
+
+    Multipart form, not a JSON body, so the fields below are plain FastAPI
+    Form()/File() parameters rather than a Pydantic model (FastAPI cannot mix
+    a BaseModel body with UploadFile in the same request).
+    """
+    filename = file.filename or ""
+    if not filename.lower().endswith(".xlsx"):
+        raise HTTPException(422, detail={
+            "error": "invalid_file_type",
+            "message_ar": "يجب أن يكون الملف المرفوع بصيغة xlsx.",
+        })
+
+    data = await file.read()
+    if len(data) > BOQ_MAX_BYTES:
+        raise HTTPException(422, detail={
+            "error": "file_too_large",
+            "message_ar": "حجم الملف يتجاوز الحد الأقصى المسموح به (10 ميجابايت).",
+        })
+    # xlsx files are zip archives: a correct extension with the wrong magic
+    # bytes is exactly the upload-abuse case the PRD's T-UPL-01 test targets,
+    # so the extension alone is never trusted.
+    if not data.startswith(_XLSX_MAGIC):
+        raise HTTPException(422, detail={
+            "error": "invalid_file_signature",
+            "message_ar": "محتوى الملف لا يطابق تنسيق xlsx الفعلي رغم امتداد الملف؛ تم رفض الملف.",
+        })
+
+    engine = _boq_engine()
+    try:
+        parsed = engine.parser.parse_boq_xlsx(data)
+    except Exception as exc:  # noqa: BLE001 - any parse failure is a 422, not a 500
+        raise HTTPException(422, detail={
+            "error": "boq_parse_failed",
+            "message_ar": "تعذّرت قراءة ملف جدول الكميات؛ يرجى التأكد من أنه ملف Excel صالح غير تالف.",
+        }) from exc
+
+    if not parsed.items:
+        raise HTTPException(422, detail={
+            "error": "boq_parse_failed",
+            "message_ar": "تعذّر التعرف على صف عناوين معروف أو أي بنود في ملف جدول الكميات.",
+        })
+
+    findings = engine.review.review_boq(parsed.items)
+
+    sha256 = hashlib.sha256(data).hexdigest()
+    storage_key = f"boq/{tenant_id}/{uuid.uuid4()}.xlsx"
+
+    minio_client = _boq_minio()
+    minio_client.put_object(
+        BOQ_BUCKET, storage_key, io.BytesIO(data), len(data),
+        content_type=_XLSX_CONTENT_TYPE,
+    )
+
+    who = getattr(request.state, "principal", None) or {}
+    uploaded_by = who.get("user_id")
+
+    total_computed = sum(
+        (it.total for it in parsed.items if it.total is not None), Decimal("0"))
+    # The parser has no notion of a separate "grand total" row distinct from
+    # the sum of line totals; there is nothing honest to put here yet, so it
+    # stays null rather than being faked as equal to total_computed.
+    total_declared: Decimal | None = None
+
+    pool: asyncpg.Pool = app.state.pool
+    async with pool.acquire() as conn, conn.transaction():
+        consent_at = datetime.now(UTC) if consent_pool else None
+        doc_id = await conn.fetchval(
+            """INSERT INTO boq_documents (tenant_id, tender_id, filename, storage_key, sha256,
+                                          scan_status, uploaded_by, consent_pool, consent_at,
+                                          total_declared, total_computed)
+               VALUES ($1,$2,$3,$4,$5,'unscanned',$6,$7,$8,$9,$10) RETURNING id""",
+            tenant_id, tender_id, filename, storage_key, sha256,
+            uploaded_by, consent_pool, consent_at, total_declared, total_computed,
+        )
+
+        line_id_by_line_no: dict[int, int] = {}
+        for it in parsed.items:
+            lid = await conn.fetchval(
+                """INSERT INTO boq_lines (document_id, line_no, category, item, description, spec,
+                                          unit_raw, unit, qty, unit_price, total, text_numbers)
+                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id""",
+                doc_id, it.line_no, it.category, it.item_no, it.description, it.spec,
+                it.unit, it.unit, it.qty, it.unit_price, it.total, it.text_numbers,
+            )
+            line_id_by_line_no[it.line_no] = lid
+
+        for f in findings:
+            await conn.execute(
+                """INSERT INTO boq_findings (document_id, line_id, rule, severity, message_ar, suggestion_ar)
+                   VALUES ($1,$2,$3,$4,$5,$6)""",
+                doc_id, line_id_by_line_no.get(f.line_no), f.rule, f.severity,
+                f.message_ar, f.suggestion_ar,
+            )
+
+        if consent_pool:
+            await conn.execute(
+                """INSERT INTO boq_consents (tenant_id, document_id, scope, granted_at)
+                   VALUES ($1,$2,'item_pool', now())""",
+                tenant_id, doc_id,
+            )
+
+    return {
+        "document_id": doc_id,
+        "total_declared": total_declared,
+        "total_computed": total_computed,
+        "line_count": len(parsed.items),
+        "findings": [
+            {"rule": f.rule, "severity": f.severity, "line_no": f.line_no,
+             "message_ar": f.message_ar, "suggestion_ar": f.suggestion_ar}
+            for f in findings
+        ],
+        "scan_status": "unscanned",
+    }
+
+
+@app.get("/api/boq/{document_id}")
+async def get_boq_document(document_id: int, tenant_id: int = Tenant):
+    pool: asyncpg.Pool = app.state.pool
+    # WHERE id=$1 AND tenant_id=$2, never id=$1 alone: another tenant's
+    # document_id must 404, not leak a cross-tenant read (IDOR requirement).
+    doc = await pool.fetchrow(
+        "SELECT * FROM boq_documents WHERE id=$1 AND tenant_id=$2", document_id, tenant_id)
+    if doc is None:
+        raise HTTPException(404)
+    lines = await pool.fetch(
+        "SELECT * FROM boq_lines WHERE document_id=$1 ORDER BY line_no", document_id)
+    findings = await pool.fetch(
+        "SELECT * FROM boq_findings WHERE document_id=$1 ORDER BY id", document_id)
+    return {
+        "document": dict(doc),
+        "lines": [dict(r) for r in lines],
+        "findings": _boq_findings_json(findings),
+    }
+
+
+@app.get("/api/boq")
+async def list_boq_documents(
+    limit: int = Query(50, le=200),
+    offset: int = 0,
+    tenant_id: int = Tenant,
+):
+    pool: asyncpg.Pool = app.state.pool
+    rows = await pool.fetch(
+        """SELECT d.id, d.filename, d.created_at, d.total_declared, d.total_computed,
+                  d.scan_status, d.consent_pool, d.tender_id,
+                  coalesce((SELECT count(*) FROM boq_lines l WHERE l.document_id = d.id), 0) AS line_count,
+                  coalesce((SELECT count(*) FROM boq_findings f
+                             WHERE f.document_id = d.id AND f.severity = 'critical'), 0) AS critical_count,
+                  coalesce((SELECT count(*) FROM boq_findings f
+                             WHERE f.document_id = d.id AND f.severity = 'warning'), 0) AS warning_count,
+                  coalesce((SELECT count(*) FROM boq_findings f
+                             WHERE f.document_id = d.id AND f.severity = 'info'), 0) AS info_count
+           FROM boq_documents d
+           WHERE d.tenant_id = $1
+           ORDER BY d.created_at DESC
+           LIMIT $2 OFFSET $3""",
+        tenant_id, limit, offset,
+    )
+    return [dict(r) for r in rows]
+
+
+@app.delete("/api/boq/{document_id}")
+async def delete_boq_document(document_id: int, tenant_id: int = Tenant):
+    pool: asyncpg.Pool = app.state.pool
+    doc = await pool.fetchrow(
+        "SELECT storage_key FROM boq_documents WHERE id=$1 AND tenant_id=$2",
+        document_id, tenant_id)
+    if doc is None:
+        raise HTTPException(404)
+    try:
+        _boq_minio().remove_object(BOQ_BUCKET, doc["storage_key"])
+    except Exception as exc:  # noqa: BLE001 - the DB row is the source of truth;
+        # a MinIO hiccup must not block the tenant from deleting their record.
+        log.warning("failed to remove boq object %s: %r", doc["storage_key"], exc)
+    # boq_lines/boq_findings/boq_consents cascade via ON DELETE CASCADE
+    # (see db/migrations/0022_boq_workbench.sql).
+    await pool.execute(
+        "DELETE FROM boq_documents WHERE id=$1 AND tenant_id=$2", document_id, tenant_id)
+    return {"deleted": True}

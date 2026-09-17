@@ -28,10 +28,28 @@ MIN_CONFIDENCE = 0.5
 _MAX_HEADER_SCAN = 15
 _EMPTY_STREAK_STOP = 20
 
+# Confidence coverage is measured against this original core column set so
+# that recognizing the newer priced-line fields (category/spec/unit_price/
+# total) never *lowers* confidence for BOQs that only carry the original
+# four columns; richer headers simply cap out at full coverage.
+_CORE_FIELDS = ("item_no", "description", "unit", "qty")
+
 _COLUMN_PATTERNS: dict[str, list[str]] = {
-    "item_no": [r"^م$", r"رقم\s*البند", r"^البند$", r"^رقم$", r"^#$", r"item"],
-    "description": [r"وصف", r"البيان", r"بيان\s*الأعمال", r"الأعمال", r"description"],
-    "unit": [r"الوحدة", r"وحدة\s*القياس", r"unit"],
+    # Order matters: fields with narrower/overlapping labels (e.g. "سعر الوحدة"
+    # containing the substring "الوحدة") must be checked before the broader
+    # "unit" pattern, or the greedy unit pattern would swallow the price column.
+    "item_no": [r"^م$", r"رقم\s*البند", r"الرقم\s*التسلسلي", r"^البند$", r"^رقم$", r"^#$", r"item"],
+    "category": [r"^الفئة$", r"الفئة", r"category"],
+    "unit_price": [r"سعر\s*الوحدة", r"unit\s*price", r"سعر"],
+    "total": [r"الإجمالي", r"اجمالي", r"إجمالي", r"total", r"المجموع", r"amount"],
+    "spec": [r"المواصفات", r"مواصفات", r"specification", r"^spec"],
+    # "الأعمال" and "الوحدة" alone are risky as free substrings: real Arabic
+    # BoQ descriptions/specs routinely contain those exact words in prose
+    # (e.g. "الوحدة الرئيسية لإستدعاء الممرضات", "...جميع الأعمال المدنية").
+    # Anchor them to the *whole* header-cell text so a data row's description
+    # is never mistaken for a repeated header row.
+    "description": [r"وصف", r"البيان", r"بيان\s*الأعمال", r"^الأعمال$", r"description"],
+    "unit": [r"^الوحدة$", r"وحدة\s*القياس", r"^unit$"],
     "qty": [r"الكمية", r"كمية", r"qty", r"quantity"],
 }
 
@@ -67,12 +85,27 @@ def _to_decimal(cell) -> Decimal | None:
         return None
 
 
+def _is_formula(cell) -> bool:
+    return isinstance(cell, str) and cell.strip().startswith("=")
+
+
+def _is_text_number(cell) -> bool:
+    """True when a numeric-looking cell was stored as text (not a formula)."""
+    return isinstance(cell, str) and not _is_formula(cell)
+
+
 @dataclass
 class BoqItem:
     item_no: str | None
     description: str
     unit: str | None
     qty: Decimal | None
+    category: str | None = None
+    spec: str | None = None
+    unit_price: Decimal | None = None
+    total: Decimal | None = None
+    text_numbers: bool = False
+    line_no: int = 0
 
 
 @dataclass
@@ -86,7 +119,11 @@ class BoqParseResult:
 def parse_boq_xlsx(data: bytes) -> BoqParseResult:
     import openpyxl
 
-    wb = openpyxl.load_workbook(io.BytesIO(data), read_only=True, data_only=True)
+    # data_only=False: we need the raw formula string (e.g. "=H2*I2") for the
+    # `total` column so we can evaluate it ourselves. Cached computed values
+    # (as data_only=True would give) are absent from workbooks openpyxl itself
+    # wrote (no formula engine), which our own test fixtures rely on.
+    wb = openpyxl.load_workbook(io.BytesIO(data), read_only=True, data_only=False)
     items: list[BoqItem] = []
     notes: list[str] = []
     sheets_parsed = 0
@@ -113,7 +150,7 @@ def parse_boq_xlsx(data: bytes) -> BoqParseResult:
             continue
 
         sheets_parsed += 1
-        coverage = len(header_map) / len(_COLUMN_PATTERNS)
+        coverage = min(1.0, len(header_map) / len(_CORE_FIELDS))
         best_coverage = max(best_coverage, coverage)
         inv = {v: k for k, v in header_map.items()}
         empty_streak = 0
@@ -131,13 +168,36 @@ def parse_boq_xlsx(data: bytes) -> BoqParseResult:
             empty_streak = 0
             if _match_column(desc):  # repeated header row inside the sheet
                 continue
+            qty_raw = get("qty")
+            price_raw = get("unit_price")
+            total_raw = get("total")
+
+            qty = _to_decimal(qty_raw)
+            unit_price = _to_decimal(price_raw)
+
+            if _is_formula(total_raw):
+                total_val = qty * unit_price if qty is not None and unit_price is not None else None
+            else:
+                total_val = _to_decimal(total_raw)
+
+            text_numbers = (
+                (qty is not None and _is_text_number(qty_raw))
+                or (unit_price is not None and _is_text_number(price_raw))
+            )
+
+            kept_rows += 1
             items.append(BoqItem(
                 item_no=_norm(get("item_no")) or None,
                 description=desc,
                 unit=_norm(get("unit")) or None,
-                qty=_to_decimal(get("qty")),
+                qty=qty,
+                category=_norm(get("category")) or None,
+                spec=_norm(get("spec")) or None,
+                unit_price=unit_price,
+                total=total_val,
+                text_numbers=text_numbers,
+                line_no=kept_rows,
             ))
-            kept_rows += 1
 
     row_ratio = (kept_rows / total_rows) if total_rows else 0.0
     confidence = round(best_coverage * (0.5 + 0.5 * row_ratio), 3) if items else 0.0

@@ -172,6 +172,13 @@ services:
       <<: *db-url
       TYPESENSE_URL: http://typesense:8108
       TYPESENSE_KEY: ${TYPESENSE_API_KEY:-thaqip_dev_search}
+      # BoQ workbench uploads (db/migrations/0022): the console is the first
+      # service that actually talks to MinIO at runtime, so these must be
+      # wired here explicitly — they were previously only set on the `minio`
+      # service itself, which left the console's client with no credentials.
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-thaqip}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-thaqip_dev_secret}
     # Docker publishes ports through its own iptables chain and bypasses ufw,
     # so the bind address is the control. Loopback here; per-host extras (the
     # laptop's Tailscale address) live in docker-compose.override.yml, and
@@ -183,7 +190,9 @@ services:
       timeout: 6s
       retries: 5
       start_period: 20s
-    depends_on: *needs-db
+    depends_on:
+      <<: *needs-db
+      minio: {condition: service_healthy, restart: true}
     logging: *logging
     restart: unless-stopped
 
