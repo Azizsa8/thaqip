@@ -497,6 +497,17 @@ class PursuitIn(BaseModel):
     tender_id: int
 
 
+# PRD "Thaqip for Contractors" §5.2: the fixed bid-pipeline milestone
+# sequence, seeded for every pursuit at creation (see create_pursuit below).
+# 'awarded' and 'lost' are mutually exclusive outcomes, not sequential steps;
+# both are seeded so the checklist UI has a row for either, but only one is
+# ever expected to end up completed.
+MILESTONE_SEQUENCE = (
+    "booklet_purchased", "site_visit", "enquiries_deadline", "addenda_received",
+    "bond_issued", "submitted", "opened", "awarded", "lost",
+)
+
+
 async def _forsah_enrichment(source_uid: str) -> tuple[list[tuple[str, str, str, int]], list[str]]:
     """Forsah publicly declares required documents AND line items per
     opportunity — real compliance + BOQ data, no extraction needed.
@@ -553,6 +564,18 @@ async def create_pursuit(body: PursuitIn, tenant_id: int = Tenant):
                 """INSERT INTO compliance_items
                      (pursuit_id, requirement, category, source_ref, origin, sort_order)
                    VALUES ($1,$2,$3,$4,'rule',$5)""", pid, req, cat, ref, order)
+        details = await conn.fetchrow(
+            "SELECT site_visit_date FROM tender_details WHERE tender_id=$1", body.tender_id)
+        milestone_due_at = {
+            "enquiries_deadline": t["last_enquiries_date"],
+            "submitted": t["last_offer_date"],
+            "site_visit": details["site_visit_date"] if details else None,
+        }
+        for m in MILESTONE_SEQUENCE:
+            await conn.execute(
+                """INSERT INTO pursuit_milestones (pursuit_id, milestone, due_at)
+                   VALUES ($1,$2,$3) ON CONFLICT (pursuit_id, milestone) DO NOTHING""",
+                pid, m, milestone_due_at.get(m))
         for i, name in enumerate(forsah_boq, 1):
             await conn.execute(
                 """INSERT INTO boq_items (tender_id, item_no, description, confidence)
@@ -702,6 +725,78 @@ async def patch_stage(pid: int, body: StagePatch, tenant_id: int = Tenant):
     if n.endswith("0"):
         raise HTTPException(404)
     return {"ok": True}
+
+
+class MilestonePatch(BaseModel):
+    due_at: datetime | None = None
+    completed_at: datetime | None = None
+    data: dict[str, Any] | None = None
+
+
+async def _pursuit_owned_by_tenant(pool: asyncpg.Pool, pid: int, tenant_id: int) -> bool:
+    return await pool.fetchval(
+        "SELECT 1 FROM pursuits WHERE id=$1 AND tenant_id=$2", pid, tenant_id) is not None
+
+
+def _milestone_json(row) -> dict[str, Any]:
+    d = dict(row)
+    if isinstance(d.get("data"), str):
+        d["data"] = json.loads(d["data"])
+    return d
+
+
+@app.get("/api/pursuits/{pid}/milestones")
+async def list_milestones(pid: int, tenant_id: int = Tenant):
+    pool: asyncpg.Pool = app.state.pool
+    if not await _pursuit_owned_by_tenant(pool, pid, tenant_id):
+        raise HTTPException(404)
+    rows = await pool.fetch(
+        "SELECT * FROM pursuit_milestones WHERE pursuit_id=$1", pid)
+    by_milestone = {r["milestone"]: _milestone_json(r) for r in rows}
+    # Always return the full fixed sequence, in order, even for pursuits
+    # created before this feature shipped and never seeded.
+    return [
+        by_milestone.get(m, {"pursuit_id": pid, "milestone": m, "due_at": None,
+                              "completed_at": None, "data": {}})
+        for m in MILESTONE_SEQUENCE
+    ]
+
+
+@app.patch("/api/pursuits/{pid}/milestones/{milestone}")
+async def patch_milestone(pid: int, milestone: str, body: MilestonePatch, tenant_id: int = Tenant):
+    if milestone not in MILESTONE_SEQUENCE:
+        raise HTTPException(422, detail={"error": "unknown_milestone"})
+    pool: asyncpg.Pool = app.state.pool
+    if not await _pursuit_owned_by_tenant(pool, pid, tenant_id):
+        raise HTTPException(404)
+    # The row always exists (seeded at pursuit creation), but a pursuit
+    # created before this feature shipped may not have it yet.
+    existing = await pool.fetchval(
+        "SELECT id FROM pursuit_milestones WHERE pursuit_id=$1 AND milestone=$2", pid, milestone)
+    if existing is None:
+        await pool.execute(
+            "INSERT INTO pursuit_milestones (pursuit_id, milestone) VALUES ($1,$2)",
+            pid, milestone)
+    set_clauses = []
+    args: list[Any] = [pid, milestone]
+    if body.due_at is not None or "due_at" in body.model_fields_set:
+        args.append(body.due_at)
+        set_clauses.append(f"due_at=${len(args)}")
+    if body.completed_at is not None or "completed_at" in body.model_fields_set:
+        args.append(body.completed_at)
+        set_clauses.append(f"completed_at=${len(args)}")
+    if body.data is not None:
+        args.append(json.dumps(body.data))
+        set_clauses.append(f"data=${len(args)}::jsonb")
+    if set_clauses:
+        await pool.execute(
+            f"UPDATE pursuit_milestones SET {', '.join(set_clauses)}, updated_at=now() "
+            f"WHERE pursuit_id=$1 AND milestone=$2",
+            *args,
+        )
+    row = await pool.fetchrow(
+        "SELECT * FROM pursuit_milestones WHERE pursuit_id=$1 AND milestone=$2", pid, milestone)
+    return _milestone_json(row)
 
 
 class OutcomeIn(BaseModel):
